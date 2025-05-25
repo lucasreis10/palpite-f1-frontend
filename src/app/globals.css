@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #F8F4F4;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #f5f4f4;
+    --foreground: #313030;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', sans-serif;
+}
+
+@layer base {
+  select {
+    background-color: #ececec;
+    color: #F8F4F4;
+    border-color: #4A4A53;
+  }
+  
+  select option {
+    background-color: #38383F;
+    color: #F8F4F4;
+  }
+}

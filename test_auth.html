@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Autenticação</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #dc2626; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #b91c1c; }
+        .result { margin-top: 20px; padding: 10px; border-radius: 4px; }
+        .success { background: #d1fae5; color: #065f46; }
+        .error { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Teste de Autenticação - Palpite F1</h1>
+        
+        <h2>Registro</h2>
+        <form id="registerForm">
+            <div class="form-group">
+                <label>Nome:</label>
+                <input type="text" id="registerName" value="Teste User" required>
+            </div>
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" id="registerEmail" value="teste@email.com" required>
+            </div>
+            <div class="form-group">
+                <label>Senha:</label>
+                <input type="password" id="registerPassword" value="123456" required>
+            </div>
+            <button type="submit">Registrar</button>
+        </form>
+        <div id="registerResult"></div>
+
+        <h2>Login</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" id="loginEmail" value="teste@email.com" required>
+            </div>
+            <div class="form-group">
+                <label>Senha:</label>
+                <input type="password" id="loginPassword" value="123456" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+        <div id="loginResult"></div>
+
+        <h2>Teste de Requisição Autenticada</h2>
+        <button onclick="testAuthenticatedRequest()">Testar Requisição com Token</button>
+        <div id="authTestResult"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8081/api';
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const resultDiv = document.getElementById('registerResult');
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: document.getElementById('registerName').value,
+                        email: document.getElementById('registerEmail').value,
+                        password: document.getElementById('registerPassword').value
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `Sucesso! Token: ${data.token.substring(0, 20)}...`;
+                    localStorage.setItem('auth_token', data.token);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `Erro: ${JSON.stringify(data)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `Erro: ${error.message}`;
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const resultDiv = document.getElementById('loginResult');
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('loginEmail').value,
+                        password: document.getElementById('loginPassword').value
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `Sucesso! Token: ${data.token.substring(0, 20)}... | Nome: ${data.name} | Role: ${data.role}`;
+                    localStorage.setItem('auth_token', data.token);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `Erro: ${JSON.stringify(data)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `Erro: ${error.message}`;
+            }
+        });
+
+        async function testAuthenticatedRequest() {
+            const resultDiv = document.getElementById('authTestResult');
+            const token = localStorage.getItem('auth_token');
+            
+            if (!token) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = 'Nenhum token encontrado. Faça login primeiro.';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/users`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `Requisição autenticada funcionou! Dados: ${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `Erro na requisição: ${response.status} - ${response.statusText}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `Erro: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: palpite-f1-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: palpite_f1
+      MYSQL_USER: palpite_f1
+      MYSQL_PASSWORD: palpite_f1
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - palpite-f1-network
+
+  adminer:
+    image: adminer
+    container_name: palpite-f1-adminer
+    ports:
+      - "8080:8080"
+    networks:
+      - palpite-f1-network
+
+volumes:
+  mysql_data:
+
+networks:
+  palpite-f1-network:
+    driver: bridge 

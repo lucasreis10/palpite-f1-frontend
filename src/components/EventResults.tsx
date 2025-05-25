@@ -1,0 +1,155 @@
+interface Driver {
+  id: number;
+  name: string;
+  team: string;
+  position: number;
+}
+
+interface Prediction {
+  id: number;
+  user: {
+    id: number;
+    name: string;
+    team: string;
+  };
+  predictions: Driver[];
+  points: number;
+  accuracy: number;
+}
+
+interface EventResultsProps {
+  eventName: string;
+  date: string;
+  type: 'qualifying' | 'race';
+  officialResults: Driver[];
+  predictions: Prediction[];
+}
+
+export function EventResults({ eventName, date, type, officialResults, predictions }: EventResultsProps) {
+  // Ordenar palpites por pontuação
+  const sortedPredictions = [...predictions].sort((a, b) => b.points - a.points);
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">
+              {type === 'qualifying' ? 'Resultado da Classificação' : 'Resultado da Corrida'}
+            </h2>
+            <p className="text-gray-600">{date}</p>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Resultado Oficial */}
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Resultado Oficial</h3>
+            <div className="bg-gray-50 rounded-lg p-4">
+              {officialResults.slice(0, 10).map((driver) => (
+                <div 
+                  key={driver.id}
+                  className="flex items-center justify-between py-2 border-b border-gray-200 last:border-0"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold ${
+                      driver.position <= 3 ? 'bg-green-100 text-green-800' : 
+                      driver.position <= 6 ? 'bg-blue-100 text-blue-800' : 
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {driver.position}
+                    </span>
+                    <div>
+                      <p className="font-medium text-gray-900">{driver.name}</p>
+                      <p className="text-sm text-gray-500">{driver.team}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Todos os Palpites */}
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Palpites dos Participantes</h3>
+            <div className="space-y-4">
+              {sortedPredictions.map((prediction, index) => {
+                // Definir o estilo baseado na posição
+                let style = "border-2 ";
+                if (index < 3) {
+                  style += "border-green-500 bg-green-50";
+                } else if (index < 5) {
+                  style += "border-blue-500 bg-blue-50";
+                } else if (index < 10) {
+                  style += "border-yellow-500 bg-yellow-50";
+                } else {
+                  style += "border-gray-200 bg-gray-50";
+                }
+
+                return (
+                  <div 
+                    key={prediction.id}
+                    className={`rounded-lg p-4 ${style}`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold ${
+                          index < 3 ? 'bg-green-200 text-green-800' :
+                          index < 5 ? 'bg-blue-200 text-blue-800' :
+                          index < 10 ? 'bg-yellow-200 text-yellow-800' :
+                          'bg-gray-200 text-gray-800'
+                        }`}>
+                          {index + 1}
+                        </span>
+                        <div>
+                          <p className="font-medium text-gray-900">{prediction.user.name}</p>
+                          <p className="text-sm text-gray-500">{prediction.user.team}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-f1-red">{prediction.points} pts</p>
+                        <p className="text-sm text-gray-500">{(prediction.accuracy * 100).toFixed(0)}% acertos</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2 mt-3 p-2 bg-white rounded-lg">
+                      {prediction.predictions.slice(0, 6).map((driver, idx) => (
+                        <div 
+                          key={driver.id}
+                          className="flex items-center gap-2"
+                        >
+                          <span className={`text-sm px-2 py-1 rounded-full ${
+                            idx < 3 ? 'bg-green-100 text-green-800' :
+                            idx < 6 ? 'bg-blue-100 text-blue-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>{idx + 1}.</span>
+                          <span className="text-sm text-gray-900">{driver.name}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {index < 3 && (
+                      <div className="mt-2 text-sm text-green-600 font-medium">
+                        🏆 Pódio - Top 3
+                      </div>
+                    )}
+                    {index >= 3 && index < 5 && (
+                      <div className="mt-2 text-sm text-blue-600 font-medium">
+                        ⭐ Top 5
+                      </div>
+                    )}
+                    {index >= 5 && index < 10 && (
+                      <div className="mt-2 text-sm text-yellow-600 font-medium">
+                        ✨ Top 10
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+} 
