@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import React, { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { authService, User, LoginRequest, RegisterRequest } from '@/services/auth';
 
 interface AuthContextType {
@@ -30,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await authService.login(credentials);
       const userData: User = {
-        id: 0,
+        id: response.id,
         name: response.name,
         email: response.email,
         role: response.role,
@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await authService.register(userData);
       const newUser: User = {
-        id: 0,
+        id: response.id,
         name: response.name,
         email: response.email,
         role: response.role,
@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-  const value: AuthContextType = {
+  const contextValue: AuthContextType = {
     user,
     isLoading,
     isAuthenticated: !!user,
@@ -76,10 +76,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
+  return React.createElement(
+    AuthContext.Provider,
+    { value: contextValue },
+    children
   );
 }
 
@@ -89,4 +89,4 @@ export function useAuth() {
     throw new Error('useAuth deve ser usado dentro de um AuthProvider');
   }
   return context;
-} 
+}

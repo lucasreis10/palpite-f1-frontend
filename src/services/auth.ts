@@ -12,6 +12,7 @@ export interface RegisterRequest {
 }
 
 export interface AuthResponse {
+  id: number;
   token: string;
   name: string;
   email: string;
@@ -48,6 +49,7 @@ class AuthService {
     if (data.token) {
       localStorage.setItem('auth_token', data.token);
       localStorage.setItem('user_data', JSON.stringify({
+        id: data.id,
         name: data.name,
         email: data.email,
         role: data.role
@@ -80,6 +82,7 @@ class AuthService {
     if (data.token) {
       localStorage.setItem('auth_token', data.token);
       localStorage.setItem('user_data', JSON.stringify({
+        id: data.id,
         name: data.name,
         email: data.email,
         role: data.role
@@ -121,7 +124,6 @@ class AuthService {
 
   getCurrentUser(): User | null {
     if (typeof window === 'undefined') return null;
-    
     const userData = localStorage.getItem('user_data');
     if (!userData) return null;
 

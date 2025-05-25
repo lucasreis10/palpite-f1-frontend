@@ -1,75 +1,59 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import Link from 'next/link';
-
-// Dados mockados para exemplo
-const topDrivers = [
-  { id: 1, name: 'João Silva', team: 'Red Bull Racing', points: 245, position: 1, lastPosition: 1 },
-  { id: 2, name: 'Maria Santos', team: 'Ferrari', points: 220, position: 2, lastPosition: 2 },
-  { id: 3, name: 'Pedro Oliveira', team: 'Mercedes', points: 198, position: 3, lastPosition: 4 },
-  { id: 4, name: 'Ana Costa', team: 'McLaren', points: 187, position: 4, lastPosition: 3 },
-  { id: 5, name: 'Lucas Ferreira', team: 'Aston Martin', points: 156, position: 5, lastPosition: 6 },
-  { id: 6, name: 'Carolina Lima', team: 'Alpine', points: 134, position: 6, lastPosition: 5 },
-  { id: 7, name: 'Rafael Souza', team: 'Williams', points: 98, position: 7, lastPosition: 8 },
-  { id: 8, name: 'Beatriz Almeida', team: 'Haas F1 Team', points: 76, position: 8, lastPosition: 10 },
-  { id: 9, name: 'Gabriel Costa', team: 'RB', points: 65, position: 9, lastPosition: 7 },
-  { id: 10, name: 'Isabella Santos', team: 'Kick Sauber', points: 45, position: 10, lastPosition: 9 },
-];
-
-const topTeams = [
-  { 
-    id: 1, 
-    name: 'Red Bull Racing', 
-    points: 465,
-    members: [
-      { name: 'João Silva', points: 245 },
-      { name: 'Pedro Santos', points: 220 }
-    ]
-  },
-  { 
-    id: 2, 
-    name: 'Ferrari', 
-    points: 418,
-    members: [
-      { name: 'Maria Santos', points: 220 },
-      { name: 'Carlos Oliveira', points: 198 }
-    ]
-  },
-  { 
-    id: 3, 
-    name: 'Mercedes', 
-    points: 385,
-    members: [
-      { name: 'Pedro Oliveira', points: 198 },
-      { name: 'Lucas Alves', points: 187 }
-    ]
-  },
-  { 
-    id: 4, 
-    name: 'McLaren', 
-    points: 343,
-    members: [
-      { name: 'Ana Costa', points: 187 },
-      { name: 'Bruno Silva', points: 156 }
-    ]
-  },
-  { 
-    id: 5, 
-    name: 'Aston Martin', 
-    points: 290,
-    members: [
-      { name: 'Lucas Ferreira', points: 156 },
-      { name: 'Fernando Dias', points: 134 }
-    ]
-  },
-];
-
-const nextRaces = [
-  { id: 1, name: 'GP de São Paulo', circuit: 'Autódromo de Interlagos', date: '05/11/2024', time: '14:00' },
-  { id: 2, name: 'GP de Las Vegas', circuit: 'Las Vegas Street Circuit', date: '19/11/2024', time: '22:00' },
-  { id: 3, name: 'GP de Abu Dhabi', circuit: 'Yas Marina Circuit', date: '03/12/2024', time: '10:00' },
-];
+import { dashboardService, NextRace, LastResult, TopUser, DashboardStats } from '@/services/dashboard';
 
 export default function Home() {
+  const [nextRaces, setNextRaces] = useState<NextRace[]>([]);
+  const [lastResult, setLastResult] = useState<LastResult | null>(null);
+  const [topUsers, setTopUsers] = useState<TopUser[]>([]);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Carregar dados em paralelo
+        const [racesData, resultData, usersData, statsData] = await Promise.all([
+          dashboardService.getNextRaces(),
+          dashboardService.getLastResult(),
+          dashboardService.getTopUsers(10),
+          dashboardService.getDashboardStats(),
+        ]);
+
+        setNextRaces(racesData);
+        setLastResult(resultData);
+        setTopUsers(usersData);
+        setStats(statsData);
+      } catch (error) {
+        console.error('Erro ao carregar dados da dashboard:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, []);
+  if (isLoading) {
+    return (
+      <main className="min-h-screen bg-white">
+        <Header />
+        <div className="max-w-7xl mx-auto p-6">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Carregando dados da dashboard...</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-white">
       <Header />
@@ -106,49 +90,47 @@ export default function Home() {
 
           {/* Último Resultado */}
           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Último Resultado - GP do Bahrein</h2>
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-bold text-gray-900 mb-2">Classificação</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-green-100 text-green-800 flex items-center justify-center font-bold text-sm">1</span>
-                    <span className="text-gray-600">Max Verstappen</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-green-100 text-green-800 flex items-center justify-center font-bold text-sm">2</span>
-                    <span className="text-gray-600">Charles Leclerc</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-green-100 text-green-800 flex items-center justify-center font-bold text-sm">3</span>
-                    <span className="text-gray-600">Lewis Hamilton</span>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900 mb-2">Corrida</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-green-100 text-green-800 flex items-center justify-center font-bold text-sm">1</span>
-                    <span className="text-gray-600">Max Verstappen</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-green-100 text-green-800 flex items-center justify-center font-bold text-sm">2</span>
-                    <span className="text-gray-600">Sergio Pérez</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-green-100 text-green-800 flex items-center justify-center font-bold text-sm">3</span>
-                    <span className="text-gray-600">Carlos Sainz</span>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Último Resultado - {lastResult?.grandPrixName || 'Nenhum resultado disponível'}
+            </h2>
+            {lastResult ? (
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-2">Classificação</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {lastResult.qualifyingResults.slice(0, 3).map((result) => (
+                      <div key={result.position} className="flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-full bg-green-100 text-green-800 flex items-center justify-center font-bold text-sm">
+                          {result.position}
+                        </span>
+                        <span className="text-gray-600">{result.pilotName}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <Link 
-                  href="/ultimo-evento"
-                  className="inline-block mt-4 text-f1-red hover:text-f1-red/80 transition-colors font-medium text-sm"
-                >
-                  Ver resultado completo →
-                </Link>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-2">Corrida</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {lastResult.raceResults.slice(0, 3).map((result) => (
+                      <div key={result.position} className="flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-full bg-green-100 text-green-800 flex items-center justify-center font-bold text-sm">
+                          {result.position}
+                        </span>
+                        <span className="text-gray-600">{result.pilotName}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <Link 
+                    href="/ultimo-evento"
+                    className="inline-block mt-4 text-f1-red hover:text-f1-red/80 transition-colors font-medium text-sm"
+                  >
+                    Ver resultado completo →
+                  </Link>
+                </div>
               </div>
-            </div>
+            ) : (
+              <p className="text-gray-500">Nenhum resultado disponível ainda.</p>
+            )}
           </div>
         </div>
 
@@ -165,29 +147,28 @@ export default function Home() {
               </Link>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
-              {topDrivers.map((driver) => (
+              {topUsers.map((user) => (
                 <div 
-                  key={driver.id}
+                  key={user.id}
                   className="flex items-center justify-between p-4 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center gap-4">
                     <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
-                      driver.position <= 3 ? 'bg-green-100 text-green-800' : 
-                      driver.position <= 6 ? 'bg-blue-100 text-blue-800' : 
+                      user.position <= 3 ? 'bg-green-100 text-green-800' : 
+                      user.position <= 6 ? 'bg-blue-100 text-blue-800' : 
                       'bg-gray-100 text-gray-800'
                     }`}>
-                      {driver.position}
+                      {user.position}
                     </span>
                     <div>
-                      <p className="font-medium text-gray-900">{driver.name}</p>
-                      <p className="text-sm text-gray-500">{driver.team}</p>
+                      <p className="font-medium text-gray-900">{user.name}</p>
+                      <p className="text-sm text-gray-500">{user.email}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-gray-900">{driver.points} pts</p>
+                    <p className="font-bold text-gray-900">{user.totalScore} pts</p>
                     <p className="text-sm text-gray-500">
-                      {driver.lastPosition === driver.position ? 'Manteve' : 
-                       driver.lastPosition > driver.position ? '↑' : '↓'}
+                      Posição {user.position}
                     </p>
                   </div>
                 </div>
@@ -196,65 +177,32 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Top 5 Equipes */}
-        <section className="mb-12">
-          <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Top 5 Equipes</h2>
-              <Link 
-                href="/equipes"
-                className="text-f1-red hover:text-f1-red/80 transition-colors font-medium"
-              >
-                Ver todas as equipes →
-              </Link>
-            </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {topTeams.map((team) => (
-                <div 
-                  key={team.id}
-                  className="p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
-                      team.id <= 3 ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
-                    }`}>
-                      {team.id}
-                    </span>
-                    <h3 className="font-bold text-gray-900">{team.name}</h3>
-                  </div>
-                  <p className="text-2xl font-bold text-f1-red mb-3">{team.points} pts</p>
-                  <div className="space-y-2">
-                    {team.members.map((member, index) => (
-                      <div key={index} className="flex justify-between text-sm">
-                        <span className="text-gray-600">{member.name}</span>
-                        <span className="font-medium text-gray-900">{member.points} pts</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+
 
         {/* Estatísticas Gerais */}
         <section>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
               <h3 className="text-lg font-bold text-gray-900 mb-2">Melhor Pontuação</h3>
-              <p className="text-3xl font-bold text-f1-red">32 pontos</p>
-              <p className="text-gray-600">João Silva - GP da Austrália</p>
+              <p className="text-3xl font-bold text-f1-red">
+                {stats?.bestScore.score || 0} pontos
+              </p>
+              <p className="text-gray-600">
+                {stats?.bestScore.userName || 'N/A'} - {stats?.bestScore.grandPrixName || 'N/A'}
+              </p>
             </div>
 
             <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
               <h3 className="text-lg font-bold text-gray-900 mb-2">Total de Palpites</h3>
-              <p className="text-3xl font-bold text-f1-red">1.248</p>
-              <p className="text-gray-600">em 15 corridas</p>
+              <p className="text-3xl font-bold text-f1-red">{stats?.totalGuesses || 0}</p>
+              <p className="text-gray-600">em {stats?.totalRaces || 0} corridas</p>
             </div>
 
             <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
               <h3 className="text-lg font-bold text-gray-900 mb-2">Média por Corrida</h3>
-              <p className="text-3xl font-bold text-f1-red">83,2</p>
+              <p className="text-3xl font-bold text-f1-red">
+                {stats?.averageGuessesPerRace?.toFixed(1) || '0.0'}
+              </p>
               <p className="text-gray-600">palpites por corrida</p>
             </div>
           </div>
