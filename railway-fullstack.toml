@@ -1,0 +1,25 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "npm run start"
+healthcheckPath = "/"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+
+[[services]]
+name = "palpite-f1-frontend"
+source = "."
+
+[services.variables]
+NODE_ENV = "production"
+NEXT_PUBLIC_API_URL = "${{RAILWAY_STATIC_URL}}/api"
+
+[[services]]
+name = "palpite-f1-database"
+source = "postgresql"
+
+[services.variables]
+POSTGRES_DB = "palpitef1"
+POSTGRES_USER = "postgres"
+POSTGRES_PASSWORD = "${{POSTGRES_PASSWORD}}" 

@@ -1,0 +1,46 @@
+name: palpite-f1
+services:
+  # Frontend
+  - name: frontend
+    source_dir: /
+    github:
+      repo: seu-usuario/palpite-f1
+      branch: main
+    run_command: npm start
+    build_command: npm run build
+    environment_slug: node-js
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: ${backend.PUBLIC_URL}/api
+    routes:
+      - path: /
+    
+  # Backend (se você tiver separado)
+  - name: backend
+    source_dir: /backend
+    github:
+      repo: seu-usuario/palpite-f1
+      branch: main
+    run_command: java -jar app.jar
+    build_command: ./gradlew build && cp build/libs/*.jar app.jar
+    environment_slug: java
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    envs:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: DATABASE_URL
+        value: ${db.DATABASE_URL}
+    routes:
+      - path: /api
+
+# Banco de dados
+databases:
+  - name: db
+    engine: PG
+    version: "13"
+    size: basic-xs 

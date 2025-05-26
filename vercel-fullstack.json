@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "env": {
+    "DATABASE_URL": "@database_url",
+    "JWT_SECRET": "@jwt_secret",
+    "CORS_ORIGINS": "@cors_origins"
+  },
+  "functions": {
+    "src/pages/api/**/*.ts": {
+      "runtime": "@vercel/node"
+    }
+  }
+} 
