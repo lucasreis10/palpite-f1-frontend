@@ -226,12 +226,12 @@ export default function RankingPage() {
           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
             <h3 className="text-lg font-bold text-gray-900 mb-2">Maior Pontuação</h3>
             <p className="text-3xl font-bold text-f1-red">
-              {stats?.bestScore?.score ? `${stats.bestScore.score} pontos` : '32 pontos'}
+              {stats?.bestScore?.score ? `${stats.bestScore.score} pontos` : 'Sem Pontuação'}
             </p>
             <p className="text-gray-600">
               {stats?.bestScore?.userName && stats?.bestScore?.grandPrixName 
                 ? `${stats.bestScore.userName} - ${stats.bestScore.grandPrixName}`
-                : 'João Silva - GP da Austrália'
+                : 'Sem Dados.'
               }
             </p>
           </div>
@@ -247,10 +247,10 @@ export default function RankingPage() {
           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
             <h3 className="text-lg font-bold text-gray-900 mb-2">Total de Palpites</h3>
             <p className="text-3xl font-bold text-f1-red">
-              {stats?.totalGuesses || '114'}
+              {stats?.totalGuesses || '0'}
             </p>
             <p className="text-gray-600">
-              em {stats?.totalRaces || '15'} corridas
+              em {stats?.totalRaces || '0'} corridas
             </p>
           </div>
         </div>
