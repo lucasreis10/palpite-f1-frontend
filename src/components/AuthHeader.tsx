@@ -17,6 +17,24 @@ export default function AuthHeader() {
     setIsLoading(false);
   }, []);
 
+  // Fechar dropdown quando clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (showDropdown && !target.closest('[data-auth-dropdown]')) {
+        setShowDropdown(false);
+      }
+    };
+
+    if (showDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showDropdown]);
+
   const handleLogout = () => {
     authService.logout();
     setUser(null);
@@ -52,7 +70,7 @@ export default function AuthHeader() {
   }
 
   return (
-    <div className="relative">
+    <div className="relative" data-auth-dropdown>
       <button
         onClick={() => setShowDropdown(!showDropdown)}
         className="flex items-center space-x-3 text-gray-700 hover:text-gray-900 transition-colors"
@@ -62,9 +80,9 @@ export default function AuthHeader() {
             {user.name.charAt(0).toUpperCase()}
           </span>
         </div>
-        <div className="hidden md:block text-left">
-          <p className="font-medium">{user.name}</p>
-          <p className="text-xs text-gray-500">{user.email}</p>
+        <div className="hidden md:block text-left max-w-48">
+          <p className="font-medium truncate">{user.name}</p>
+          <p className="text-xs text-gray-500 truncate">{user.email}</p>
         </div>
         <svg
           className={`w-4 h-4 transition-transform ${showDropdown ? 'rotate-180' : ''}`}
@@ -77,10 +95,10 @@ export default function AuthHeader() {
       </button>
 
       {showDropdown && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+        <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
           <div className="px-4 py-2 border-b border-gray-100">
-            <p className="font-medium text-gray-900">{user.name}</p>
-            <p className="text-sm text-gray-500">{user.email}</p>
+            <p className="font-medium text-gray-900 truncate">{user.name}</p>
+            <p className="text-sm text-gray-500 break-all">{user.email}</p>
             {user.role === 'ADMIN' && (
               <span className="inline-block mt-1 px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
                 Admin

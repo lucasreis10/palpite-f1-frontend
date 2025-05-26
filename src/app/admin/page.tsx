@@ -14,6 +14,7 @@ import {
   UserGroupIcon,
   CalendarIcon,
   ArrowPathIcon,
+  BuildingOfficeIcon,
 } from '@heroicons/react/24/outline';
 
 export default function AdminPage() {
@@ -113,6 +114,16 @@ export default function AdminPage() {
         stats: {
           label: 'Equipes Registradas',
           value: stats.activeTeams.toString(),
+        }
+      },
+      {
+        title: 'Construtores F1',
+        description: 'Gerencie os construtores/escuderias da Fórmula 1',
+        icon: BuildingOfficeIcon,
+        href: '/admin/construtores',
+        stats: {
+          label: 'Construtores Ativos',
+          value: '10',
         }
       },
       {

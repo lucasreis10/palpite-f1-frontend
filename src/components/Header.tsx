@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import AuthHeader from './AuthHeader';
@@ -9,6 +9,33 @@ import { useAuth } from '@/hooks/useAuth';
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isAdmin, isAuthenticated } = useAuth();
+
+  // Fechar menu com tecla Escape e controlar scroll
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsMenuOpen(false);
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener('keydown', handleEscape);
+      // Prevenir scroll do body quando menu estiver aberto
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMenuOpen]);
+
+  // Fechar menu quando a rota mudar
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, []);
 
   const baseMenuItems = [
     { href: '/', label: 'Tela Inicial' },
@@ -26,14 +53,14 @@ export function Header() {
   return (
     <header className="bg-f1-red relative">
       <nav className="max-w-7xl mx-auto flex items-center justify-between p-4">
-        <Link href="/" className="text-2xl font-bold text-black hover:text-red-500 transition-colors z-20">
+        <Link href="/" className="text-2xl font-bold text-black hover:text-red-500 transition-colors z-40 relative">
           F1 Bolão
         </Link>
         
         {/* Menu Hambúrguer para Mobile */}
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="lg:hidden z-20 text-black hover:text-red-500 transition-colors"
+          className="lg:hidden z-40 relative text-black hover:text-red-500 transition-colors"
           aria-label="Toggle menu"
         >
           {isMenuOpen ? (
@@ -45,15 +72,15 @@ export function Header() {
 
         {/* Menu Mobile */}
         <div
-          className={`fixed inset-0 bg-black bg-opacity-50 transition-opacity lg:hidden ${
+          className={`fixed inset-0 bg-black bg-opacity-50 transition-opacity lg:hidden z-20 ${
             isMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
           onClick={() => setIsMenuOpen(false)}
         />
         
         <div
-          className={`fixed inset-y-0 right-0 w-64 bg-white transform transition-transform lg:hidden ${
-            isMenuOpen ? 'translate-x-full' : 'translate-x-0'
+          className={`fixed inset-y-0 right-0 w-64 bg-white shadow-xl transform transition-transform lg:hidden z-30 ${
+            isMenuOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
         >
           <div className="flex flex-col gap-2 p-4 mt-16">
