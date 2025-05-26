@@ -82,37 +82,8 @@ export default function RankingPage() {
         console.error('Erro ao carregar dados do ranking:', error);
         showToast('Erro ao carregar dados do ranking. Tente novamente.', 'error');
         
-        // Fallback para dados mockados em caso de erro
-        const mockStandings = [
-          {
-            id: 1,
-            name: 'João Silva',
-            team: 'Red Bull Racing',
-            points: 245,
-            lastPosition: 1,
-            bestResult: 1,
-            totalPredictions: 15,
-          },
-          {
-            id: 2,
-            name: 'Maria Santos',
-            team: 'Ferrari',
-            points: 220,
-            lastPosition: 2,
-            bestResult: 1,
-            totalPredictions: 15,
-          },
-          {
-            id: 3,
-            name: 'Pedro Oliveira',
-            team: 'Mercedes',
-            points: 198,
-            lastPosition: 4,
-            bestResult: 2,
-            totalPredictions: 14,
-          }
-        ];
-        setStandings(mockStandings);
+        // Sem dados disponíveis
+        setStandings([]);
       } finally {
         setIsLoading(false);
       }

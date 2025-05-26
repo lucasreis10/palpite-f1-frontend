@@ -57,19 +57,7 @@ class AdminService {
       };
     } catch (error) {
       console.error('Erro ao buscar estatísticas administrativas:', error);
-      // Retornar dados mockados em caso de erro
-      return {
-        totalEvents: 24,
-        completedEvents: 12,
-        pendingEvents: 12,
-        totalPilots: 24,
-        activePilots: 20,
-        totalTeams: 15,
-        activeTeams: 12,
-        totalUsers: 50,
-        activeUsers: 48,
-        nextRace: 'GP São Paulo'
-      };
+      throw error;
     }
   }
 
@@ -179,41 +167,11 @@ class AdminService {
 
   async getRecentActivities(): Promise<RecentActivity[]> {
     try {
-      // Por enquanto, retornar dados mockados
-      // Futuramente pode ser implementado um endpoint específico para atividades
-      return [
-        { 
-          id: 1, 
-          action: 'Resultado consolidado', 
-          event: 'GP do Bahrein - Corrida', 
-          time: 'há 2 horas',
-          type: 'result'
-        },
-        { 
-          id: 2, 
-          action: 'Novo usuário registrado', 
-          event: 'Maria Santos', 
-          time: 'há 5 horas',
-          type: 'user'
-        },
-        { 
-          id: 3, 
-          action: 'Equipe atualizada', 
-          event: 'Red Bull Racing', 
-          time: 'há 1 dia',
-          type: 'team'
-        },
-        { 
-          id: 4, 
-          action: 'Resultado editado', 
-          event: 'GP do Bahrein - Classificação', 
-          time: 'há 2 dias',
-          type: 'result'
-        },
-      ];
+      // TODO: Implementar endpoint específico para atividades recentes
+      return [];
     } catch (error) {
       console.error('Erro ao buscar atividades recentes:', error);
-      return [];
+      throw error;
     }
   }
 }

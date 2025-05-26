@@ -18,7 +18,7 @@ import { eventsService, EventWithResults, EventResult, GrandPrixEvent } from './
 import { toast } from 'react-hot-toast';
 import { DriverAutocomplete } from './../../../components/DriverAutocomplete';
 import { CreateEventModal } from './../../../components/CreateEventModal';
-import { drivers } from './../../../data/drivers';
+import { pilotsService } from './../../../services/pilots';
 
 // Interface para o tipo de resultado
 interface Result {
@@ -41,6 +41,23 @@ const ResultForm = ({ onSubmit, onImport, isLoading = false }: ResultFormProps) 
       team: '',
     }))
   );
+  const [pilots, setPilots] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadPilots = async () => {
+      try {
+        const pilotsData = await pilotsService.getAllPilots();
+        setPilots(pilotsData.map(pilot => ({
+          id: pilot.id,
+          name: `${pilot.givenName} ${pilot.familyName}`,
+          team: 'F1 Team' // Temporário até ter a relação com construtor
+        })));
+      } catch (error) {
+        console.error('Erro ao carregar pilotos:', error);
+      }
+    };
+    loadPilots();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,7 +92,7 @@ const ResultForm = ({ onSubmit, onImport, isLoading = false }: ResultFormProps) 
         {results.map((result, index) => (
           <DriverAutocomplete
             key={index}
-            drivers={drivers.filter(d => 
+            drivers={pilots.filter(d => 
               !results.some(r => r.driver === d.name) || 
               results[index].driver === d.name
             )}

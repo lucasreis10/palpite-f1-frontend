@@ -327,15 +327,15 @@ class EventsService {
       // Para cada evento, buscar os resultados (se existirem)
       const eventsWithResults: EventWithResults[] = await Promise.all(
         events.map(async (event) => {
-          // Por enquanto, vamos simular os resultados baseados no status do evento
+          // TODO: Buscar resultados reais da API
           const qualifying: EventStatus = {
-            status: event.completed ? 'consolidated' : 'pending',
-            results: event.completed ? this.getMockResults() : []
+            status: 'pending',
+            results: []
           };
 
           const race: EventStatus = {
-            status: event.completed ? 'consolidated' : 'pending',
-            results: event.completed ? this.getMockResults() : []
+            status: 'pending',
+            results: []
           };
 
           return {
@@ -353,16 +353,7 @@ class EventsService {
     }
   }
 
-  private getMockResults(): EventResult[] {
-    // Resultados mockados para demonstração
-    return [
-      { position: 1, driver: 'Max Verstappen', team: 'Red Bull Racing' },
-      { position: 2, driver: 'Charles Leclerc', team: 'Ferrari' },
-      { position: 3, driver: 'Lewis Hamilton', team: 'Mercedes' },
-      { position: 4, driver: 'Carlos Sainz', team: 'Ferrari' },
-      { position: 5, driver: 'George Russell', team: 'Mercedes' },
-    ];
-  }
+
 
   formatEventDate(dateTime: string): string {
     try {

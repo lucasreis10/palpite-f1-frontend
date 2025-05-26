@@ -84,8 +84,8 @@ export default function TeamStandingsPage() {
 
   // Converter dados da API para formato esperado
   const convertApiTeamToTeam = (apiTeam: any, index: number): Team => {
-    // Dados mockados para membros até termos API completa
-    const mockMembers: [TeamMember, TeamMember] = [
+    // TODO: Buscar membros reais da API
+    const members: [TeamMember, TeamMember] = [
       { id: apiTeam.id * 10 + 1, name: 'Membro 1', points: Math.floor(apiTeam.totalScore * 0.6), bestResult: 1 },
       { id: apiTeam.id * 10 + 2, name: 'Membro 2', points: Math.floor(apiTeam.totalScore * 0.4), bestResult: 2 }
     ];
@@ -94,7 +94,7 @@ export default function TeamStandingsPage() {
       id: apiTeam.id,
       name: apiTeam.name,
       points: apiTeam.totalScore || 0,
-      members: mockMembers,
+      members,
       lastPosition: index + 1,
       bestResult: Math.min(index + 1, 3)
     };
@@ -158,45 +158,10 @@ export default function TeamStandingsPage() {
 
       } catch (error) {
         console.error('Erro ao carregar dados das equipes:', error);
-        showToast('Erro ao carregar dados. Usando dados de exemplo.', 'error');
+        showToast('Erro ao carregar dados das equipes.', 'error');
         
-        // Fallback para dados mockados
-        const mockTeamStandings: Team[] = [
-          {
-            id: 1,
-            name: '',
-            points: 0,
-            members: [
-              { id: 1, name: '', points: 245, bestResult: 1 },
-              { id: 2, name: '', points: 220, bestResult: 2 }
-            ] as [TeamMember, TeamMember],
-            lastPosition: 1,
-            bestResult: 1,
-          },
-          {
-            id: 2,
-            name: 'Ferrari',
-            points: 398,
-            members: [
-              { id: 3, name: 'Maria Santos', points: 220, bestResult: 1 },
-              { id: 4, name: 'Carlos Lima', points: 178, bestResult: 3 }
-            ] as [TeamMember, TeamMember],
-            lastPosition: 2,
-            bestResult: 1,
-          },
-          {
-            id: 3,
-            name: 'Mercedes',
-            points: 385,
-            members: [
-              { id: 5, name: 'Pedro Oliveira', points: 198, bestResult: 2 },
-              { id: 6, name: 'Ana Silva', points: 187, bestResult: 2 }
-            ] as [TeamMember, TeamMember],
-            lastPosition: 3,
-            bestResult: 2,
-          }
-        ];
-        setTeams(mockTeamStandings);
+        // Sem dados disponíveis
+        setTeams([]);
       } finally {
         setIsLoading(false);
       }

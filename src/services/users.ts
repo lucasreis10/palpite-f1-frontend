@@ -56,63 +56,7 @@ class UsersService {
       throw new Error('Erro ao buscar usuários');
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
-      // Retornar dados mockados em caso de erro
-      return [
-        { 
-          id: 1, 
-          name: 'João Silva', 
-          email: 'joao@email.com', 
-          role: 'USER', 
-          active: true,
-          createdAt: '2024-01-15T10:30:00Z',
-          updatedAt: '2024-01-15T10:30:00Z'
-        },
-        { 
-          id: 2, 
-          name: 'Maria Santos', 
-          email: 'maria@email.com', 
-          role: 'USER', 
-          active: true,
-          createdAt: '2024-01-16T14:20:00Z',
-          updatedAt: '2024-01-16T14:20:00Z'
-        },
-        { 
-          id: 3, 
-          name: 'Pedro Oliveira', 
-          email: 'pedro@email.com', 
-          role: 'ADMIN', 
-          active: true,
-          createdAt: '2024-01-10T09:15:00Z',
-          updatedAt: '2024-01-10T09:15:00Z'
-        },
-        { 
-          id: 4, 
-          name: 'Ana Costa', 
-          email: 'ana@email.com', 
-          role: 'USER', 
-          active: false,
-          createdAt: '2024-01-12T16:45:00Z',
-          updatedAt: '2024-01-20T11:30:00Z'
-        },
-        { 
-          id: 5, 
-          name: 'Carlos Ferreira', 
-          email: 'carlos@email.com', 
-          role: 'USER', 
-          active: true,
-          createdAt: '2024-01-18T13:10:00Z',
-          updatedAt: '2024-01-18T13:10:00Z'
-        },
-        { 
-          id: 6, 
-          name: 'Lucia Mendes', 
-          email: 'lucia@email.com', 
-          role: 'USER', 
-          active: true,
-          createdAt: '2024-01-19T08:25:00Z',
-          updatedAt: '2024-01-19T08:25:00Z'
-        },
-      ];
+      throw error;
     }
   }
 

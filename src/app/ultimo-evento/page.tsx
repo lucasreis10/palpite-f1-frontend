@@ -76,37 +76,15 @@ export default function LastEventPage() {
        position: result.position
      }));
 
-    // Dados mockados para palpites até termos API real
-    const mockPredictions: Prediction[] = [
-      {
-        id: 1,
-        user: { id: 1, name: 'João Silva', team: 'Red Bull Racing' },
-        predictions: officialResults.slice(0, 3),
-        points: type === 'qualifying' ? 30 : 50,
-        accuracy: type === 'qualifying' ? 0.8 : 1.0,
-      },
-      {
-        id: 2,
-        user: { id: 2, name: 'Maria Santos', team: 'Ferrari' },
-        predictions: [officialResults[1], officialResults[0], officialResults[2]].filter(Boolean),
-        points: type === 'qualifying' ? 25 : 35,
-        accuracy: type === 'qualifying' ? 0.7 : 0.8,
-      },
-      {
-        id: 3,
-        user: { id: 3, name: 'Pedro Oliveira', team: 'Mercedes' },
-        predictions: [officialResults[0], officialResults[2], officialResults[1]].filter(Boolean),
-        points: type === 'qualifying' ? 22 : 30,
-        accuracy: type === 'qualifying' ? 0.6 : 0.7,
-      }
-    ];
+    // TODO: Buscar palpites reais da API
+    const predictions: Prediction[] = [];
 
     return {
       eventName: lastResult.grandPrixName,
       date: new Date().toLocaleDateString('pt-BR'),
       type,
       officialResults,
-      predictions: mockPredictions
+      predictions
     };
   };
 
@@ -171,59 +149,11 @@ export default function LastEventPage() {
 
       } catch (error) {
         console.error('Erro ao carregar dados do último evento:', error);
-        showToast('Erro ao carregar dados. Usando dados de exemplo.', 'error');
+        showToast('Erro ao carregar dados do último evento.', 'error');
         
-        // Fallback para dados mockados
-        const mockQualifyingData: EventData = {
-          eventName: 'GP de São Paulo',
-          date: '02/03/2024',
-          type: 'qualifying',
-          officialResults: [
-            { id: 1, name: 'Max Verstappen', team: 'Red Bull Racing', position: 1 },
-            { id: 2, name: 'Charles Leclerc', team: 'Ferrari', position: 2 },
-            { id: 3, name: 'Lewis Hamilton', team: 'Mercedes', position: 3 },
-          ],
-          predictions: [
-            {
-              id: 1,
-              user: { id: 1, name: 'João Silva', team: 'Red Bull Racing' },
-              predictions: [
-                { id: 1, name: 'Max Verstappen', team: 'Red Bull Racing', position: 1 },
-                { id: 2, name: 'Charles Leclerc', team: 'Ferrari', position: 2 },
-                { id: 3, name: 'Lewis Hamilton', team: 'Mercedes', position: 3 },
-              ],
-              points: 30,
-              accuracy: 0.8,
-            }
-          ]
-        };
-
-        const mockRaceData: EventData = {
-          eventName: 'GP de São Paulo',
-          date: '03/03/2024',
-          type: 'race',
-          officialResults: [
-            { id: 1, name: 'Max Verstappen', team: 'Red Bull Racing', position: 1 },
-            { id: 2, name: 'Sergio Perez', team: 'Red Bull Racing', position: 2 },
-            { id: 3, name: 'Charles Leclerc', team: 'Ferrari', position: 3 },
-          ],
-          predictions: [
-            {
-              id: 1,
-              user: { id: 1, name: 'João Silva', team: 'Red Bull Racing' },
-              predictions: [
-                { id: 1, name: 'Max Verstappen', team: 'Red Bull Racing', position: 1 },
-                { id: 2, name: 'Sergio Perez', team: 'Red Bull Racing', position: 2 },
-                { id: 3, name: 'Charles Leclerc', team: 'Ferrari', position: 3 },
-              ],
-              points: 50,
-              accuracy: 1.0,
-            }
-          ]
-        };
-
-        setQualifyingData(mockQualifyingData);
-        setRaceData(mockRaceData);
+        // Sem dados disponíveis
+        setQualifyingData(null);
+        setRaceData(null);
       } finally {
         setIsLoading(false);
       }

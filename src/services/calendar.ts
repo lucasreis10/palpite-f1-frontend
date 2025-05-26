@@ -119,8 +119,7 @@ class CalendarService {
       throw new Error('Erro ao buscar eventos do calendário');
     } catch (error) {
       console.error('Erro ao buscar eventos do calendário:', error);
-      // Retornar dados mockados em caso de erro
-      return this.getMockCalendarEvents();
+      throw error;
     }
   }
 
@@ -133,7 +132,7 @@ class CalendarService {
       throw new Error('Erro ao buscar eventos da temporada');
     } catch (error) {
       console.error(`Erro ao buscar eventos da temporada ${season}:`, error);
-      return this.getMockCalendarEvents().filter(event => event.season === season);
+      throw error;
     }
   }
 
@@ -445,83 +444,7 @@ class CalendarService {
     return daysUntil >= 0 && daysUntil <= 3;
   }
 
-  // ========== DADOS MOCKADOS ==========
 
-  private getMockCalendarEvents(): CalendarEvent[] {
-    const currentYear = new Date().getFullYear();
-    
-    return [
-      {
-        id: 1,
-        season: currentYear,
-        round: 1,
-        name: 'Grande Prêmio do Bahrein',
-        country: 'Bahrein',
-        city: 'Sakhir',
-        circuitName: 'Circuito Internacional do Bahrein',
-        raceDateTime: `${currentYear}-03-02T15:00:00Z`,
-        practice1DateTime: `${currentYear}-02-29T11:30:00Z`,
-        practice2DateTime: `${currentYear}-02-29T15:00:00Z`,
-        practice3DateTime: `${currentYear}-03-01T11:30:00Z`,
-        qualifyingDateTime: `${currentYear}-03-01T15:00:00Z`,
-        timezone: 'Asia/Bahrain',
-        laps: 57,
-        circuitLength: 5.412,
-        active: true,
-        completed: false,
-        isSprintWeekend: false,
-        bettingDeadline: `${currentYear}-03-02T14:00:00Z`,
-        createdAt: '2024-01-15T10:00:00Z',
-        updatedAt: '2024-01-15T10:00:00Z'
-      },
-      {
-        id: 2,
-        season: currentYear,
-        round: 2,
-        name: 'Grande Prêmio da Arábia Saudita',
-        country: 'Arábia Saudita',
-        city: 'Jeddah',
-        circuitName: 'Circuito de Rua de Jeddah',
-        raceDateTime: `${currentYear}-03-09T18:00:00Z`,
-        practice1DateTime: `${currentYear}-03-07T13:30:00Z`,
-        practice2DateTime: `${currentYear}-03-07T17:00:00Z`,
-        practice3DateTime: `${currentYear}-03-08T13:30:00Z`,
-        qualifyingDateTime: `${currentYear}-03-08T17:00:00Z`,
-        timezone: 'Asia/Riyadh',
-        laps: 50,
-        circuitLength: 6.174,
-        active: true,
-        completed: false,
-        isSprintWeekend: false,
-        bettingDeadline: `${currentYear}-03-09T17:00:00Z`,
-        createdAt: '2024-01-15T10:00:00Z',
-        updatedAt: '2024-01-15T10:00:00Z'
-      },
-      {
-        id: 3,
-        season: currentYear,
-        round: 3,
-        name: 'Grande Prêmio da Austrália',
-        country: 'Austrália',
-        city: 'Melbourne',
-        circuitName: 'Circuito de Albert Park',
-        raceDateTime: `${currentYear}-03-24T05:00:00Z`,
-        practice1DateTime: `${currentYear}-03-22T01:30:00Z`,
-        practice2DateTime: `${currentYear}-03-22T05:00:00Z`,
-        practice3DateTime: `${currentYear}-03-23T01:30:00Z`,
-        qualifyingDateTime: `${currentYear}-03-23T05:00:00Z`,
-        timezone: 'Australia/Melbourne',
-        laps: 58,
-        circuitLength: 5.278,
-        active: true,
-        completed: false,
-        isSprintWeekend: false,
-        bettingDeadline: `${currentYear}-03-24T04:00:00Z`,
-        createdAt: '2024-01-15T10:00:00Z',
-        updatedAt: '2024-01-15T10:00:00Z'
-      }
-    ];
-  }
 
   // ========== VALIDAÇÕES ==========
 
