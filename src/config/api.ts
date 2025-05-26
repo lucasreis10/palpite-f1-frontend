@@ -1,6 +1,6 @@
 // Configuração centralizada da API
 export const API_CONFIG = {
-  BASE_URL: 'http://localhost:8081/api',
+  BASE_URL: 'https://javaspringboot-production-a2d3.up.railway.app/api',
   ENDPOINTS: {
     AUTH: '/auth',
     USERS: '/users',
@@ -32,5 +32,4 @@ export const API_URLS = {
   TEAMS: buildApiUrl(API_CONFIG.ENDPOINTS.TEAMS),
   CONSTRUCTORS: buildApiUrl(API_CONFIG.ENDPOINTS.CONSTRUCTORS),
   HEALTH: buildApiUrl(API_CONFIG.ENDPOINTS.HEALTH),
-  BASE_URL: API_CONFIG.BASE_URL
 } as const; 
