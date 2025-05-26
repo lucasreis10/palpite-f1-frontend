@@ -1,0 +1,15 @@
+[build]
+builder = "dockerfile"
+
+[deploy]
+startCommand = "java -jar /app/app.jar"
+healthcheckPath = "/actuator/health"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+
+[[services]]
+name = "palpite-f1-backend"
+
+[services.variables]
+SPRING_PROFILES_ACTIVE = "prod"
+PORT = "8080" 
