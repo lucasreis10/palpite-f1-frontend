@@ -24,7 +24,7 @@ interface Team {
 
 // Serviço para equipes
 class TeamsService {
-  private readonly baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api';
+  private readonly baseUrl = 'https://javaspringboot-production-a2d3.up.railway.app/api/';
 
   async getTeamsByYear(year: number): Promise<any[]> {
     try {
@@ -164,11 +164,11 @@ export default function TeamStandingsPage() {
         const mockTeamStandings: Team[] = [
           {
             id: 1,
-            name: 'Red Bull Racing',
-            points: 465,
+            name: '',
+            points: 0,
             members: [
-              { id: 1, name: 'João Silva', points: 245, bestResult: 1 },
-              { id: 2, name: 'Pedro Alves', points: 220, bestResult: 2 }
+              { id: 1, name: '', points: 245, bestResult: 1 },
+              { id: 2, name: '', points: 220, bestResult: 2 }
             ] as [TeamMember, TeamMember],
             lastPosition: 1,
             bestResult: 1,

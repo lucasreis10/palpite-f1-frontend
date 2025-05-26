@@ -1,6 +1,6 @@
 import { authService } from './auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api';
+const API_BASE_URL = 'https://javaspringboot-production-a2d3.up.railway.app/api/';
 
 export interface NextRace {
   id: number;
