@@ -63,7 +63,7 @@ export default function RegisterPage() {
         {/* Logo/Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-red-600 rounded-full mb-4">
-            <span className="text-white text-2xl font-bold">🏎️</span>
+            <span className="text-black text-2xl font-bold">🏎️</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Palpite F1</h1>
           <p className="text-gray-600">Crie sua conta</p>
@@ -152,7 +152,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-red-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-red-600 text-black py-3 px-4 rounded-lg font-medium hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <div className="flex items-center justify-center">

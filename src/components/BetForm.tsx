@@ -431,7 +431,7 @@ export function BetForm() {
                   <button
                     type="button"
                     onClick={handleCopyQualifyingToRace}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-blue-600 text-black rounded-md hover:bg-blue-700 transition-colors font-medium text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={!raceDeadlineOpen || selectedQualifyingDrivers.every(driver => driver === null)}
                     title={
                       !raceDeadlineOpen 

@@ -61,7 +61,7 @@ export default function AuthHeader() {
         </Link>
         <Link
           href="/register"
-          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium"
+          className="bg-red-600 text-black px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium"
         >
           Criar conta
         </Link>
@@ -76,7 +76,7 @@ export default function AuthHeader() {
         className="flex items-center space-x-3 text-gray-700 hover:text-gray-900 transition-colors"
       >
         <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-          <span className="text-white text-sm font-bold">
+          <span className="text-black text-sm font-bold">
             {user.name.charAt(0).toUpperCase()}
           </span>
         </div>

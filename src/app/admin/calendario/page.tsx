@@ -295,7 +295,7 @@ export default function CalendarioPage() {
             </button>
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center gap-2 bg-f1-red text-white px-4 py-2 rounded-md hover:bg-f1-red/90 transition-colors"
+              className="flex items-center gap-2 bg-f1-red text-black px-4 py-2 rounded-md hover:bg-f1-red/90 transition-colors"
             >
               <PlusIcon className="w-5 h-5" />
               Novo Evento
@@ -575,7 +575,7 @@ export default function CalendarioPage() {
               <button
                 type="button"
                 onClick={confirmDeleteEvent}
-                className="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors"
+                className="px-4 py-2 text-black bg-red-600 rounded-md hover:bg-red-700 transition-colors"
               >
                 Sim, Excluir Evento
               </button>
@@ -644,7 +644,7 @@ export default function CalendarioPage() {
                 type="button"
                 onClick={handleImportF1Calendar}
                 disabled={isImporting}
-                className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-black bg-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isImporting ? 'Importando...' : 'Importar Calendário'}
               </button>

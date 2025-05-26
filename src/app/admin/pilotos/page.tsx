@@ -139,7 +139,7 @@ export default function DriversAdminPage() {
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 bg-f1-red text-white px-4 py-2 rounded-md hover:bg-f1-red/90 transition-colors"
+            className="flex items-center gap-2 bg-f1-red text-black px-4 py-2 rounded-md hover:bg-f1-red/90 transition-colors"
           >
             <PlusIcon className="w-5 h-5" />
             Novo Piloto
@@ -381,7 +381,7 @@ export default function DriversAdminPage() {
               <button
                 type="button"
                 onClick={confirmToggleStatus}
-                className={`px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                className={`px-4 py-2 text-sm font-medium text-black border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                   pilotToToggle.active
                     ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
                     : 'bg-green-600 hover:bg-green-700 focus:ring-green-500'

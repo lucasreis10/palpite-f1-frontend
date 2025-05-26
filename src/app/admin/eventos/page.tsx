@@ -109,7 +109,7 @@ const ResultForm = ({ onSubmit, onImport, isLoading = false }: ResultFormProps) 
         <div className="flex justify-end pt-4">
           <button
             type="submit"
-            className="bg-f1-red text-white px-6 py-2 rounded-md font-medium hover:bg-f1-red/90 transition-colors"
+            className="bg-f1-red text-black px-6 py-2 rounded-md font-medium hover:bg-f1-red/90 transition-colors"
           >
             Salvar Resultado
           </button>
@@ -375,7 +375,7 @@ export default function EventsAdminPage() {
                   </h2>
                   <button 
                     onClick={() => setIsCreateModalOpen(true)}
-                    className="bg-f1-red text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-f1-red/90 transition-colors"
+                    className="bg-f1-red text-black px-4 py-2 rounded-md text-sm font-medium hover:bg-f1-red/90 transition-colors"
                   >
                     <PlusIcon className="w-4 h-4 inline mr-1" />
                     Novo Evento
