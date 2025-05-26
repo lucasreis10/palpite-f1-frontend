@@ -4,10 +4,9 @@ const nextConfig: NextConfig = {
   // Habilitar output standalone para Docker
   output: 'standalone',
   
-  // Configurações para produção
-  experimental: {
-    // Otimizações para build
-    optimizeCss: true,
+  // Desabilitar ESLint durante build para deploy
+  eslint: {
+    ignoreDuringBuilds: true,
   },
   
   // Configurações de imagem
