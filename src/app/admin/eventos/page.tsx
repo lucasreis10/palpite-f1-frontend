@@ -33,20 +33,52 @@ interface ResultFormProps {
   isLoading?: boolean;
   selectedTab: number;
   pilots: any[];
+  initialResults?: Result[];
+  isEditing?: boolean;
+  onCancel?: () => void;
 }
 
-const ResultForm = ({ onSubmit, onImport, isLoading = false, selectedTab, pilots }: ResultFormProps) => {
+const ResultForm = ({ onSubmit, onImport, isLoading = false, selectedTab, pilots, initialResults, isEditing = false, onCancel }: ResultFormProps) => {
   // Qualifying tem 12 posições, Race tem 14 posições
   const numPositions = selectedTab === 0 ? 12 : 14;
   
-  const [results, setResults] = useState<Result[]>(
-    Array.from({ length: numPositions }, (_, i) => ({
+  const [results, setResults] = useState<Result[]>(() => {
+    // Se há resultados iniciais, usar eles; senão criar array vazio
+    if (initialResults && initialResults.length > 0) {
+      // Preencher com os resultados existentes e completar com posições vazias se necessário
+      const filledResults = Array.from({ length: numPositions }, (_, i) => {
+        const existingResult = initialResults.find(r => r.position === i + 1);
+        return existingResult || {
+          position: i + 1,
+          driver: '',
+          team: '',
+        };
+      });
+      return filledResults;
+    }
+    
+    // Caso padrão: array vazio
+    return Array.from({ length: numPositions }, (_, i) => ({
       position: i + 1,
       driver: '',
       team: '',
-    }))
-  );
+    }));
+  });
 
+  // Atualizar resultados quando initialResults mudar
+  useEffect(() => {
+    if (initialResults && initialResults.length > 0) {
+      const filledResults = Array.from({ length: numPositions }, (_, i) => {
+        const existingResult = initialResults.find(r => r.position === i + 1);
+        return existingResult || {
+          position: i + 1,
+          driver: '',
+          team: '',
+        };
+      });
+      setResults(filledResults);
+    }
+  }, [initialResults, numPositions]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,12 +127,21 @@ const ResultForm = ({ onSubmit, onImport, isLoading = false, selectedTab, pilots
           />
         ))}
         
-        <div className="flex justify-end pt-4">
+        <div className="flex justify-end gap-3 pt-4">
+          {isEditing && onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md font-medium hover:bg-gray-300 transition-colors"
+            >
+              Cancelar
+            </button>
+          )}
           <button
             type="submit"
             className="bg-f1-red text-black px-6 py-2 rounded-md font-medium hover:bg-f1-red/90 transition-colors"
           >
-            Salvar Resultado
+            {isEditing ? 'Atualizar Resultado' : 'Salvar Resultado'}
           </button>
         </div>
       </form>
@@ -118,6 +159,7 @@ export default function EventsAdminPage() {
   const [availableSeasons, setAvailableSeasons] = useState<number[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [pilots, setPilots] = useState<any[]>([]);
+  const [isEditingResults, setIsEditingResults] = useState(false);
 
   useEffect(() => {
     loadInitialData();
@@ -314,6 +356,9 @@ export default function EventsAdminPage() {
         event.id === selectedEvent.id ? updatedEvent : event
       );
       setEvents(updatedEvents);
+      
+      // Resetar estado de edição
+      setIsEditingResults(false);
     } catch (error) {
       toast.error('Erro ao salvar resultados. Tente novamente.');
       console.error('Erro ao salvar resultados:', error);
@@ -369,6 +414,27 @@ export default function EventsAdminPage() {
     
     // Selecionar o novo evento
     setSelectedEvent(eventWithResults);
+  };
+
+  const handleEditResults = (type: 'qualifying' | 'race') => {
+    if (!selectedEvent) return;
+    
+    setIsEditingResults(true);
+    const updatedEvent = { ...selectedEvent };
+    if (type === 'qualifying') {
+      updatedEvent.qualifying.status = 'pending';
+    } else {
+      updatedEvent.race.status = 'pending';
+    }
+    setSelectedEvent(updatedEvent);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingResults(false);
+    // Recarregar o evento para restaurar o estado original
+    if (selectedEvent) {
+      loadEventsBySeason(selectedSeason);
+    }
   };
 
   if (isLoading && events.length === 0) {
@@ -543,6 +609,9 @@ export default function EventsAdminPage() {
                               isLoading={isImporting}
                               selectedTab={selectedTab}
                               pilots={pilots}
+                              initialResults={isEditingResults ? selectedEvent.qualifying.results : undefined}
+                              isEditing={isEditingResults}
+                              onCancel={handleCancelEdit}
                             />
                           ) : (
                             <>
@@ -552,11 +621,7 @@ export default function EventsAdminPage() {
                                 </h3>
                                 <div className="flex gap-2">
                                   <button 
-                                    onClick={() => {
-                                      const updatedEvent = { ...selectedEvent };
-                                      updatedEvent.qualifying.status = 'pending';
-                                      setSelectedEvent(updatedEvent);
-                                    }}
+                                    onClick={() => handleEditResults('qualifying')}
                                     className="text-gray-600 hover:text-gray-900 font-medium text-sm"
                                   >
                                     Editar Resultado
@@ -601,6 +666,9 @@ export default function EventsAdminPage() {
                               isLoading={isImporting}
                               selectedTab={selectedTab}
                               pilots={pilots}
+                              initialResults={isEditingResults ? selectedEvent.race.results : undefined}
+                              isEditing={isEditingResults}
+                              onCancel={handleCancelEdit}
                             />
                           ) : (
                             <>
@@ -610,11 +678,7 @@ export default function EventsAdminPage() {
                                 </h3>
                                 <div className="flex gap-2">
                                   <button 
-                                    onClick={() => {
-                                      const updatedEvent = { ...selectedEvent };
-                                      updatedEvent.race.status = 'pending';
-                                      setSelectedEvent(updatedEvent);
-                                    }}
+                                    onClick={() => handleEditResults('race')}
                                     className="text-gray-600 hover:text-gray-900 font-medium text-sm"
                                   >
                                     Editar Resultado

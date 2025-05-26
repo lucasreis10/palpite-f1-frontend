@@ -344,6 +344,40 @@ class EventsService {
 
   // ========== UTILITÁRIOS ==========
 
+  async getEventResults(grandPrixId: number, guessType: 'QUALIFYING' | 'RACE'): Promise<EventResult[]> {
+    try {
+      const urlPadrao = API_URLS.BASE_URL;
+      const response = await authService.authenticatedFetch(
+        `${urlPadrao}/guesses/grand-prix/${grandPrixId}?guessType=${guessType}`
+      );
+
+      if (response.ok) {
+        const guesses = await response.json();
+        
+        // Procurar por um palpite que tenha resultado real definido
+        const guessWithRealResult = guesses.find((guess: any) => 
+          guess.realResultPilots && guess.realResultPilots.length > 0
+        );
+
+        if (guessWithRealResult) {
+          // Converter resultado real para formato EventResult
+          return guessWithRealResult.realResultPilots.map((pilot: any, index: number) => ({
+            position: index + 1,
+            driver: `${pilot.givenName} ${pilot.familyName}`,
+            team: typeof pilot.constructor === 'string' ? pilot.constructor : 
+                  (pilot.constructor?.name || 'F1 Team'), // Garantir que seja string
+            pilotId: pilot.id
+          }));
+        }
+      }
+      
+      return [];
+    } catch (error) {
+      console.error(`Erro ao buscar resultados do evento ${grandPrixId} tipo ${guessType}:`, error);
+      return [];
+    }
+  }
+
   async getEventsWithResults(season: number): Promise<EventWithResults[]> {
     try {
       const events = await this.getEventsBySeason(season);
@@ -351,15 +385,18 @@ class EventsService {
       // Para cada evento, buscar os resultados (se existirem)
       const eventsWithResults: EventWithResults[] = await Promise.all(
         events.map(async (event) => {
-          // TODO: Buscar resultados reais da API
+          // Buscar resultados reais da API
+          const qualifyingResults = await this.getEventResults(event.id, 'QUALIFYING');
+          const raceResults = await this.getEventResults(event.id, 'RACE');
+
           const qualifying: EventStatus = {
-            status: 'pending',
-            results: []
+            status: qualifyingResults.length > 0 ? 'consolidated' : 'pending',
+            results: qualifyingResults
           };
 
           const race: EventStatus = {
-            status: 'pending',
-            results: []
+            status: raceResults.length > 0 ? 'consolidated' : 'pending',
+            results: raceResults
           };
 
           return {
