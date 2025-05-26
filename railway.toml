@@ -1,11 +1,19 @@
 [build]
-builder = "dockerfile"
+builder = "nixpacks"
 
 [deploy]
-startCommand = "java -jar /app/app.jar"
-healthcheckPath = "/actuator/health"
+startCommand = "npm start"
+healthcheckPath = "/"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
+
+[build.env]
+NODE_ENV = "production"
+NPM_CONFIG_PRODUCTION = "false"
+
+[deploy.env]
+NODE_ENV = "production"
+PORT = "3000"
 
 [[services]]
 name = "palpite-f1-backend"
