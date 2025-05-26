@@ -65,7 +65,7 @@ class PilotsService {
 
   async getAllPilots(): Promise<Pilot[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/pilots`);
+      const response = await fetch(`${this.baseUrl}`);
       if (response.ok) {
         return await response.json();
       }
@@ -78,7 +78,7 @@ class PilotsService {
 
   async getActivePilots(): Promise<Pilot[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/pilots/active`);
+      const response = await fetch(`${this.baseUrl}/active`);
       if (response.ok) {
         return await response.json();
       }
@@ -91,7 +91,7 @@ class PilotsService {
 
   async getPilotsByStatus(active: boolean): Promise<Pilot[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/pilots/status/${active}`);
+      const response = await fetch(`${this.baseUrl}/status/${active}`);
       if (response.ok) {
         return await response.json();
       }
@@ -104,7 +104,7 @@ class PilotsService {
 
   async getPilotById(id: number): Promise<Pilot> {
     try {
-      const response = await fetch(`${this.baseUrl}/pilots/${id}`);
+      const response = await fetch(`${this.baseUrl}/${id}`);
       if (response.ok) {
         return await response.json();
       }
@@ -117,7 +117,7 @@ class PilotsService {
 
   async getPilotByDriverId(driverId: string): Promise<Pilot> {
     try {
-      const response = await fetch(`${this.baseUrl}/pilots/driver/${driverId}`);
+      const response = await fetch(`${this.baseUrl}/driver/${driverId}`);
       if (response.ok) {
         return await response.json();
       }
@@ -130,7 +130,7 @@ class PilotsService {
 
   async searchPilotsByName(name: string): Promise<Pilot[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/pilots/search?name=${encodeURIComponent(name)}`);
+      const response = await fetch(`${this.baseUrl}/search?name=${encodeURIComponent(name)}`);
       if (response.ok) {
         return await response.json();
       }
@@ -143,7 +143,7 @@ class PilotsService {
 
   async searchActivePilotsByName(name: string): Promise<Pilot[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/pilots/active/search?name=${encodeURIComponent(name)}`);
+      const response = await fetch(`${this.baseUrl}/active/search?name=${encodeURIComponent(name)}`);
       if (response.ok) {
         return await response.json();
       }
@@ -156,7 +156,7 @@ class PilotsService {
 
   async getPilotsByNationality(nationality: string): Promise<Pilot[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/pilots/nationality/${nationality}`);
+      const response = await fetch(`${this.baseUrl}/nationality/${nationality}`);
       if (response.ok) {
         return await response.json();
       }
@@ -169,7 +169,7 @@ class PilotsService {
 
   async getActivePilotsByNationality(nationality: string): Promise<Pilot[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/pilots/active/nationality/${nationality}`);
+      const response = await fetch(`${this.baseUrl}/active/nationality/${nationality}`);
       if (response.ok) {
         return await response.json();
       }
@@ -184,7 +184,7 @@ class PilotsService {
 
   async createPilot(request: CreatePilotRequest): Promise<Pilot> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/pilots`, {
+      const response = await authService.authenticatedFetch(`${this.baseUrl}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -204,7 +204,7 @@ class PilotsService {
 
   async updatePilot(id: number, request: UpdatePilotRequest): Promise<Pilot> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/pilots/${id}`, {
+      const response = await authService.authenticatedFetch(`${this.baseUrl}/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -224,7 +224,7 @@ class PilotsService {
 
   async deletePilot(id: number): Promise<void> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/pilots/${id}`, {
+      const response = await authService.authenticatedFetch(`${this.baseUrl}/${id}`, {
         method: 'DELETE',
       });
 
@@ -239,7 +239,7 @@ class PilotsService {
 
   async activatePilot(id: number): Promise<Pilot> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/pilots/${id}/activate`, {
+      const response = await authService.authenticatedFetch(`${this.baseUrl}/${id}/activate`, {
         method: 'PATCH',
       });
 
@@ -255,7 +255,7 @@ class PilotsService {
 
   async deactivatePilot(id: number): Promise<Pilot> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/pilots/${id}/deactivate`, {
+      const response = await authService.authenticatedFetch(`${this.baseUrl}/${id}/deactivate`, {
         method: 'PATCH',
       });
 
