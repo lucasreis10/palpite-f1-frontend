@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://javaspringboot-production-a2d3.up.railway.app/api/';
+import { API_URLS } from '../config/api';
 
 export interface LoginRequest {
   email: string;
@@ -27,7 +27,7 @@ export interface User {
 }
 
 class AuthService {
-  private readonly baseUrl = `${API_BASE_URL}/auth`;
+  private readonly baseUrl = API_URLS.AUTH;
 
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     const response = await fetch(`${this.baseUrl}/login`, {
