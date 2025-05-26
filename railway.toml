@@ -14,10 +14,6 @@ NPM_CONFIG_PRODUCTION = "false"
 [deploy.env]
 NODE_ENV = "production"
 PORT = "3000"
+NEXT_TELEMETRY_DISABLED = "1"
 
-[[services]]
-name = "palpite-f1-backend"
-
-[services.variables]
-SPRING_PROFILES_ACTIVE = "prod"
-PORT = "8080" 
+# Services configuration will be handled via Railway dashboard 
