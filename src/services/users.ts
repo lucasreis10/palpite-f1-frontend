@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://javaspringboot-production-a2d3.up.railway.app/api/';
+import { API_URLS } from '../config/api';
 
 export interface User {
   id: number;
@@ -33,7 +33,7 @@ export interface UserStats {
 }
 
 class UsersService {
-  private readonly baseUrl = API_BASE_URL;
+  private readonly baseUrl = API_URLS.USERS;
 
   // ========== BUSCAR USUÁRIOS ==========
 

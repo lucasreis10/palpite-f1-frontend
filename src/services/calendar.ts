@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://javaspringboot-production-a2d3.up.railway.app/api/';
+import { API_URLS } from '../config/api';
 
 export interface CalendarEvent {
   id: number;
@@ -106,7 +106,7 @@ export interface F1CalendarResponse {
 }
 
 class CalendarService {
-  private readonly baseUrl = API_BASE_URL;
+  private readonly baseUrl = API_URLS.GRAND_PRIX;
 
   // ========== BUSCAR EVENTOS DO CALENDÁRIO ==========
 

@@ -1,6 +1,5 @@
 import { authService } from './auth';
-
-const API_BASE_URL = 'https://javaspringboot-production-a2d3.up.railway.app/api/';
+import { API_URLS } from '../config/api';
 
 export interface NextRace {
   id: number;
@@ -59,7 +58,7 @@ export interface DashboardStats {
 }
 
 class DashboardService {
-  private readonly baseUrl = API_BASE_URL;
+  private readonly baseUrl = API_URLS.DASHBOARD;
 
   async getNextRaces(): Promise<NextRace[]> {
     try {

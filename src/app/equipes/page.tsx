@@ -23,8 +23,10 @@ interface Team {
 }
 
 // Serviço para equipes
+import { API_URLS } from '../../config/api';
+
 class TeamsService {
-  private readonly baseUrl = 'https://javaspringboot-production-a2d3.up.railway.app/api/';
+  private readonly baseUrl = API_URLS.TEAMS;
 
   async getTeamsByYear(year: number): Promise<any[]> {
     try {
