@@ -283,8 +283,19 @@ export default function EventsAdminPage() {
 
   const handleMarkAsCompleted = async (event: EventWithResults) => {
     try {
-      await eventsService.markAsCompleted(event.id);
-      toast.success('Evento marcado como concluído!');
+      const response = await eventsService.markAsCompletedWithScoreCalculation(event.id);
+      
+      // Mostrar mensagem baseada no resultado
+      if (response.scoresCalculated) {
+        const totalCalculated = response.calculationResults.reduce((sum, result) => sum + result.calculatedGuesses, 0);
+        toast.success(`Evento marcado como concluído! ${totalCalculated} palpites tiveram pontuações calculadas. 🏁`);
+      } else {
+        toast.success('Evento marcado como concluído!');
+        if (response.warnings.length > 0) {
+          console.warn('Avisos:', response.warnings);
+          toast.success('⚠️ Pontuações não foram calculadas automaticamente. Verifique se os resultados foram definidos.');
+        }
+      }
       
       // Recarregar eventos
       await loadEventsBySeason(selectedSeason);

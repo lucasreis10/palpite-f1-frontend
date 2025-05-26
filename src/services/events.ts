@@ -80,8 +80,16 @@ export interface CalculateScoresResponse {
   grandPrixId: number;
   guessType: string;
   totalGuesses: number;
-  scoresCalculated: number;
+  calculatedGuesses: number;
   message: string;
+}
+
+export interface CompleteEventResponse {
+  grandPrix: GrandPrixEvent;
+  scoresCalculated: boolean;
+  calculationResults: CalculateScoresResponse[];
+  message: string;
+  warnings: string[];
 }
 
 class EventsService {
@@ -275,6 +283,22 @@ class EventsService {
       throw new Error('Erro ao marcar evento como concluído');
     } catch (error) {
       console.error(`Erro ao marcar evento ${id} como concluído:`, error);
+      throw error;
+    }
+  }
+
+  async markAsCompletedWithScoreCalculation(id: number): Promise<CompleteEventResponse> {
+    try {
+      const response = await authService.authenticatedFetch(`${this.baseUrl}/${id}/complete-with-scores`, {
+        method: 'PATCH',
+      });
+
+      if (response.ok) {
+        return await response.json();
+      }
+      throw new Error('Erro ao marcar evento como concluído e calcular pontuações');
+    } catch (error) {
+      console.error(`Erro ao marcar evento ${id} como concluído e calcular pontuações:`, error);
       throw error;
     }
   }
