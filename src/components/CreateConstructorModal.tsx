@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Modal } from './Modal';
-import { CreateConstructorRequest, UpdateConstructorRequest, Constructor, constructorsService } from '@/services/constructors';
+import { CreateConstructorRequest, UpdateConstructorRequest, Constructor, constructorsService } from './../services/constructors';
 import { toast } from 'react-hot-toast';
 
 interface CreateConstructorModalProps {

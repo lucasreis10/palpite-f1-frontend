@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Modal } from './Modal';
-import { CreateEventRequest } from '@/services/events';
+import { CreateEventRequest } from './../services/events';
 import { toast } from 'react-hot-toast';
 
 interface CreateEventModalProps {

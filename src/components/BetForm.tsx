@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { DriverAutocomplete } from './DriverAutocomplete';
 import { Toast } from './Toast';
 import { Tab } from '@headlessui/react';
-import { guessService, Pilot, NextGrandPrix, GuessResponse } from '@/services/guesses';
-import { useAuth } from '@/hooks/useAuth';
+import { guessService, Pilot, NextGrandPrix, GuessResponse } from './../services/guesses';
+import { useAuth } from './../hooks/useAuth';
 
 interface Driver {
   id: number;

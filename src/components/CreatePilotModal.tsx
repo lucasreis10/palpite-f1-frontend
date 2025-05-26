@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Modal } from './Modal';
-import { CreatePilotRequest, UpdatePilotRequest, Pilot, pilotsService } from '@/services/pilots';
+import { CreatePilotRequest, UpdatePilotRequest, Pilot, pilotsService } from './../services/pilots';
 import { toast } from 'react-hot-toast';
 
 interface CreatePilotModalProps {

@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Header } from '@/components/Header';
-import { BetForm } from '@/components/BetForm';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import { guessService, NextGrandPrix } from '@/services/guesses';
+import { Header } from './../../components/Header';
+import { BetForm } from './../../components/BetForm';
+import ProtectedRoute from './../../components/ProtectedRoute';
+import { guessService, NextGrandPrix } from './../../services/guesses';
 
 export default function PalpitesPage() {
   const [nextGrandPrix, setNextGrandPrix] = useState<NextGrandPrix | null>(null);

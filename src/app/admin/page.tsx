@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { Header } from '@/components/Header';
+import { Header } from './../../components/Header';
 import Link from 'next/link';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import { Toast } from '@/components/Toast';
-import { AdminStatsCard } from '@/components/AdminStatsCard';
-import { adminService, AdminStats, RecentActivity } from '@/services/admin';
+import ProtectedRoute from './../../components/ProtectedRoute';
+import { Toast } from './../../components/Toast';
+import { AdminStatsCard } from './../../components/AdminStatsCard';
+import { adminService, AdminStats, RecentActivity } from './../../services/admin';
 import { 
   TrophyIcon, 
   UsersIcon, 

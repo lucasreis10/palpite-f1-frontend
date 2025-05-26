@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { Header } from '@/components/Header';
+import { Header } from './../../../components/Header';
 import { Tab } from '@headlessui/react';
 import { 
   CheckCircleIcon, 
@@ -13,12 +13,12 @@ import {
   CalendarIcon,
   MapPinIcon,
 } from '@heroicons/react/24/outline';
-import { F1Service } from '@/services/f1';
-import { eventsService, EventWithResults, EventResult, GrandPrixEvent } from '@/services/events';
+import { F1Service } from './../../../services/f1';
+import { eventsService, EventWithResults, EventResult, GrandPrixEvent } from './../../../services/events';
 import { toast } from 'react-hot-toast';
-import { DriverAutocomplete } from '@/components/DriverAutocomplete';
-import { CreateEventModal } from '@/components/CreateEventModal';
-import { drivers } from '@/data/drivers';
+import { DriverAutocomplete } from './../../../components/DriverAutocomplete';
+import { CreateEventModal } from './../../../components/CreateEventModal';
+import { drivers } from './../../../data/drivers';
 
 // Interface para o tipo de resultado
 interface Result {

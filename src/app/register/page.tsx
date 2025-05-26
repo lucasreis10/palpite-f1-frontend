@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { authService } from '@/services/auth';
+import { authService } from './../../services/auth';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({

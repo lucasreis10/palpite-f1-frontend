@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { Header } from '@/components/Header';
-import { EventResults } from '@/components/EventResults';
-import { Toast } from '@/components/Toast';
-import { dashboardService, LastResult } from '@/services/dashboard';
-import { F1Service } from '@/services/f1';
+import { Header } from './../../components/Header';
+import { EventResults } from './../../components/EventResults';
+import { Toast } from './../../components/Toast';
+import { dashboardService, LastResult } from './../../services/dashboard';
+import { F1Service } from './../../services/f1';
 
 interface Driver {
   id: number;

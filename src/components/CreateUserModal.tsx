@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Modal } from './Modal';
-import { CreateUserRequest, UpdateUserRequest, User, usersService } from '@/services/users';
+import { CreateUserRequest, UpdateUserRequest, User, usersService } from './../services/users';
 import { toast } from 'react-hot-toast';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 

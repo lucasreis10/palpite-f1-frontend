@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { Header } from '@/components/Header';
-import { CreateUserTeamModal } from '@/components/CreateUserTeamModal';
-import { userTeamsService, UserTeam } from '@/services/userTeams';
-import { usersService, User } from '@/services/users';
+import { Header } from './../../../components/Header';
+import { CreateUserTeamModal } from './../../../components/CreateUserTeamModal';
+import { userTeamsService, UserTeam } from './../../../services/userTeams';
+import { usersService, User } from './../../../services/users';
 import { 
   PencilIcon, 
   TrashIcon, 

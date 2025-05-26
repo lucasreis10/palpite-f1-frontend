@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { Header } from '@/components/Header';
-import { TeamStandingsTable } from '@/components/TeamStandingsTable';
-import { Toast } from '@/components/Toast';
-import { dashboardService, TopTeam } from '@/services/dashboard';
+import { Header } from './../../components/Header';
+import { TeamStandingsTable } from './../../components/TeamStandingsTable';
+import { Toast } from './../../components/Toast';
+import { dashboardService, TopTeam } from './../../services/dashboard';
 
 interface TeamMember {
   id: number;

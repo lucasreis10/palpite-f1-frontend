@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { Header } from '@/components/Header';
-import { CreateConstructorModal } from '@/components/CreateConstructorModal';
-import { constructorsService, Constructor } from '@/services/constructors';
+import { Header } from '../../../components/Header';
+import { CreateConstructorModal } from '../../../components/CreateConstructorModal';
+import { constructorsService, Constructor } from '../../../services/constructors';
 import { 
   PencilIcon, 
   TrashIcon, 

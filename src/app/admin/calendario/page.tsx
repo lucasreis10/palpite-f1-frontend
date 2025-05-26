@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { Header } from '@/components/Header';
-import { CreateCalendarEventModal } from '@/components/CreateCalendarEventModal';
-import { calendarService, CalendarEvent, CalendarStats } from '@/services/calendar';
+import { Header } from '../../../components/Header';
+import { CreateCalendarEventModal } from '../../../components/CreateCalendarEventModal';
+import { calendarService, CalendarEvent, CalendarStats } from '../../../services/calendar';
 import { 
   PlusIcon,
   PencilIcon,

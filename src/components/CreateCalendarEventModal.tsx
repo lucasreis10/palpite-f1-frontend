@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Modal } from './Modal';
-import { CreateCalendarEventRequest, UpdateCalendarEventRequest, CalendarEvent, calendarService } from '@/services/calendar';
+import { CreateCalendarEventRequest, UpdateCalendarEventRequest, CalendarEvent, calendarService } from './../services/calendar';
 import { toast } from 'react-hot-toast';
 
 interface CreateCalendarEventModalProps {

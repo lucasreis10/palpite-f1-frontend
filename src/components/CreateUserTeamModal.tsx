@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Modal } from './Modal';
-import { CreateUserTeamRequest, UpdateUserTeamRequest, UserTeam, userTeamsService, UserSummary } from '@/services/userTeams';
+import { CreateUserTeamRequest, UpdateUserTeamRequest, UserTeam, userTeamsService, UserSummary } from './../services/userTeams';
 import { toast } from 'react-hot-toast';
 
 interface User {

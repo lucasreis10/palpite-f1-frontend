@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Header } from '@/components/Header';
+import { Header } from './../components/Header';
 import Link from 'next/link';
-import { dashboardService, NextRace, LastResult, TopUser, DashboardStats } from '@/services/dashboard';
+import { dashboardService, NextRace, LastResult, TopUser, DashboardStats } from './../services/dashboard';
 
 export default function Home() {
   const [nextRaces, setNextRaces] = useState<NextRace[]>([]);

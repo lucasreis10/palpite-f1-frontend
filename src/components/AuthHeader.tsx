@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { authService, User } from '@/services/auth';
+import { authService, User } from './../services/auth';
 
 export default function AuthHeader() {
   const [user, setUser] = useState<User | null>(null);
