@@ -323,7 +323,8 @@ class EventsService {
 
   async setRealResultAndCalculateScores(request: SetResultRequest): Promise<CalculateScoresResponse> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/guesses/admin/calculate-scores`, {
+      const urlPadrao =  API_URLS.BASE_URL;
+      const response = await authService.authenticatedFetch(`${urlPadrao}/guesses/admin/calculate-scores`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

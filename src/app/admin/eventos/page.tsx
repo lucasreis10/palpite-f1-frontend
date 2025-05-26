@@ -31,33 +31,22 @@ interface ResultFormProps {
   onSubmit: (results: Result[]) => void;
   onImport: () => void;
   isLoading?: boolean;
+  selectedTab: number;
+  pilots: any[];
 }
 
-const ResultForm = ({ onSubmit, onImport, isLoading = false }: ResultFormProps) => {
+const ResultForm = ({ onSubmit, onImport, isLoading = false, selectedTab, pilots }: ResultFormProps) => {
+  // Qualifying tem 12 posições, Race tem 14 posições
+  const numPositions = selectedTab === 0 ? 12 : 14;
+  
   const [results, setResults] = useState<Result[]>(
-    Array.from({ length: 14 }, (_, i) => ({
+    Array.from({ length: numPositions }, (_, i) => ({
       position: i + 1,
       driver: '',
       team: '',
     }))
   );
-  const [pilots, setPilots] = useState<any[]>([]);
 
-  useEffect(() => {
-    const loadPilots = async () => {
-      try {
-        const pilotsData = await pilotsService.getAllPilots();
-        setPilots(pilotsData.map(pilot => ({
-          id: pilot.id,
-          name: `${pilot.givenName} ${pilot.familyName}`,
-          team: 'F1 Team' // Temporário até ter a relação com construtor
-        })));
-      } catch (error) {
-        console.error('Erro ao carregar pilotos:', error);
-      }
-    };
-    loadPilots();
-  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,9 +117,11 @@ export default function EventsAdminPage() {
   const [selectedSeason, setSelectedSeason] = useState(new Date().getFullYear());
   const [availableSeasons, setAvailableSeasons] = useState<number[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [pilots, setPilots] = useState<any[]>([]);
 
   useEffect(() => {
     loadInitialData();
+    loadPilots();
   }, []);
 
   useEffect(() => {
@@ -138,6 +129,19 @@ export default function EventsAdminPage() {
       loadEventsBySeason(selectedSeason);
     }
   }, [selectedSeason]);
+
+  const loadPilots = async () => {
+    try {
+      const pilotsData = await pilotsService.getAllPilots();
+      setPilots(pilotsData.map(pilot => ({
+        id: pilot.id,
+        name: `${pilot.givenName} ${pilot.familyName}`,
+        team: 'F1 Team' // Temporário até ter a relação com construtor
+      })));
+    } catch (error) {
+      console.error('Erro ao carregar pilotos:', error);
+    }
+  };
 
   const loadInitialData = async () => {
     try {
@@ -242,16 +246,51 @@ export default function EventsAdminPage() {
     if (!selectedEvent) return;
     
     try {
-      // TODO: Implementar a lógica para salvar os resultados no backend
-      // Por enquanto, apenas atualizar o estado local
-      toast.success('Resultados salvos com sucesso!');
+      // Filtrar apenas resultados preenchidos
+      const filledResults = results.filter(r => r.driver && r.driver.trim() !== '');
+      
+      if (filledResults.length === 0) {
+        toast.error('Preencha pelo menos um resultado antes de salvar.');
+        return;
+      }
+
+      // Converter nomes dos pilotos para IDs
+      const pilotIds: number[] = [];
+      const missingPilots: string[] = [];
+
+      for (const result of filledResults) {
+        const pilot = pilots.find((p: any) => p.name === result.driver);
+        if (pilot) {
+          pilotIds.push(pilot.id);
+        } else {
+          missingPilots.push(result.driver);
+        }
+      }
+
+      if (missingPilots.length > 0) {
+        toast.error(`Pilotos não encontrados: ${missingPilots.join(', ')}`);
+        return;
+      }
+
+      // Preparar request para a API
+      const guessType = selectedTab === 0 ? 'QUALIFYING' : 'RACE' as 'QUALIFYING' | 'RACE';
+      const setResultRequest = {
+        grandPrixId: selectedEvent.id,
+        guessType: guessType,
+        realResultPilotIds: pilotIds
+      };
+
+      // Salvar resultado real e calcular pontuações
+      const response = await eventsService.setRealResultAndCalculateScores(setResultRequest);
+      
+      toast.success(`Resultado salvo com sucesso! ${response.calculatedGuesses} palpites tiveram pontuações calculadas. 🏁`);
       
       // Atualizar o estado local
       const updatedEvent = { ...selectedEvent };
       if (selectedTab === 0) {
         updatedEvent.qualifying = {
           status: 'consolidated',
-          results: results.map(r => ({
+          results: filledResults.map(r => ({
             position: r.position,
             driver: r.driver,
             team: r.team
@@ -260,7 +299,7 @@ export default function EventsAdminPage() {
       } else {
         updatedEvent.race = {
           status: 'consolidated',
-          results: results.map(r => ({
+          results: filledResults.map(r => ({
             position: r.position,
             driver: r.driver,
             team: r.team
@@ -502,6 +541,8 @@ export default function EventsAdminPage() {
                               onSubmit={handleSubmitResults}
                               onImport={handleImportResults}
                               isLoading={isImporting}
+                              selectedTab={selectedTab}
+                              pilots={pilots}
                             />
                           ) : (
                             <>
@@ -558,6 +599,8 @@ export default function EventsAdminPage() {
                               onSubmit={handleSubmitResults}
                               onImport={handleImportResults}
                               isLoading={isImporting}
+                              selectedTab={selectedTab}
+                              pilots={pilots}
                             />
                           ) : (
                             <>

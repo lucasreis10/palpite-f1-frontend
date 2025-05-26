@@ -19,6 +19,8 @@ export const buildApiUrl = (endpoint: string): string => {
   return `${API_CONFIG.BASE_URL}${endpoint}`;
 };
 
+
+
 // URLs específicas para cada serviço
 export const API_URLS = {
   AUTH: buildApiUrl(API_CONFIG.ENDPOINTS.AUTH),
@@ -29,5 +31,6 @@ export const API_URLS = {
   DASHBOARD: buildApiUrl(API_CONFIG.ENDPOINTS.DASHBOARD),
   TEAMS: buildApiUrl(API_CONFIG.ENDPOINTS.TEAMS),
   CONSTRUCTORS: buildApiUrl(API_CONFIG.ENDPOINTS.CONSTRUCTORS),
-  HEALTH: buildApiUrl(API_CONFIG.ENDPOINTS.HEALTH)
+  HEALTH: buildApiUrl(API_CONFIG.ENDPOINTS.HEALTH),
+  BASE_URL: API_CONFIG.BASE_URL
 } as const; 
