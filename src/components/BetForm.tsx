@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { DriverAutocomplete } from './DriverAutocomplete';
+import { Toast } from './Toast';
 import { Tab } from '@headlessui/react';
 import { guessService, Pilot, NextGrandPrix, GuessResponse } from '@/services/guesses';
 import { useAuth } from '@/hooks/useAuth';
@@ -24,6 +25,15 @@ export function BetForm() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'error' | 'info';
+    isVisible: boolean;
+  }>({
+    message: '',
+    type: 'success',
+    isVisible: false
+  });
 
   // Converter Pilot para Driver (compatibilidade com componente existente)
   const convertPilotToDriver = (pilot: Pilot): Driver => ({
@@ -34,6 +44,20 @@ export function BetForm() {
 
   // Converter Driver para Pilot ID
   const getDriverPilotId = (driver: Driver): number => driver.id;
+
+  // Função para mostrar toast
+  const showToast = (message: string, type: 'success' | 'error' | 'info') => {
+    setToast({
+      message,
+      type,
+      isVisible: true
+    });
+  };
+
+  // Função para fechar toast
+  const closeToast = () => {
+    setToast(prev => ({ ...prev, isVisible: false }));
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -121,16 +145,16 @@ export function BetForm() {
     e.preventDefault();
     
     if (!user || !nextGrandPrix) {
-      setError('Usuário não logado ou nenhum GP disponível');
+      showToast('Usuário não logado ou nenhum GP disponível', 'error');
       return;
     }
 
     if (selectedQualifyingDrivers.some(driver => driver === null)) {
-      setError('Por favor, selecione todos os pilotos para a classificação');
+      showToast('Por favor, selecione todos os pilotos para a classificação', 'error');
       return;
     }
     if (selectedRaceDrivers.some(driver => driver === null)) {
-      setError('Por favor, selecione todos os pilotos para a corrida');
+      showToast('Por favor, selecione todos os pilotos para a corrida', 'error');
       return;
     }
 
@@ -138,7 +162,7 @@ export function BetForm() {
     const qualifyingIds = selectedQualifyingDrivers.filter(d => d !== null).map(d => d!.id);
     const uniqueQualifyingIds = new Set(qualifyingIds);
     if (qualifyingIds.length !== uniqueQualifyingIds.size) {
-      setError('Não é possível selecionar o mesmo piloto mais de uma vez na classificação');
+      showToast('Não é possível selecionar o mesmo piloto mais de uma vez na classificação', 'error');
       return;
     }
 
@@ -146,7 +170,7 @@ export function BetForm() {
     const raceIds = selectedRaceDrivers.filter(d => d !== null).map(d => d!.id);
     const uniqueRaceIds = new Set(raceIds);
     if (raceIds.length !== uniqueRaceIds.size) {
-      setError('Não é possível selecionar o mesmo piloto mais de uma vez na corrida');
+      showToast('Não é possível selecionar o mesmo piloto mais de uma vez na corrida', 'error');
       return;
     }
 
@@ -191,10 +215,10 @@ export function BetForm() {
         setExistingRaceGuess(newRaceGuess);
       }
 
-      setSuccessMessage('Palpites salvos com sucesso!');
+      showToast('Palpites salvos com sucesso! 🏁', 'success');
     } catch (error: unknown) {
       console.error('Erro ao salvar palpites:', error);
-      setError(error instanceof Error ? error.message : 'Erro ao salvar palpites. Tente novamente.');
+      showToast(error instanceof Error ? error.message : 'Erro ao salvar palpites. Tente novamente.', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -218,18 +242,14 @@ export function BetForm() {
     // Copiar palpites da classificação para a corrida
     const qualifyingDrivers = selectedQualifyingDrivers.filter(driver => driver !== null);
     if (qualifyingDrivers.length === 0) {
-      setError('Nenhum piloto selecionado na classificação para copiar');
+      showToast('Nenhum piloto selecionado na classificação para copiar', 'error');
       return;
     }
     
     setSelectedRaceDrivers([...selectedQualifyingDrivers]);
     setError(null);
-    setSuccessMessage(`${qualifyingDrivers.length} pilotos copiados da classificação para a corrida!`);
-    
-    // Limpar mensagem após 3 segundos
-    setTimeout(() => {
-      setSuccessMessage(null);
-    }, 3000);
+    setSuccessMessage(null);
+    showToast(`${qualifyingDrivers.length} pilotos copiados da classificação para a corrida! 📋`, 'success');
   };
 
   if (isLoading || authLoading) {
@@ -266,8 +286,16 @@ export function BetForm() {
   const raceDeadlineOpen = guessService.isGuessDeadlineOpen(nextGrandPrix, 'RACE');
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden w-full max-w-full">
-      <div className="p-4 sm:p-6">
+    <>
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={closeToast}
+      />
+      
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden w-full max-w-full">
+        <div className="p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div>
             <h2 className="text-xl font-bold text-gray-900">{nextGrandPrix.name}</h2>
@@ -290,17 +318,7 @@ export function BetForm() {
           </div>
         </div>
 
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-red-800 text-sm">{error}</p>
-          </div>
-        )}
 
-        {successMessage && (
-          <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-md">
-            <p className="text-green-800 text-sm">{successMessage}</p>
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <Tab.Group>
@@ -515,5 +533,6 @@ export function BetForm() {
         </form>
       </div>
     </div>
+    </>
   );
 } 

@@ -4,18 +4,24 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import AuthHeader from './AuthHeader';
+import { useAuth } from '@/hooks/useAuth';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isAdmin, isAuthenticated } = useAuth();
 
-  const menuItems = [
+  const baseMenuItems = [
     { href: '/', label: 'Tela Inicial' },
     { href: '/palpites', label: 'Fazer Palpite' },
     { href: '/ranking', label: 'Ranking' },
     { href: '/ultimo-evento', label: 'Último Evento' },
     { href: '/equipes', label: 'Equipes' },
-    { href: '/admin', label: 'Administração' },
   ];
+
+  // Adicionar menu Administração apenas se o usuário for ADMIN
+  const menuItems = isAuthenticated && isAdmin 
+    ? [...baseMenuItems, { href: '/admin', label: 'Administração' }]
+    : baseMenuItems;
 
   return (
     <header className="bg-f1-red relative">
@@ -78,7 +84,9 @@ export function Header() {
               {item.label}
             </Link>
           ))}
-          <AuthHeader />
+          <div className="ml-4">
+            <AuthHeader />
+          </div>
         </div>
       </nav>
     </header>
