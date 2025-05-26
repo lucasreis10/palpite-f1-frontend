@@ -1,4 +1,5 @@
 import { API_URLS } from '../config/api';
+import { authService } from './auth';
 
 export interface User {
   id: number;
@@ -121,20 +122,25 @@ class UsersService {
 
   async createUser(request: CreateUserRequest): Promise<User> {
     try {
-      // TODO: Implementar endpoint no backend
-      // Por enquanto, simular criação
-      const newUser: User = {
-        id: Date.now(),
-        name: request.name,
-        email: request.email,
-        role: request.role,
-        active: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+      console.log('Criando usuário:', request);
+      
+      const response = await authService.authenticatedFetch(this.baseUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+      });
 
-      console.log('Simulando criação de usuário:', newUser);
-      return newUser;
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Erro na resposta do servidor:', errorData);
+        throw new Error(`Erro ao criar usuário: ${response.status} - ${errorData}`);
+      }
+
+      const userData = await response.json();
+      console.log('Usuário criado com sucesso:', userData);
+      return userData;
     } catch (error) {
       console.error('Erro ao criar usuário:', error);
       throw error;
@@ -143,21 +149,25 @@ class UsersService {
 
   async updateUser(id: number, request: UpdateUserRequest): Promise<User> {
     try {
-      // TODO: Implementar endpoint no backend
-      // Por enquanto, buscar o usuário atual e simular atualização
-      const currentUser = await this.getUserById(id);
+      console.log('Atualizando usuário:', id, request);
       
-      const updatedUser: User = {
-        ...currentUser,
-        name: request.name ?? currentUser.name,
-        email: request.email ?? currentUser.email,
-        role: request.role ?? currentUser.role,
-        active: request.active ?? currentUser.active,
-        updatedAt: new Date().toISOString()
-      };
+      const response = await authService.authenticatedFetch(`${this.baseUrl}/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+      });
 
-      console.log('Simulando atualização de usuário:', updatedUser);
-      return updatedUser;
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Erro na resposta do servidor:', errorData);
+        throw new Error(`Erro ao atualizar usuário: ${response.status} - ${errorData}`);
+      }
+
+      const userData = await response.json();
+      console.log('Usuário atualizado com sucesso:', userData);
+      return userData;
     } catch (error) {
       console.error(`Erro ao atualizar usuário ${id}:`, error);
       throw error;
@@ -166,8 +176,19 @@ class UsersService {
 
   async deleteUser(id: number): Promise<void> {
     try {
-      // TODO: Implementar endpoint no backend
-      console.log(`Simulando exclusão de usuário ${id}`);
+      console.log('Deletando usuário:', id);
+      
+      const response = await authService.authenticatedFetch(`${this.baseUrl}/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Erro na resposta do servidor:', errorData);
+        throw new Error(`Erro ao deletar usuário: ${response.status} - ${errorData}`);
+      }
+
+      console.log('Usuário deletado com sucesso:', id);
     } catch (error) {
       console.error(`Erro ao deletar usuário ${id}:`, error);
       throw error;
@@ -205,16 +226,24 @@ class UsersService {
 
   async getUserStats(): Promise<UserStats> {
     try {
+      const response = await authService.authenticatedFetch(`${this.baseUrl}/stats`);
+      
+      if (!response.ok) {
+        throw new Error('Erro ao buscar estatísticas de usuários');
+      }
+      
+      const backendStats = await response.json();
+      
+      // Mapear a resposta do backend para nossa interface
+      // O backend retorna { total, active }, vamos calcular o resto localmente
       const allUsers = await this.getAllUsers();
-      const activeUsers = allUsers.filter(user => user.active);
-      const inactiveUsers = allUsers.filter(user => !user.active);
       const adminUsers = allUsers.filter(user => user.role === 'ADMIN');
       const regularUsers = allUsers.filter(user => user.role === 'USER');
-
+      
       return {
-        totalUsers: allUsers.length,
-        activeUsers: activeUsers.length,
-        inactiveUsers: inactiveUsers.length,
+        totalUsers: backendStats.total,
+        activeUsers: backendStats.active,
+        inactiveUsers: backendStats.total - backendStats.active,
         adminUsers: adminUsers.length,
         regularUsers: regularUsers.length,
       };
