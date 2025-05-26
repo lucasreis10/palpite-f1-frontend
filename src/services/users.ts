@@ -39,7 +39,7 @@ class UsersService {
 
   async getAllUsers(): Promise<User[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/users`);
+      const response = await fetch(`${this.baseUrl}`);
       if (response.ok) {
         const users = await response.json();
         // Mapear para incluir campos adicionais com valores padrão
@@ -72,7 +72,7 @@ class UsersService {
 
   async getUserById(id: number): Promise<User> {
     try {
-      const response = await fetch(`${this.baseUrl}/users/${id}`);
+      const response = await fetch(`${this.baseUrl}/${id}`);
       if (response.ok) {
         const user = await response.json();
         return {
