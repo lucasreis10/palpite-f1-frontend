@@ -47,7 +47,7 @@ class UserTeamsService {
 
   async getAllTeams(): Promise<UserTeam[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/teams`);
+      const response = await fetch(`${this.baseUrl}`);
       if (response.ok) {
         return await response.json();
       }
@@ -60,7 +60,7 @@ class UserTeamsService {
 
   async getTeamsByYear(year: number): Promise<UserTeam[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/teams/year/${year}`);
+      const response = await fetch(`${this.baseUrl}/year/${year}`);
       if (response.ok) {
         return await response.json();
       }
@@ -73,7 +73,7 @@ class UserTeamsService {
 
   async getActiveTeamsByYear(year: number): Promise<UserTeam[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/teams/year/${year}/active`);
+      const response = await fetch(`${this.baseUrl}/year/${year}/active`);
       if (response.ok) {
         return await response.json();
       }
@@ -86,7 +86,7 @@ class UserTeamsService {
 
   async getRankingByYear(year: number): Promise<UserTeam[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/teams/year/${year}/ranking`);
+      const response = await fetch(`${this.baseUrl}/year/${year}/ranking`);
       if (response.ok) {
         return await response.json();
       }
@@ -99,7 +99,7 @@ class UserTeamsService {
 
   async getTeamById(id: number): Promise<UserTeam> {
     try {
-      const response = await fetch(`${this.baseUrl}/teams/${id}`);
+      const response = await fetch(`${this.baseUrl}/${id}`);
       if (response.ok) {
         return await response.json();
       }
@@ -112,7 +112,7 @@ class UserTeamsService {
 
   async getTeamByNameAndYear(name: string, year: number): Promise<UserTeam> {
     try {
-      const response = await fetch(`${this.baseUrl}/teams/name/${encodeURIComponent(name)}/year/${year}`);
+      const response = await fetch(`${this.baseUrl}/name/${encodeURIComponent(name)}/year/${year}`);
       if (response.ok) {
         return await response.json();
       }
@@ -125,7 +125,7 @@ class UserTeamsService {
 
   async getUserTeams(userId: number): Promise<UserTeam[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/teams/user/${userId}`);
+      const response = await fetch(`${this.baseUrl}/user/${userId}`);
       if (response.ok) {
         return await response.json();
       }
@@ -138,7 +138,7 @@ class UserTeamsService {
 
   async getUserTeamByYear(userId: number, year: number): Promise<UserTeam> {
     try {
-      const response = await fetch(`${this.baseUrl}/teams/user/${userId}/year/${year}`);
+      const response = await fetch(`${this.baseUrl}/user/${userId}/year/${year}`);
       if (response.ok) {
         return await response.json();
       }
@@ -151,7 +151,7 @@ class UserTeamsService {
 
   async searchTeamsByName(name: string): Promise<UserTeam[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/teams/search?name=${encodeURIComponent(name)}`);
+      const response = await fetch(`${this.baseUrl}/search?name=${encodeURIComponent(name)}`);
       if (response.ok) {
         return await response.json();
       }
@@ -166,7 +166,7 @@ class UserTeamsService {
 
   async createTeam(request: CreateUserTeamRequest): Promise<UserTeam> {
     try {
-      const response = await fetch(`${this.baseUrl}/teams`, {
+      const response = await fetch(`${this.baseUrl}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -188,7 +188,7 @@ class UserTeamsService {
 
   async updateTeam(id: number, request: UpdateUserTeamRequest): Promise<UserTeam> {
     try {
-      const response = await fetch(`${this.baseUrl}/teams/${id}`, {
+      const response = await fetch(`${this.baseUrl}/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -210,7 +210,7 @@ class UserTeamsService {
 
   async deleteTeam(id: number): Promise<void> {
     try {
-      const response = await fetch(`${this.baseUrl}/teams/${id}`, {
+      const response = await fetch(`${this.baseUrl}/${id}`, {
         method: 'DELETE',
       });
 

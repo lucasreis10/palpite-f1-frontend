@@ -40,7 +40,7 @@ class ConstructorsService {
 
   async getAllConstructors(): Promise<Constructor[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/constructors`);
+      const response = await fetch(`${this.baseUrl}`);
       if (response.ok) {
         return await response.json();
       }
@@ -53,7 +53,7 @@ class ConstructorsService {
 
   async getActiveConstructors(): Promise<Constructor[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/constructors/active`);
+      const response = await fetch(`${this.baseUrl}/active`);
       if (response.ok) {
         return await response.json();
       }
@@ -66,7 +66,7 @@ class ConstructorsService {
 
   async getConstructorById(id: number): Promise<Constructor> {
     try {
-      const response = await fetch(`${this.baseUrl}/constructors/${id}`);
+      const response = await fetch(`${this.baseUrl}/${id}`);
       if (response.ok) {
         return await response.json();
       }
@@ -79,7 +79,7 @@ class ConstructorsService {
 
   async getConstructorByConstructorId(constructorId: string): Promise<Constructor> {
     try {
-      const response = await fetch(`${this.baseUrl}/constructors/constructor-id/${constructorId}`);
+      const response = await fetch(`${this.baseUrl}/constructor-id/${constructorId}`);
       if (response.ok) {
         return await response.json();
       }
@@ -92,7 +92,7 @@ class ConstructorsService {
 
   async searchConstructorsByName(name: string): Promise<Constructor[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/constructors/search?name=${encodeURIComponent(name)}`);
+      const response = await fetch(`${this.baseUrl}/search?name=${encodeURIComponent(name)}`);
       if (response.ok) {
         return await response.json();
       }
@@ -105,7 +105,7 @@ class ConstructorsService {
 
   async getConstructorsByNationality(nationality: string): Promise<Constructor[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/constructors/nationality/${nationality}`);
+      const response = await fetch(`${this.baseUrl}/nationality/${nationality}`);
       if (response.ok) {
         return await response.json();
       }
