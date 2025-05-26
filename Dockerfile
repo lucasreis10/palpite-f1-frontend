@@ -9,10 +9,7 @@ WORKDIR /app
 
 # Instalar dependências baseado no gerenciador de pacotes preferido
 COPY package.json package-lock.json* ./
-RUN \
-  if [ -f package-lock.json ]; then npm ci --only=production; \
-  else echo "Lockfile não encontrado." && exit 1; \
-  fi
+RUN npm ci --only=production
 
 # Rebuild do código fonte apenas quando necessário
 FROM base AS builder
@@ -23,7 +20,7 @@ COPY . .
 # Next.js coleta dados de telemetria completamente anônimos sobre uso geral
 # Saiba mais aqui: https://nextjs.org/telemetry
 # Descomente a linha seguinte caso queira desabilitar a telemetria durante o build
-# ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN npm run build
 
@@ -38,16 +35,12 @@ ENV NODE_ENV production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
+# Copiar arquivos necessários
+COPY --from=builder /app/next.config.ts ./
 COPY --from=builder /app/public ./public
-
-# Definir as permissões corretas para prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
-
-# Aproveitar automaticamente os traces de saída para reduzir o tamanho da imagem
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=deps /app/node_modules ./node_modules
 
 USER nextjs
 
@@ -56,5 +49,5 @@ EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-# server.js é criado pelo next build a partir do output trace
-CMD ["node", "server.js"] 
+# Usar npm start padrão
+CMD ["npm", "start"] 

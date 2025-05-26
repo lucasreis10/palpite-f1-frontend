@@ -13,8 +13,13 @@ const authRoutes = [
   '/register',
 ];
 
-export function middleware(request: NextRequest) {
+export default function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  
+  // Permitir healthcheck e outras rotas de sistema sem interferência
+  if (pathname === '/' || pathname === '/health' || pathname === '/api/health') {
+    return NextResponse.next();
+  }
   
   // Verificar se há token de autenticação no cookie
   const authCookie = request.cookies.get('auth_token');
@@ -43,7 +48,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - health (healthcheck routes)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|health).*)',
   ],
 }; 
