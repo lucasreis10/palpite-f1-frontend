@@ -62,7 +62,7 @@ class DashboardService {
 
   async getNextRaces(): Promise<NextRace[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/grand-prix/upcoming`);
+      const response = await fetch(`${API_URLS.GRAND_PRIX}/upcoming`);
       if (!response.ok) {
         throw new Error('Erro ao buscar próximas corridas');
       }
@@ -87,7 +87,7 @@ class DashboardService {
 
   async getLastResult(): Promise<LastResult | null> {
     try {
-      const response = await fetch(`${this.baseUrl}/dashboard/last-result`);
+      const response = await fetch(`${this.baseUrl}/last-result`);
       if (!response.ok) {
         throw new Error('Erro ao buscar último resultado');
       }
@@ -101,7 +101,7 @@ class DashboardService {
   async getTopUsers(limit: number = 10): Promise<TopUser[]> {
     try {
       const currentYear = new Date().getFullYear();
-      const response = await fetch(`${this.baseUrl}/dashboard/top-users?limit=${limit}&season=${currentYear}`);
+      const response = await fetch(`${this.baseUrl}/top-users?limit=${limit}&season=${currentYear}`);
       if (!response.ok) {
         throw new Error('Erro ao buscar ranking de usuários');
       }
@@ -115,7 +115,7 @@ class DashboardService {
   async getTopTeams(limit: number = 5): Promise<TopTeam[]> {
     try {
       const currentYear = new Date().getFullYear();
-      const response = await fetch(`${this.baseUrl}/teams/ranking/season/${currentYear}?limit=${limit}`);
+      const response = await fetch(`${API_URLS.TEAMS}/ranking/season/${currentYear}?limit=${limit}`);
       if (!response.ok) {
         throw new Error('Erro ao buscar ranking de equipes');
       }
@@ -128,7 +128,7 @@ class DashboardService {
 
   async getDashboardStats(): Promise<DashboardStats> {
     try {
-      const response = await fetch(`${this.baseUrl}/dashboard/stats`);
+      const response = await fetch(`${this.baseUrl}/stats`);
       if (!response.ok) {
         throw new Error('Erro ao buscar estatísticas');
       }
@@ -147,7 +147,7 @@ class DashboardService {
 
   async getUserGuesses(userId: number): Promise<any[]> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/guesses/user/${userId}`);
+      const response = await authService.authenticatedFetch(`${API_URLS.GUESSES}/user/${userId}`);
       if (!response.ok) {
         throw new Error('Erro ao buscar palpites do usuário');
       }

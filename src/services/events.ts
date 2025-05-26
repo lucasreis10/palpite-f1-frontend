@@ -91,7 +91,7 @@ class EventsService {
 
   async getAllEvents(): Promise<GrandPrixEvent[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/grand-prix`);
+      const response = await fetch(`${this.baseUrl}`);
       if (response.ok) {
         return await response.json();
       }
@@ -104,7 +104,7 @@ class EventsService {
 
   async getEventsBySeason(season: number): Promise<GrandPrixEvent[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/grand-prix/season/${season}`);
+      const response = await fetch(`${this.baseUrl}/season/${season}`);
       if (response.ok) {
         return await response.json();
       }
@@ -117,7 +117,7 @@ class EventsService {
 
   async getActiveEventsBySeason(season: number): Promise<GrandPrixEvent[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/grand-prix/season/${season}/active`);
+      const response = await fetch(`${this.baseUrl}/season/${season}/active`);
       if (response.ok) {
         return await response.json();
       }
@@ -130,7 +130,7 @@ class EventsService {
 
   async getCompletedEventsBySeason(season: number): Promise<GrandPrixEvent[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/grand-prix/season/${season}/completed`);
+      const response = await fetch(`${this.baseUrl}/season/${season}/completed`);
       if (response.ok) {
         return await response.json();
       }
@@ -143,7 +143,7 @@ class EventsService {
 
   async getPendingEventsBySeason(season: number): Promise<GrandPrixEvent[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/grand-prix/season/${season}/pending`);
+      const response = await fetch(`${this.baseUrl}/season/${season}/pending`);
       if (response.ok) {
         return await response.json();
       }
@@ -156,7 +156,7 @@ class EventsService {
 
   async getEventById(id: number): Promise<GrandPrixEvent> {
     try {
-      const response = await fetch(`${this.baseUrl}/grand-prix/${id}`);
+      const response = await fetch(`${this.baseUrl}/${id}`);
       if (response.ok) {
         return await response.json();
       }
@@ -169,7 +169,7 @@ class EventsService {
 
   async getUpcomingEvents(): Promise<GrandPrixEvent[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/grand-prix/upcoming`);
+      const response = await fetch(`${this.baseUrl}/upcoming`);
       if (response.ok) {
         return await response.json();
       }
@@ -182,7 +182,7 @@ class EventsService {
 
   async getNextEvent(): Promise<GrandPrixEvent> {
     try {
-      const response = await fetch(`${this.baseUrl}/grand-prix/next`);
+      const response = await fetch(`${this.baseUrl}/next`);
       if (response.ok) {
         return await response.json();
       }
@@ -195,7 +195,7 @@ class EventsService {
 
   async getAvailableSeasons(): Promise<number[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/grand-prix/seasons`);
+      const response = await fetch(`${this.baseUrl}/seasons`);
       if (response.ok) {
         return await response.json();
       }
@@ -210,7 +210,7 @@ class EventsService {
 
   async createEvent(request: CreateEventRequest): Promise<GrandPrixEvent> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/grand-prix`, {
+      const response = await authService.authenticatedFetch(`${this.baseUrl}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -230,7 +230,7 @@ class EventsService {
 
   async updateEvent(id: number, request: UpdateEventRequest): Promise<GrandPrixEvent> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/grand-prix/${id}`, {
+      const response = await authService.authenticatedFetch(`${this.baseUrl}/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -250,7 +250,7 @@ class EventsService {
 
   async deleteEvent(id: number): Promise<void> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/grand-prix/${id}`, {
+      const response = await authService.authenticatedFetch(`${this.baseUrl}/${id}`, {
         method: 'DELETE',
       });
 
@@ -265,7 +265,7 @@ class EventsService {
 
   async markAsCompleted(id: number): Promise<GrandPrixEvent> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/grand-prix/${id}/complete`, {
+      const response = await authService.authenticatedFetch(`${this.baseUrl}/${id}/complete`, {
         method: 'PATCH',
       });
 
@@ -281,7 +281,7 @@ class EventsService {
 
   async markAsPending(id: number): Promise<GrandPrixEvent> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/grand-prix/${id}/pending`, {
+      const response = await authService.authenticatedFetch(`${this.baseUrl}/${id}/pending`, {
         method: 'PATCH',
       });
 

@@ -64,9 +64,9 @@ class AdminService {
     try {
       const currentYear = new Date().getFullYear();
       const [allGP, completedGP, pendingGP] = await Promise.all([
-        fetch(`${this.baseUrl}/grand-prix/season/${currentYear}`),
-        fetch(`${this.baseUrl}/grand-prix/season/${currentYear}/completed`),
-        fetch(`${this.baseUrl}/grand-prix/season/${currentYear}/pending`)
+        fetch(`${API_URLS.GRAND_PRIX}/season/${currentYear}`),
+        fetch(`${API_URLS.GRAND_PRIX}/season/${currentYear}/completed`),
+        fetch(`${API_URLS.GRAND_PRIX}/season/${currentYear}/pending`)
       ]);
 
       const [allData, completedData, pendingData] = await Promise.all([
@@ -89,8 +89,8 @@ class AdminService {
   private async fetchPilotsStats() {
     try {
       const [allPilots, activePilots] = await Promise.all([
-        fetch(`${this.baseUrl}/pilots`),
-        fetch(`${this.baseUrl}/pilots/active`)
+        fetch(`${API_URLS.PILOTS}`),
+        fetch(`${API_URLS.PILOTS}/active`)
       ]);
 
       const [allData, activeData] = await Promise.all([
@@ -112,8 +112,8 @@ class AdminService {
     try {
       const currentYear = new Date().getFullYear();
       const [allTeams, activeTeams] = await Promise.all([
-        fetch(`${this.baseUrl}/teams/year/${currentYear}`),
-        fetch(`${this.baseUrl}/teams/year/${currentYear}/active`)
+        fetch(`${API_URLS.TEAMS}/year/${currentYear}`),
+        fetch(`${API_URLS.TEAMS}/year/${currentYear}/active`)
       ]);
 
       const [allData, activeData] = await Promise.all([
@@ -134,7 +134,7 @@ class AdminService {
   private async fetchUsersStats() {
     try {
       // Endpoint correto considerando que API_BASE_URL já inclui /api
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/users/stats`);
+      const response = await authService.authenticatedFetch(`${API_URLS.USERS}/stats`);
       
       if (response.ok) {
         const data = await response.json();
@@ -153,7 +153,7 @@ class AdminService {
 
   private async fetchUpcomingRaces() {
     try {
-      const response = await fetch(`${this.baseUrl}/grand-prix/upcoming`);
+      const response = await fetch(`${API_URLS.GRAND_PRIX}/upcoming`);
       if (response.ok) {
         return await response.json();
       }

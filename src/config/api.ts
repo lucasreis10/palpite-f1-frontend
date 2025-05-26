@@ -3,14 +3,14 @@ export const API_CONFIG = {
   BASE_URL: 'https://javaspringboot-production-a2d3.up.railway.app/api',
   ENDPOINTS: {
     AUTH: '/auth',
-    USERS: '',
-    PILOTS: '',
-    GUESSES: '',
-    GRAND_PRIX: '',
-    DASHBOARD: '',
-    TEAMS: '',
-    CONSTRUCTORS: '',
-    HEALTH: ''
+    USERS: '/users',
+    PILOTS: '/pilots',
+    GUESSES: '/guesses',
+    GRAND_PRIX: '/grand-prix',
+    DASHBOARD: '/dashboard',
+    TEAMS: '/teams',
+    CONSTRUCTORS: '/constructors',
+    HEALTH: '/health'
   }
 } as const;
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Modal } from './Modal';
-import { CreateEventRequest } from './../services/events';
+import { CreateEventRequest, eventsService } from './../services/events';
 import { toast } from 'react-hot-toast';
 
 interface CreateEventModalProps {
@@ -42,20 +42,8 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, selectedSeas
 
     setIsLoading(true);
     try {
-      // TODO: Implementar criação de evento via API
-      // const newEvent = await eventsService.createEvent(formData);
-      
-      // Por enquanto, simular criação
-      const newEvent = {
-        id: Date.now(),
-        ...formData,
-        fullName: `${formData.name} ${formData.season}`,
-        active: true,
-        completed: false,
-        isSprintWeekend: !!formData.sprintDateTime,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+      // Criar evento via API
+      const newEvent = await eventsService.createEvent(formData);
       
       onEventCreated(newEvent);
       toast.success('Evento criado com sucesso!');

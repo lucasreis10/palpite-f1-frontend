@@ -125,7 +125,7 @@ class CalendarService {
 
   async getEventsBySeason(season: number): Promise<CalendarEvent[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/grand-prix/season/${season}`);
+      const response = await fetch(`${this.baseUrl}/season/${season}`);
       if (response.ok) {
         return await response.json();
       }
@@ -172,7 +172,7 @@ class CalendarService {
 
   async getAvailableSeasons(): Promise<number[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/grand-prix/seasons`);
+      const response = await fetch(`${this.baseUrl}/seasons`);
       if (response.ok) {
         return await response.json();
       }
@@ -189,7 +189,7 @@ class CalendarService {
 
   async createEvent(request: CreateCalendarEventRequest): Promise<CalendarEvent> {
     try {
-      const response = await fetch(`${this.baseUrl}/grand-prix`, {
+      const response = await fetch(`${this.baseUrl}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -211,7 +211,7 @@ class CalendarService {
 
   async updateEvent(id: number, request: UpdateCalendarEventRequest): Promise<CalendarEvent> {
     try {
-      const response = await fetch(`${this.baseUrl}/grand-prix/${id}`, {
+      const response = await fetch(`${this.baseUrl}/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -233,7 +233,7 @@ class CalendarService {
 
   async deleteEvent(id: number): Promise<void> {
     try {
-      const response = await fetch(`${this.baseUrl}/grand-prix/${id}`, {
+      const response = await fetch(`${this.baseUrl}/${id}`, {
         method: 'DELETE',
       });
 
