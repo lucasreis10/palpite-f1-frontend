@@ -1,6 +1,6 @@
 import { Fragment, useState } from 'react'
 import { Combobox, Transition } from '@headlessui/react'
-import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
+import { CheckIcon, ChevronUpDownIcon, XMarkIcon } from '@heroicons/react/20/solid'
 
 interface Driver {
   id: number;
@@ -11,7 +11,7 @@ interface Driver {
 interface DriverAutocompleteProps {
   drivers: Driver[];
   selectedDriver: Driver | null;
-  onSelect: (driver: Driver) => void;
+  onSelect: (driver: Driver | null) => void;
   position: number;
   disabled?: boolean;
 }
@@ -39,10 +39,18 @@ export function DriverAutocomplete({ drivers, selectedDriver, onSelect, position
     setTimeout(() => setIsOpen(false), 150)
   }
 
-  const handleSelect = (driver: Driver) => {
+  const handleSelect = (driver: Driver | null) => {
     onSelect(driver)
     setIsOpen(false)
     setQuery('')
+  }
+
+  const handleClear = () => {
+    if (!disabled && selectedDriver) {
+      onSelect(null as any) // Limpar seleção passando null
+      setQuery('')
+      setIsOpen(false)
+    }
   }
 
   return (
@@ -54,13 +62,13 @@ export function DriverAutocomplete({ drivers, selectedDriver, onSelect, position
       }`}>
         {position}
       </span>
-      <Combobox value={selectedDriver} onChange={handleSelect} disabled={disabled}>
+      <Combobox value={selectedDriver} onChange={(driver: Driver | null) => handleSelect(driver)} disabled={disabled}>
         <div className="relative flex-1">
           <div className={`relative w-full cursor-default overflow-hidden rounded-md border border-gray-300 text-left focus-within:border-f1-red focus-within:ring-1 focus-within:ring-f1-red ${
             disabled ? 'bg-gray-100' : 'bg-white'
           }`}>
             <Combobox.Input
-              className={`w-full border-none py-2 pl-3 pr-10 text-sm leading-5 focus:ring-0 ${
+              className={`w-full border-none py-2 pl-3 pr-16 text-sm leading-5 focus:ring-0 ${
                 disabled ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white text-gray-900'
               }`}
               displayValue={(driver: Driver) => driver ? `${driver.name} - ${driver.team}` : ''}
@@ -70,6 +78,22 @@ export function DriverAutocomplete({ drivers, selectedDriver, onSelect, position
               placeholder={disabled ? "Prazo encerrado" : "Selecione um piloto"}
               disabled={disabled}
             />
+            
+            {/* Botão de limpar */}
+            {selectedDriver && selectedDriver.name && !disabled && (
+              <button
+                type="button"
+                className="absolute inset-y-0 right-8 flex items-center pr-1 hover:bg-gray-100 rounded"
+                onClick={handleClear}
+                title="Limpar seleção"
+              >
+                <XMarkIcon
+                  className="h-4 w-4 text-gray-400 hover:text-gray-600"
+                  aria-hidden="true"
+                />
+              </button>
+            )}
+            
             <Combobox.Button 
               className="absolute inset-y-0 right-0 flex items-center pr-2" 
               disabled={disabled}

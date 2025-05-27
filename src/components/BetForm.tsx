@@ -76,23 +76,34 @@ export function BetForm() {
 
         // Se há um próximo GP e usuário logado, carregar palpites existentes
         if (nextGpData && user && user.id) {
-          const [qualifyingGuess, raceGuess] = await Promise.all([
-            guessService.getUserGuessForGrandPrix(user.id, nextGpData.id, 'QUALIFYING'),
-            guessService.getUserGuessForGrandPrix(user.id, nextGpData.id, 'RACE')
-          ]);
+          try {
+            const [qualifyingGuess, raceGuess] = await Promise.all([
+              guessService.getUserGuessForGrandPrix(user.id, nextGpData.id, 'QUALIFYING').catch(err => {
+                console.error('Erro ao carregar palpite de qualifying:', err);
+                return null;
+              }),
+              guessService.getUserGuessForGrandPrix(user.id, nextGpData.id, 'RACE').catch(err => {
+                console.error('Erro ao carregar palpite de race:', err);
+                return null;
+              })
+            ]);
 
-          setExistingQualifyingGuess(qualifyingGuess);
-          setExistingRaceGuess(raceGuess);
+            setExistingQualifyingGuess(qualifyingGuess);
+            setExistingRaceGuess(raceGuess);
 
-          // Preencher formulário com palpites existentes
-          if (qualifyingGuess) {
-            const qualifyingDrivers = qualifyingGuess.pilots.map(pilot => convertPilotToDriver(pilot));
-            setSelectedQualifyingDrivers([...qualifyingDrivers, ...new Array(Math.max(0, 10 - qualifyingDrivers.length)).fill(null)]);
-          }
+            // Preencher formulário com palpites existentes
+            if (qualifyingGuess && qualifyingGuess.pilots && Array.isArray(qualifyingGuess.pilots)) {
+              const qualifyingDrivers = qualifyingGuess.pilots.map(pilot => convertPilotToDriver(pilot));
+              setSelectedQualifyingDrivers([...qualifyingDrivers, ...new Array(Math.max(0, 10 - qualifyingDrivers.length)).fill(null)]);
+            }
 
-          if (raceGuess) {
-            const raceDrivers = raceGuess.pilots.map(pilot => convertPilotToDriver(pilot));
-            setSelectedRaceDrivers([...raceDrivers, ...new Array(Math.max(0, 10 - raceDrivers.length)).fill(null)]);
+            if (raceGuess && raceGuess.pilots && Array.isArray(raceGuess.pilots)) {
+              const raceDrivers = raceGuess.pilots.map(pilot => convertPilotToDriver(pilot));
+              setSelectedRaceDrivers([...raceDrivers, ...new Array(Math.max(0, 10 - raceDrivers.length)).fill(null)]);
+            }
+          } catch (guessError) {
+            console.error('Erro ao carregar palpites existentes:', guessError);
+            // Continuar sem palpites existentes
           }
         }
       } catch (error) {
@@ -111,9 +122,15 @@ export function BetForm() {
 
   const drivers: Driver[] = pilots.map(convertPilotToDriver);
 
-  const handleQualifyingDriverSelect = (driver: Driver, position: number) => {
+  const handleQualifyingDriverSelect = (driver: Driver | null, position: number) => {
     setSelectedQualifyingDrivers(prev => {
       const newSelection = [...prev];
+      
+      // Se driver é null, apenas limpar a posição
+      if (!driver) {
+        newSelection[position - 1] = null;
+        return newSelection;
+      }
       
       // Se o piloto já está selecionado em outra posição, remove ele de lá
       const existingIndex = newSelection.findIndex(d => d && d.id === driver.id);
@@ -126,9 +143,15 @@ export function BetForm() {
     });
   };
 
-  const handleRaceDriverSelect = (driver: Driver, position: number) => {
+  const handleRaceDriverSelect = (driver: Driver | null, position: number) => {
     setSelectedRaceDrivers(prev => {
       const newSelection = [...prev];
+      
+      // Se driver é null, apenas limpar a posição
+      if (!driver) {
+        newSelection[position - 1] = null;
+        return newSelection;
+      }
       
       // Se o piloto já está selecionado em outra posição, remove ele de lá
       const existingIndex = newSelection.findIndex(d => d && d.id === driver.id);

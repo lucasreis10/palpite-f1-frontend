@@ -111,14 +111,38 @@ class GuessService {
       const response = await authService.authenticatedFetch(
         `${this.baseUrl}/user/${userId}/grand-prix/${grandPrixId}?guessType=${guessType}`
       );
+      
       if (!response.ok) {
         if (response.status === 404) {
           return null; // Usuário ainda não fez palpite
         }
         throw new Error('Erro ao buscar palpite do usuário');
       }
-      return await response.json();
+      
+      // Verificar se a resposta tem conteúdo antes de tentar fazer parse do JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.warn('Resposta não é JSON válido');
+        return null;
+      }
+      
+      const text = await response.text();
+      if (!text || text.trim() === '' || text.trim() === 'null') {
+        return null; // Resposta vazia ou null
+      }
+      
+      try {
+        const parsed = JSON.parse(text);
+        return parsed;
+      } catch (jsonError) {
+        console.error('Erro ao fazer parse do JSON:', jsonError, 'Texto recebido:', text);
+        return null;
+      }
     } catch (error) {
+      if (error instanceof SyntaxError && error.message.includes('JSON')) {
+        console.error('Erro de JSON detectado, retornando null:', error);
+        return null;
+      }
       console.error('Erro ao buscar palpite do usuário:', error);
       return null;
     }
