@@ -5,6 +5,8 @@ import { Header } from './../../../components/Header';
 import { CreateUserTeamModal } from './../../../components/CreateUserTeamModal';
 import { userTeamsService, UserTeam } from './../../../services/userTeams';
 import { usersService, User } from './../../../services/users';
+import { dashboardService } from '../../../services/dashboard';
+import { roundScore } from '../../../utils/formatters';
 import { 
   PencilIcon, 
   TrashIcon, 
@@ -32,6 +34,7 @@ export default function UserTeamsAdminPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [yearFilter, setYearFilter] = useState<string>('all');
+  const [userScores, setUserScores] = useState<Map<number, number>>(new Map());
 
   useEffect(() => {
     loadData();
@@ -42,7 +45,8 @@ export default function UserTeamsAdminPage() {
       setIsLoading(true);
       const [teamsData, usersData] = await Promise.all([
         userTeamsService.getAllTeams(),
-        usersService.getActiveUsers()
+        usersService.getActiveUsers(),
+        loadUserScores()
       ]);
       setTeams(teamsData);
       setAvailableUsers(usersData);
@@ -138,6 +142,27 @@ export default function UserTeamsAdminPage() {
   });
 
   const uniqueYears = userTeamsService.getUniqueYears(teams);
+
+  // Função para calcular pontuação real dos usuários
+  const loadUserScores = async () => {
+    try {
+      const topUsers = await dashboardService.getTopUsers(100);
+      const scoresMap = new Map<number, number>();
+      topUsers.forEach(user => {
+        scoresMap.set(user.id, user.totalScore);
+      });
+      setUserScores(scoresMap);
+    } catch (error) {
+      console.error('Erro ao carregar pontuações dos usuários:', error);
+    }
+  };
+
+  // Função para calcular pontuação da equipe
+  const calculateTeamScore = (team: UserTeam): number => {
+    const user1Score = userScores.get(team.user1.id) || 0;
+    const user2Score = userScores.get(team.user2.id) || 0;
+    return roundScore(user1Score + user2Score);
+  };
 
   if (isLoading) {
     return (
@@ -344,7 +369,7 @@ export default function UserTeamsAdminPage() {
                         <div className="flex items-center gap-1">
                           <TrophyIcon className="w-4 h-4 text-gray-400" />
                           <span className={`font-semibold ${!team.active ? 'text-gray-500' : 'text-yellow-600'}`}>
-                            {team.totalScore.toLocaleString()} pts
+                            {calculateTeamScore(team).toLocaleString()} pts
                           </span>
                         </div>
                       </td>

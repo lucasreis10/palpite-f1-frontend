@@ -1,3 +1,5 @@
+import { formatScore } from '../utils/formatters';
+
 interface TeamMember {
   id: number;
   name: string;
@@ -45,12 +47,12 @@ export function TeamStandingsTable({ standings }: { standings: Team[] }) {
                   {team.members.map(member => (
                     <div key={member.id} className="flex items-center justify-between md:pr-8">
                       <span className="text-gray-600">{member.name}</span>
-                      <span className="text-gray-900 font-medium">{member.points} pts</span>
+                      <span className="text-gray-900 font-medium">{formatScore(member.points)} pts</span>
                     </div>
                   ))}
                 </div>
               </td>
-              <td className="py-4 px-4 text-center font-bold text-xl">{team.points}</td>
+              <td className="py-4 px-4 text-center font-bold text-xl">{formatScore(team.points)}</td>
               <td className="py-4 px-4 text-center hidden md:table-cell">
                 <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${
                   team.lastPosition <= 3 ? 'bg-green-100 text-green-800' : 

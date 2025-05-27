@@ -48,7 +48,7 @@ export default function RankingPage() {
   const convertTopUserToParticipant = (topUser: TopUser, index: number): Participant => ({
     id: topUser.id,
     name: topUser.name,
-    team: 'Equipe F1', // Placeholder até termos dados de equipe
+    team: topUser.teamName || 'Sem Equipe',
     points: topUser.totalScore,
     lastPosition: topUser.lastPosition || index + 1,
     bestResult: 1, // Placeholder
@@ -121,10 +121,7 @@ export default function RankingPage() {
         <Header />
         <div className="max-w-7xl mx-auto p-6">
           <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-              <p className="text-gray-600 text-lg">Carregando ranking...</p>
-            </div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
           </div>
         </div>
       </main>

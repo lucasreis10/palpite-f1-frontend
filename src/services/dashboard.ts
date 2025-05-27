@@ -31,6 +31,8 @@ export interface TopUser {
   totalScore: number;
   position: number;
   lastPosition?: number;
+  teamName?: string;
+  teamId?: number;
 }
 
 export interface TopTeam {

@@ -5,6 +5,7 @@ import { Header } from './../../components/Header';
 import { TeamStandingsTable } from './../../components/TeamStandingsTable';
 import { Toast } from './../../components/Toast';
 import { dashboardService, TopTeam } from './../../services/dashboard';
+import { roundScore, formatScore } from '../../utils/formatters';
 
 interface TeamMember {
   id: number;
@@ -30,7 +31,7 @@ class TeamsService {
 
   async getTeamsByYear(year: number): Promise<any[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/teams/year/${year}/ranking`);
+      const response = await fetch(`${this.baseUrl}/year/${year}/ranking`);
       if (!response.ok) {
         throw new Error('Erro ao buscar equipes');
       }
@@ -43,7 +44,7 @@ class TeamsService {
 
   async getActiveTeamsByYear(year: number): Promise<any[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/teams/year/${year}/active`);
+      const response = await fetch(`${this.baseUrl}/year/${year}/active`);
       if (!response.ok) {
         throw new Error('Erro ao buscar equipes ativas');
       }
@@ -85,21 +86,73 @@ export default function TeamStandingsPage() {
   };
 
   // Converter dados da API para formato esperado
-  const convertApiTeamToTeam = (apiTeam: any, index: number): Team => {
-    // TODO: Buscar membros reais da API
-    const members: [TeamMember, TeamMember] = [
-      { id: apiTeam.id * 10 + 1, name: 'Membro 1', points: Math.floor(apiTeam.totalScore * 0.6), bestResult: 1 },
-      { id: apiTeam.id * 10 + 2, name: 'Membro 2', points: Math.floor(apiTeam.totalScore * 0.4), bestResult: 2 }
-    ];
+  const convertApiTeamToTeam = async (apiTeam: any, index: number): Promise<Team> => {
+    try {
+      // Buscar pontuação real dos usuários da equipe
+      const currentYear = new Date().getFullYear();
+      
+             // Buscar pontuação do usuário 1
+       const usersResponse = await dashboardService.getTopUsers(100);
+       const user1Data = usersResponse.find(user => user.id === apiTeam.user1?.id);
+       const user1Points = user1Data?.totalScore || 0;
+       
+       // Buscar pontuação do usuário 2
+       const user2Data = usersResponse.find(user => user.id === apiTeam.user2?.id);
+      const user2Points = user2Data?.totalScore || 0;
+      
+      // Calcular pontuação total da equipe
+      const totalTeamScore = roundScore(user1Points + user2Points);
+      
+      const members: [TeamMember, TeamMember] = [
+        { 
+          id: apiTeam.user1?.id || apiTeam.id * 10 + 1, 
+          name: apiTeam.user1?.name || 'Membro 1', 
+          points: roundScore(user1Points), 
+          bestResult: 1 
+        },
+        { 
+          id: apiTeam.user2?.id || apiTeam.id * 10 + 2, 
+          name: apiTeam.user2?.name || 'Membro 2', 
+          points: roundScore(user2Points), 
+          bestResult: 2 
+        }
+      ];
 
-    return {
-      id: apiTeam.id,
-      name: apiTeam.name,
-      points: apiTeam.totalScore || 0,
-      members,
-      lastPosition: index + 1,
-      bestResult: Math.min(index + 1, 3)
-    };
+      return {
+        id: apiTeam.id,
+        name: apiTeam.name,
+        points: totalTeamScore,
+        members,
+        lastPosition: index + 1,
+        bestResult: Math.min(index + 1, 3)
+      };
+    } catch (error) {
+      console.error('Erro ao calcular pontuação da equipe:', error);
+      // Fallback para o método anterior
+      const members: [TeamMember, TeamMember] = [
+        { 
+          id: apiTeam.user1?.id || apiTeam.id * 10 + 1, 
+          name: apiTeam.user1?.name || 'Membro 1', 
+          points: Math.floor(apiTeam.totalScore * 0.6), 
+          bestResult: 1 
+        },
+        { 
+          id: apiTeam.user2?.id || apiTeam.id * 10 + 2, 
+          name: apiTeam.user2?.name || 'Membro 2', 
+          points: Math.floor(apiTeam.totalScore * 0.4), 
+          bestResult: 2 
+        }
+      ];
+
+      return {
+        id: apiTeam.id,
+        name: apiTeam.name,
+        points: apiTeam.totalScore || 0,
+        members,
+        lastPosition: index + 1,
+        bestResult: Math.min(index + 1, 3)
+      };
+    }
   };
 
   // Converter TopTeam para Team
@@ -139,8 +192,13 @@ export default function TeamStandingsPage() {
         const teamsData = await teamsService.getTeamsByYear(currentYear);
         
         if (teamsData && teamsData.length > 0) {
-          const convertedTeams = teamsData.map((team, index) => convertApiTeamToTeam(team, index));
-          setTeams(convertedTeams);
+          // Aguardar todas as conversões async
+          const convertedTeamsPromises = teamsData.map((team, index) => convertApiTeamToTeam(team, index));
+          const convertedTeams = await Promise.all(convertedTeamsPromises);
+          
+          // Ordenar por pontuação
+          const sortedTeams = convertedTeams.sort((a, b) => b.points - a.points);
+          setTeams(sortedTeams);
           showToast(`${teamsData.length} equipes carregadas com sucesso! 👥`, 'success');
         } else {
           // Fallback: tentar dashboard service
@@ -180,8 +238,13 @@ export default function TeamStandingsPage() {
       const teamsData = await teamsService.getTeamsByYear(currentYear);
       
       if (teamsData && teamsData.length > 0) {
-        const convertedTeams = teamsData.map((team, index) => convertApiTeamToTeam(team, index));
-        setTeams(convertedTeams);
+        // Aguardar todas as conversões async
+        const convertedTeamsPromises = teamsData.map((team, index) => convertApiTeamToTeam(team, index));
+        const convertedTeams = await Promise.all(convertedTeamsPromises);
+        
+        // Ordenar por pontuação
+        const sortedTeams = convertedTeams.sort((a, b) => b.points - a.points);
+        setTeams(sortedTeams);
         showToast('Dados das equipes atualizados com sucesso! 🔄', 'success');
       } else {
         showToast('Nenhuma equipe encontrada para o ano atual.', 'info');
@@ -198,10 +261,7 @@ export default function TeamStandingsPage() {
         <Header />
         <div className="max-w-7xl mx-auto p-6">
           <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-              <p className="text-gray-600 text-lg">Carregando dados das equipes...</p>
-            </div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
           </div>
         </div>
       </main>
@@ -209,7 +269,7 @@ export default function TeamStandingsPage() {
   }
 
   const bestTeam = teams[0];
-  const averagePoints = teams.length > 0 ? Math.round(teams.reduce((sum, team) => sum + team.points, 0) / teams.length) : 0;
+  const averagePoints = teams.length > 0 ? roundScore(teams.reduce((sum, team) => sum + team.points, 0) / teams.length) : 0;
   const strongestPair = bestTeam ? `${bestTeam.members[0].name} e ${bestTeam.members[1].name}` : 'N/A';
 
   return (
@@ -281,20 +341,20 @@ export default function TeamStandingsPage() {
               {bestTeam?.name || 'N/A'}
             </p>
             <p className="text-gray-600">
-              {bestTeam ? `${bestTeam.points} pontos na temporada` : 'Dados não disponíveis'}
+              {bestTeam ? `${formatScore(bestTeam.points)} pontos na temporada` : 'Dados não disponíveis'}
             </p>
           </div>
 
           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
             <h3 className="text-lg font-bold text-gray-900 mb-2">Média por Equipe</h3>
-            <p className="text-3xl font-bold text-f1-red">{averagePoints}</p>
+            <p className="text-3xl font-bold text-f1-red">{formatScore(averagePoints)}</p>
             <p className="text-gray-600">pontos por equipe</p>
           </div>
 
           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
             <h3 className="text-lg font-bold text-gray-900 mb-2">Dupla Mais Forte</h3>
             <p className="text-3xl font-bold text-f1-red">
-              {bestTeam ? `${bestTeam.points} pts` : 'N/A'}
+              {bestTeam ? `${formatScore(bestTeam.points)} pts` : 'N/A'}
             </p>
             <p className="text-gray-600">{strongestPair}</p>
           </div>
