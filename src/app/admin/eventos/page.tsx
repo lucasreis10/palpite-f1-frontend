@@ -160,6 +160,7 @@ export default function EventsAdminPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [pilots, setPilots] = useState<any[]>([]);
   const [isEditingResults, setIsEditingResults] = useState(false);
+  const [isImportingEvents, setIsImportingEvents] = useState(false);
 
   useEffect(() => {
     loadInitialData();
@@ -437,6 +438,30 @@ export default function EventsAdminPage() {
     }
   };
 
+  const handleImportEventsFromJolpica = async () => {
+    try {
+      setIsImportingEvents(true);
+      const response = await eventsService.importEventsFromJolpica(selectedSeason);
+      
+      toast.success(
+        `Importação concluída: ${response.imported} eventos importados, ${response.skipped} ignorados${response.errors > 0 ? `, ${response.errors} erros` : ''}`
+      );
+      
+      if (response.errors > 0 && response.errorMessages.length > 0) {
+        console.error('Erros na importação:', response.errorMessages);
+        toast.error(`Alguns eventos não puderam ser importados. Verifique o console para detalhes.`);
+      }
+      
+      // Recarregar eventos da temporada
+      await loadEventsBySeason(selectedSeason);
+    } catch (error) {
+      console.error('Erro ao importar eventos:', error);
+      toast.error('Erro ao importar eventos da API jolpica-f1');
+    } finally {
+      setIsImportingEvents(false);
+    }
+  };
+
   if (isLoading && events.length === 0) {
     return (
       <main className="min-h-screen bg-white">
@@ -489,13 +514,23 @@ export default function EventsAdminPage() {
                   <h2 className="text-lg font-bold text-gray-900">
                     Eventos {selectedSeason}
                   </h2>
-                  <button 
-                    onClick={() => setIsCreateModalOpen(true)}
-                    className="bg-f1-red text-black px-4 py-2 rounded-md text-sm font-medium hover:bg-f1-red/90 transition-colors"
-                  >
-                    <PlusIcon className="w-4 h-4 inline mr-1" />
-                    Novo Evento
-                  </button>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => handleImportEventsFromJolpica()}
+                      disabled={isImportingEvents}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+                    >
+                      <CloudArrowDownIcon className="w-4 h-4 inline mr-1" />
+                      {isImportingEvents ? 'Importando...' : 'Importar Eventos'}
+                    </button>
+                    <button 
+                      onClick={() => setIsCreateModalOpen(true)}
+                      className="bg-f1-red text-black px-4 py-2 rounded-md text-sm font-medium hover:bg-f1-red/90 transition-colors"
+                    >
+                      <PlusIcon className="w-4 h-4 inline mr-1" />
+                      Novo Evento
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">

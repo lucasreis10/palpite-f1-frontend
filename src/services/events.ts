@@ -92,6 +92,17 @@ export interface CompleteEventResponse {
   warnings: string[];
 }
 
+export interface ImportEventsResponse {
+  season: number;
+  totalFound: number;
+  imported: number;
+  skipped: number;
+  errors: number;
+  errorMessages: string[];
+  importedEvents: GrandPrixEvent[];
+  message?: string;
+}
+
 class EventsService {
   private readonly baseUrl = API_URLS.GRAND_PRIX;
 
@@ -315,6 +326,24 @@ class EventsService {
       throw new Error('Erro ao marcar evento como pendente');
     } catch (error) {
       console.error(`Erro ao marcar evento ${id} como pendente:`, error);
+      throw error;
+    }
+  }
+
+  async importEventsFromJolpica(season: number): Promise<ImportEventsResponse> {
+    try {
+      const response = await authService.authenticatedFetch(`${this.baseUrl}/import/${season}`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        return await response.json();
+      }
+      
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Erro ao importar eventos da API jolpica-f1');
+    } catch (error) {
+      console.error(`Erro ao importar eventos da temporada ${season}:`, error);
       throw error;
     }
   }
