@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Header } from '../../components/Header';
 import ProtectedRoute from '../../components/ProtectedRoute';
-import { historyService, type GrandPrixHistoryResponse, type SeasonRankingResponse } from '@/services/history';
-import { eventsService, type GrandPrixEvent } from '@/services/events';
+import { historyService, type GrandPrixHistoryResponse, type SeasonRankingResponse } from '../../services/history';
+import { eventsService, type GrandPrixEvent } from '../../services/events';
 
 export default function HistoricoPage() {
   const [activeTab, setActiveTab] = useState('season');

@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { historyService, type GrandPrixHistoryResponse, type SeasonRankingResponse } from '@/services/history';
-import { eventsService, type GrandPrixEvent } from '@/services/events';
+import { historyService, type GrandPrixHistoryResponse, type SeasonRankingResponse } from '../../../services/history';
+import { eventsService, type GrandPrixEvent } from '../../../services/events';
 
 export default function HistoricoPage() {
   const [activeTab, setActiveTab] = useState('season');
@@ -98,7 +98,7 @@ export default function HistoricoPage() {
           <select 
             value={selectedSeason.toString()} 
             onChange={(e) => setSelectedSeason(parseInt(e.target.value))}
-            className="px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-f1-red"
+            className="px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="2025">2025</option>
             <option value="2024">2024</option>
@@ -283,7 +283,7 @@ export default function HistoricoPage() {
                 <select 
                   value={selectedGrandPrix?.toString() || ''} 
                   onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedGrandPrix(parseInt(e.target.value))}
-                  className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-f1-red"
+                  className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Selecione um Grand Prix...</option>
                   {events.map((event) => (
