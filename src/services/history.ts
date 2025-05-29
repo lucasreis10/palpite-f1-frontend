@@ -1,4 +1,4 @@
-import { API_URLS } from '@/config/api';
+import { API_URLS } from '../config/api';
 
 export interface GrandPrixHistoryResponse {
   grandPrixId: number;
