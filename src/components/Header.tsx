@@ -41,6 +41,7 @@ export function Header() {
     { href: '/', label: 'Tela Inicial' },
     { href: '/palpites', label: 'Fazer Palpite' },
     { href: '/ranking', label: 'Ranking' },
+    { href: '/historico', label: 'Histórico' },
     { href: '/ultimo-evento', label: 'Último Evento' },
     { href: '/equipes', label: 'Equipes' },
   ];

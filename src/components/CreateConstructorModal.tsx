@@ -164,7 +164,7 @@ export function CreateConstructorModal({
               value={formData.nationality}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
+              className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
             >
               <option value="">Selecione uma nacionalidade</option>
               {commonNationalities.map((nationality) => (

@@ -218,7 +218,7 @@ export default function UserTeamsAdminPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-f1-red focus:border-f1-red sm:text-sm"
+              className="block w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md leading-5 focus:outline-none focus:ring-1 focus:ring-f1-red focus:border-f1-red sm:text-sm"
             >
               <option value="all">Todas as equipes</option>
               <option value="active">Apenas ativas</option>
@@ -231,7 +231,7 @@ export default function UserTeamsAdminPage() {
             <select
               value={yearFilter}
               onChange={(e) => setYearFilter(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-f1-red focus:border-f1-red sm:text-sm"
+              className="block w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md leading-5 focus:outline-none focus:ring-1 focus:ring-f1-red focus:border-f1-red sm:text-sm"
             >
               <option value="all">Todos os anos</option>
               {uniqueYears.map((year) => (

@@ -122,6 +122,14 @@ export default function AuthHeader() {
             Ranking
           </Link>
 
+          <Link
+            href="/historico"
+            className="block px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+            onClick={() => setShowDropdown(false)}
+          >
+            Histórico
+          </Link>
+
           {user.role === 'ADMIN' && (
             <Link
               href="/admin"

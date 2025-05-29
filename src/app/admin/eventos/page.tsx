@@ -495,7 +495,7 @@ export default function EventsAdminPage() {
             id="season"
             value={selectedSeason}
             onChange={(e) => setSelectedSeason(Number(e.target.value))}
-            className="block w-48 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-f1-red focus:border-f1-red"
+            className="block w-48 px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-f1-red"
           >
             {availableSeasons.map((season) => (
               <option key={season} value={season}>

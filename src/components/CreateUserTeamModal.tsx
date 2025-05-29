@@ -173,7 +173,7 @@ export function CreateUserTeamModal({
                   value={formData.year}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
+                  className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
                 >
                   {years.map((year) => (
                     <option key={year} value={year}>
@@ -193,7 +193,7 @@ export function CreateUserTeamModal({
                   value={formData.user1Id}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
+                  className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
                 >
                   <option value={0}>Selecione um usuário</option>
                   {getAvailableUsers(formData.user2Id).map((user) => (
@@ -214,7 +214,7 @@ export function CreateUserTeamModal({
                   value={formData.user2Id}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
+                  className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
                 >
                   <option value={0}>Selecione um usuário</option>
                   {getAvailableUsers(formData.user1Id).map((user) => (

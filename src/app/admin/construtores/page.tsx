@@ -170,7 +170,7 @@ export default function ConstructorsAdminPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-f1-red focus:border-f1-red sm:text-sm"
+              className="block w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md leading-5 focus:outline-none focus:ring-1 focus:ring-f1-red focus:border-f1-red sm:text-sm"
             >
               <option value="all">Todos os construtores</option>
               <option value="active">Apenas ativos</option>
@@ -183,7 +183,7 @@ export default function ConstructorsAdminPage() {
             <select
               value={nationalityFilter}
               onChange={(e) => setNationalityFilter(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-f1-red focus:border-f1-red sm:text-sm"
+              className="block w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md leading-5 focus:outline-none focus:ring-1 focus:ring-f1-red focus:border-f1-red sm:text-sm"
             >
               <option value="all">Todas as nacionalidades</option>
               {uniqueNationalities.map((nationality) => (

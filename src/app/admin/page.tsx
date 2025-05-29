@@ -15,6 +15,7 @@ import {
   CalendarIcon,
   ArrowPathIcon,
   BuildingOfficeIcon,
+  ChartBarIcon,
 } from '@heroicons/react/24/outline';
 
 export default function AdminPage() {
@@ -144,6 +145,16 @@ export default function AdminPage() {
         stats: {
           label: 'Próxima Corrida',
           value: stats.nextRace,
+        }
+      },
+      {
+        title: 'Histórico e Rankings',
+        description: 'Visualize rankings da temporada e histórico detalhado por GP',
+        icon: ChartBarIcon,
+        href: '/admin/historico',
+        stats: {
+          label: 'Temporada Atual',
+          value: '2025',
         }
       },
     ];

@@ -142,7 +142,9 @@ export default function RankingPage() {
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Classificação do Campeonato</h1>
+              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+                🏆 Classificação do Campeonato
+              </h1>
               <p className="text-gray-600 mt-2">
                 Acompanhe a pontuação e o desempenho dos palpiteiros ao longo da temporada
               </p>
@@ -163,7 +165,9 @@ export default function RankingPage() {
           <div className="p-6">
             <div className="flex justify-between items-center mb-6">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Temporada 2024</h2>
+                <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                  📊 Temporada 2025
+                </h2>
                 <p className="text-gray-600">
                   {standings.length > 0 ? `${standings.length} participantes` : 'Carregando...'}
                 </p>
@@ -192,7 +196,10 @@ export default function RankingPage() {
 
         <div className="mt-8 grid md:grid-cols-3 gap-6">
           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Maior Pontuação</h3>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-yellow-600 text-xl">⭐</span>
+              <h3 className="text-lg font-bold text-gray-900">Maior Pontuação</h3>
+            </div>
             <p className="text-3xl font-bold text-f1-red">
               {stats?.bestScore?.score ? `${stats.bestScore.score} pontos` : 'Sem Pontuação'}
             </p>
@@ -205,7 +212,10 @@ export default function RankingPage() {
           </div>
 
           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Média de Palpites</h3>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-blue-600 text-xl">📈</span>
+              <h3 className="text-lg font-bold text-gray-900">Média de Palpites</h3>
+            </div>
             <p className="text-3xl font-bold text-f1-red">
               {stats?.averageGuessesPerRace ? stats.averageGuessesPerRace.toFixed(1) : '18.5'}
             </p>
@@ -213,7 +223,10 @@ export default function RankingPage() {
           </div>
 
           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Total de Palpites</h3>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-green-600 text-xl">🎯</span>
+              <h3 className="text-lg font-bold text-gray-900">Total de Palpites</h3>
+            </div>
             <p className="text-3xl font-bold text-f1-red">
               {stats?.totalGuesses || '0'}
             </p>

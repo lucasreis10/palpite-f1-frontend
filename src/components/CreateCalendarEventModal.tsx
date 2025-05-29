@@ -246,7 +246,7 @@ export function CreateCalendarEventModal({
                 onChange={handleChange}
                 required
                 disabled={isEditing}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red disabled:bg-gray-100"
+                className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red disabled:bg-gray-100"
               >
                 {years.map((year) => (
                   <option key={year} value={year}>
@@ -270,7 +270,7 @@ export function CreateCalendarEventModal({
                 max="25"
                 required
                 disabled={isEditing}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red disabled:bg-gray-100"
+                className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red disabled:bg-gray-100"
               />
             </div>
           </div>
@@ -287,7 +287,7 @@ export function CreateCalendarEventModal({
               onChange={handleChange}
               placeholder="Ex: Grande Prêmio do Brasil"
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
+              className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
             />
           </div>
 
@@ -304,7 +304,7 @@ export function CreateCalendarEventModal({
                 onChange={handleChange}
                 placeholder="Ex: Brasil"
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
+                className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
               />
             </div>
 
@@ -320,7 +320,7 @@ export function CreateCalendarEventModal({
                 onChange={handleChange}
                 placeholder="Ex: São Paulo"
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
+                className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
               />
             </div>
           </div>
@@ -337,7 +337,7 @@ export function CreateCalendarEventModal({
               onChange={handleChange}
               placeholder="Ex: Autódromo José Carlos Pace"
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
+              className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
             />
           </div>
 
@@ -352,7 +352,7 @@ export function CreateCalendarEventModal({
               value={formData.circuitUrl}
               onChange={handleChange}
               placeholder="https://..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
+              className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
             />
           </div>
 
@@ -372,7 +372,7 @@ export function CreateCalendarEventModal({
               name="timezone"
               value={formData.timezone}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
+              className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
             >
               {timezones.map((tz) => (
                 <option key={tz} value={tz}>
@@ -393,7 +393,7 @@ export function CreateCalendarEventModal({
               value={formData.raceDateTime}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
+              className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
             />
           </div>
 
@@ -408,7 +408,7 @@ export function CreateCalendarEventModal({
                 name="practice1DateTime"
                 value={formData.practice1DateTime}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
+                className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
               />
             </div>
 
@@ -422,7 +422,7 @@ export function CreateCalendarEventModal({
                 name="practice2DateTime"
                 value={formData.practice2DateTime}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
+                className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
               />
             </div>
           </div>
@@ -438,7 +438,7 @@ export function CreateCalendarEventModal({
                 name="practice3DateTime"
                 value={formData.practice3DateTime}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
+                className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
               />
             </div>
 
@@ -452,7 +452,7 @@ export function CreateCalendarEventModal({
                 name="qualifyingDateTime"
                 value={formData.qualifyingDateTime}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
+                className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
               />
             </div>
           </div>
@@ -468,7 +468,7 @@ export function CreateCalendarEventModal({
                 name="sprintDateTime"
                 value={formData.sprintDateTime}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
+                className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
               />
             </div>
 
@@ -482,7 +482,7 @@ export function CreateCalendarEventModal({
                 name="bettingDeadline"
                 value={formData.bettingDeadline}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
+                className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
               />
             </div>
           </div>
@@ -507,7 +507,7 @@ export function CreateCalendarEventModal({
                 onChange={handleChange}
                 min="0"
                 max="100"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
+                className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
               />
             </div>
 
@@ -524,7 +524,7 @@ export function CreateCalendarEventModal({
                 min="0"
                 max="10"
                 step="0.001"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
+                className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
               />
             </div>
           </div>
@@ -540,7 +540,7 @@ export function CreateCalendarEventModal({
               onChange={handleChange}
               rows={3}
               placeholder="Informações adicionais sobre o evento..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
+              className="w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md focus:outline-none focus:ring-f1-red focus:border-f1-red"
             />
           </div>
         </div>

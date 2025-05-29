@@ -286,7 +286,9 @@ export default function TeamStandingsPage() {
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Classificação de Equipes</h1>
+              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+                👥 Classificação de Equipes
+              </h1>
               <p className="text-gray-600 mt-2">
                 Acompanhe o desempenho das equipes e seus palpiteiros na temporada
               </p>
@@ -307,7 +309,9 @@ export default function TeamStandingsPage() {
           <div className="p-6">
             <div className="flex justify-between items-center mb-6">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Temporada 2024</h2>
+                <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                  📊 Temporada 2025
+                </h2>
                 <p className="text-gray-600">
                   {teams.length > 0 ? `${teams.length} equipes ativas` : 'Carregando...'}
                 </p>
@@ -336,7 +340,10 @@ export default function TeamStandingsPage() {
 
         <div className="mt-8 grid md:grid-cols-3 gap-6">
           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Melhor Equipe</h3>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-yellow-600 text-xl">🏅</span>
+              <h3 className="text-lg font-bold text-gray-900">Melhor Equipe</h3>
+            </div>
             <p className="text-3xl font-bold text-f1-red">
               {bestTeam?.name || 'N/A'}
             </p>
@@ -346,13 +353,19 @@ export default function TeamStandingsPage() {
           </div>
 
           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Média por Equipe</h3>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-blue-600 text-xl">📈</span>
+              <h3 className="text-lg font-bold text-gray-900">Média por Equipe</h3>
+            </div>
             <p className="text-3xl font-bold text-f1-red">{formatScore(averagePoints)}</p>
             <p className="text-gray-600">pontos por equipe</p>
           </div>
 
           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Dupla Mais Forte</h3>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-purple-600 text-xl">💪</span>
+              <h3 className="text-lg font-bold text-gray-900">Dupla Mais Forte</h3>
+            </div>
             <p className="text-3xl font-bold text-f1-red">
               {bestTeam ? `${formatScore(bestTeam.points)} pts` : 'N/A'}
             </p>

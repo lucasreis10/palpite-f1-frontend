@@ -211,7 +211,7 @@ export default function UsersAdminPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-f1-red focus:border-f1-red sm:text-sm"
+              className="block w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md leading-5 focus:outline-none focus:ring-1 focus:ring-f1-red focus:border-f1-red sm:text-sm"
             >
               <option value="all">Todos os usuários</option>
               <option value="active">Apenas ativos</option>
@@ -224,7 +224,7 @@ export default function UsersAdminPage() {
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value as 'all' | 'ADMIN' | 'USER')}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-f1-red focus:border-f1-red sm:text-sm"
+              className="block w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md leading-5 focus:outline-none focus:ring-1 focus:ring-f1-red focus:border-f1-red sm:text-sm"
             >
               <option value="all">Todos os tipos</option>
               <option value="ADMIN">Administradores</option>
@@ -372,7 +372,7 @@ export default function UsersAdminPage() {
                           <select
                             value={user.role}
                             onChange={(e) => handleChangeRole(user, e.target.value as 'ADMIN' | 'USER')}
-                            className="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-f1-red focus:border-f1-red"
+                            className="text-sm bg-white text-black border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-f1-red focus:border-f1-red"
                             title="Alterar Tipo"
                           >
                             <option value="USER">Usuário</option>
