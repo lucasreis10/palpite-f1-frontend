@@ -80,9 +80,9 @@ export default function HistoricoPage() {
   };
 
   const getRankingBadgeColor = (position: number) => {
-    if (position === 1) return 'bg-yellow-500 text-white';
-    if (position === 2) return 'bg-gray-400 text-white';
-    if (position === 3) return 'bg-amber-600 text-white';
+    if (position === 1) return 'bg-gradient-to-r from-yellow-400 to-yellow-600 text-white shadow-lg'; // Ouro
+    if (position === 2) return 'bg-gradient-to-r from-gray-300 to-gray-500 text-white shadow-lg'; // Prata
+    if (position === 3) return 'bg-gradient-to-r from-amber-600 to-amber-800 text-white shadow-lg'; // Bronze
     return 'bg-blue-500 text-white';
   };
 

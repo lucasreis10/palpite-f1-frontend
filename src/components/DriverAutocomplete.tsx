@@ -55,9 +55,11 @@ export function DriverAutocomplete({ drivers, selectedDriver, onSelect, position
 
   // Definir cores da posição
   const getPositionStyle = (pos: number) => {
-    if (pos <= 3) return 'bg-yellow-400 text-yellow-900 border-yellow-500'
-    if (pos <= 6) return 'bg-blue-100 text-blue-800 border-blue-300'
-    return 'bg-gray-100 text-gray-800 border-gray-300'
+    if (pos === 1) return 'bg-gradient-to-r from-yellow-400 to-yellow-600 text-white border-yellow-500 shadow-lg'; // Ouro
+    if (pos === 2) return 'bg-gradient-to-r from-gray-300 to-gray-500 text-white border-gray-400 shadow-lg'; // Prata
+    if (pos === 3) return 'bg-gradient-to-r from-amber-600 to-amber-800 text-white border-amber-700 shadow-lg'; // Bronze
+    if (pos <= 6) return 'bg-blue-100 text-blue-800 border-blue-300';
+    return 'bg-gray-100 text-gray-800 border-gray-300';
   }
 
   return (
