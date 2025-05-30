@@ -607,12 +607,12 @@ export function BetForm() {
               </button>
               <button
                 type="submit"
-                className="w-full sm:w-auto px-6 py-3 bg-f1-red text-white rounded-lg hover:bg-f1-red/90 transition-colors font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-6 py-3 bg-f1-red text-gray-700 border border-gray-300 rounded-lg hover:bg-f1-red/90 transition-colors font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 disabled={isSaving || (!qualifyingDeadlineOpen && !raceDeadlineOpen)}
               >
                 {isSaving ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-300"></div>
                     <span>Salvando...</span>
                   </>
                 ) : (
