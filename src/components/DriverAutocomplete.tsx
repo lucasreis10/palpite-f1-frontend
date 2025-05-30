@@ -101,7 +101,7 @@ export function DriverAutocomplete({ drivers, selectedDriver, onSelect, position
             {selectedDriver && selectedDriver.name && !disabled && (
               <button
                 type="button"
-                className="absolute inset-y-0 right-10 sm:right-8 flex items-center pr-1 hover:bg-gray-100 rounded p-1 transition-colors"
+                className="absolute inset-y-0 right-10 sm:right-8 flex items-center pr-1 hover:bg-gray-700 rounded p-1 transition-colors"
                 onClick={handleClear}
                 title="Limpar seleção"
               >
@@ -148,7 +148,7 @@ export function DriverAutocomplete({ drivers, selectedDriver, onSelect, position
                     key={driver.id}
                     className={({ active }) =>
                       `relative cursor-pointer select-none py-3 sm:py-2 pl-12 sm:pl-10 pr-4 transition-colors ${
-                        active ? 'bg-f1-red text-white' : 'text-gray-900 hover:bg-gray-50'
+                        active ? 'bg-f1-red text-black' : 'text-gray-900 bg-gray hover:bg-black'
                       }`
                     }
                     value={driver}
@@ -160,7 +160,7 @@ export function DriverAutocomplete({ drivers, selectedDriver, onSelect, position
                             {driver.name}
                           </span>
                           <span className={`block truncate text-xs sm:text-sm mt-0.5 ${
-                            active ? 'text-white/80' : 'text-gray-500'
+                            active ? 'text-black' : 'text-gray-500'
                           }`}>
                             {driver.team}
                           </span>
@@ -168,7 +168,7 @@ export function DriverAutocomplete({ drivers, selectedDriver, onSelect, position
                         {selected ? (
                           <span
                             className={`absolute inset-y-0 left-0 flex items-center pl-3 ${
-                              active ? 'text-white' : 'text-f1-red'
+                              active ? 'text-gray-900' : 'text-f1-red'
                             }`}
                           >
                             <CheckIcon className="h-5 w-5" aria-hidden="true" />
