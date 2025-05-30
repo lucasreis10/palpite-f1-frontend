@@ -616,9 +616,7 @@ export function BetForm() {
                     <span>Salvando...</span>
                   </>
                 ) : (
-                  <>
-                    💾 <span>Salvar Palpites</span>
-                  </>
+                  <span>Salvar Palpites</span>
                 )}
               </button>
             </div>

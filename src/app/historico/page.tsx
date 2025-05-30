@@ -92,10 +92,10 @@ export default function HistoricoPage() {
     <ProtectedRoute>
       <main className="min-h-screen bg-white">
         <Header />
-        <div className="max-w-7xl mx-auto p-6 space-y-6">
-          <div className="flex items-center justify-between">
+        <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">📊 Histórico e Rankings</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">📊 Histórico e Rankings</h1>
               <p className="text-gray-600 mt-2">Acompanhe seu desempenho e o ranking da temporada</p>
             </div>
             
@@ -112,10 +112,10 @@ export default function HistoricoPage() {
           </div>
 
           <div className="w-full">
-            <div className="flex border-b border-gray-200">
+            <div className="flex border-b border-gray-200 overflow-x-auto">
               <button
                 onClick={() => setActiveTab('season')}
-                className={`px-4 py-2 font-medium text-sm border-b-2 ${
+                className={`px-4 py-2 font-medium text-sm border-b-2 whitespace-nowrap ${
                   activeTab === 'season' 
                     ? 'border-f1-red text-f1-red' 
                     : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -125,7 +125,7 @@ export default function HistoricoPage() {
               </button>
               <button
                 onClick={() => setActiveTab('grandprix')}
-                className={`px-4 py-2 font-medium text-sm border-b-2 ${
+                className={`px-4 py-2 font-medium text-sm border-b-2 whitespace-nowrap ${
                   activeTab === 'grandprix' 
                     ? 'border-f1-red text-f1-red' 
                     : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -201,7 +201,8 @@ export default function HistoricoPage() {
                         </p>
                       </div>
                       <div className="p-6">
-                        <div className="space-y-3">
+                        {/* Desktop: Layout horizontal */}
+                        <div className="hidden md:block space-y-3">
                           {seasonRanking.ranking.map((participant) => (
                             <div key={participant.userId} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                               <div className="flex items-center gap-4">
@@ -232,6 +233,48 @@ export default function HistoricoPage() {
                                   <p className="text-gray-600">Eventos</p>
                                 </div>
                                 <div className="text-center">
+                                  <p className="font-medium">{formatScore(participant.averageScore)}</p>
+                                  <p className="text-gray-600">Média</p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Mobile: Layout vertical em cards */}
+                        <div className="md:hidden space-y-4">
+                          {seasonRanking.ranking.map((participant) => (
+                            <div key={participant.userId} className="bg-gray-50 rounded-lg p-4">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <span className={`px-2 py-1 rounded text-sm font-medium ${getRankingBadgeColor(participant.position)}`}>
+                                    #{participant.position}
+                                  </span>
+                                  <div>
+                                    <h3 className="font-semibold text-sm">{participant.userName}</h3>
+                                    <p className="text-xs text-gray-600 truncate">{participant.userEmail}</p>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-bold text-lg">{formatScore(participant.totalScore)}</p>
+                                  <p className="text-xs text-gray-600">Total</p>
+                                </div>
+                              </div>
+                              
+                              <div className="grid grid-cols-4 gap-2 text-center text-xs">
+                                <div>
+                                  <p className="font-medium">{formatScore(participant.qualifyingScore)}</p>
+                                  <p className="text-gray-600">Quali</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium">{formatScore(participant.raceScore)}</p>
+                                  <p className="text-gray-600">Race</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium">{participant.eventsParticipated}</p>
+                                  <p className="text-gray-600">Events</p>
+                                </div>
+                                <div>
                                   <p className="font-medium">{formatScore(participant.averageScore)}</p>
                                   <p className="text-gray-600">Média</p>
                                 </div>
@@ -361,7 +404,8 @@ export default function HistoricoPage() {
                         <h3 className="text-lg font-semibold">🏆 Ranking Combinado (Qualifying + Race)</h3>
                       </div>
                       <div className="p-6">
-                        <div className="space-y-3">
+                        {/* Desktop: Layout horizontal */}
+                        <div className="hidden md:block space-y-3">
                           {grandPrixHistory.combinedRanking.map((participant) => (
                             <div key={participant.userId} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                               <div className="flex items-center gap-4">
@@ -387,6 +431,43 @@ export default function HistoricoPage() {
                                   <p className="text-gray-600">Qualifying</p>
                                 </div>
                                 <div className="text-center">
+                                  <p className="font-medium">{formatScore(participant.raceScore)}</p>
+                                  <p className="text-gray-600">Race</p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Mobile: Layout vertical em cards */}
+                        <div className="md:hidden space-y-4">
+                          {grandPrixHistory.combinedRanking.map((participant) => (
+                            <div key={participant.userId} className="bg-gray-50 rounded-lg p-4">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <span className={`px-2 py-1 rounded text-sm font-medium ${getRankingBadgeColor(participant.position)}`}>
+                                    #{participant.position}
+                                  </span>
+                                  <div>
+                                    <h3 className="font-semibold text-sm">{participant.userName}</h3>
+                                    <div className="flex gap-1 mt-1">
+                                      {participant.hasQualifyingGuess && <span className="px-1 py-0.5 bg-gray-200 text-xs rounded">Q</span>}
+                                      {participant.hasRaceGuess && <span className="px-1 py-0.5 bg-gray-200 text-xs rounded">R</span>}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-bold text-lg">{formatScore(participant.score)}</p>
+                                  <p className="text-xs text-gray-600">Total</p>
+                                </div>
+                              </div>
+                              
+                              <div className="grid grid-cols-2 gap-4 text-center text-xs">
+                                <div>
+                                  <p className="font-medium">{formatScore(participant.qualifyingScore)}</p>
+                                  <p className="text-gray-600">Qualifying</p>
+                                </div>
+                                <div>
                                   <p className="font-medium">{formatScore(participant.raceScore)}</p>
                                   <p className="text-gray-600">Race</p>
                                 </div>
