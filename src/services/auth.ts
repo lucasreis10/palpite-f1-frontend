@@ -1,4 +1,5 @@
 import { API_URLS } from '../config/api';
+import { showWarningToast } from '../utils/notifications';
 
 export interface LoginRequest {
   email: string;
@@ -156,10 +157,34 @@ class AuthService {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    return fetch(url, {
+    const response = await fetch(url, {
       ...options,
       headers,
     });
+
+    // Verificar se o token expirou (401 ou 403)
+    if (response.status === 401 || response.status === 403) {
+      // Limpar dados de autenticação
+      this.logout();
+      
+      // Mostrar mensagem de token expirado
+      if (typeof window !== 'undefined') {
+        // Guardar mensagem no sessionStorage para mostrar na tela de login
+        sessionStorage.setItem('auth_message', '🔒 Sua sessão expirou. Por favor, faça login novamente.');
+        
+        // Mostrar toast imediatamente
+        showWarningToast('🔒 Sua sessão expirou. Redirecionando para o login...');
+        
+        // Redirecionar para login após um pequeno delay
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 2000);
+      }
+      
+      throw new Error('Token expirado. Redirecionando para login...');
+    }
+
+    return response;
   }
 }
 

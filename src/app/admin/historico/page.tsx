@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { historyService, type GrandPrixHistoryResponse, type SeasonRankingResponse } from '../../../services/history';
+import { getSeasonRankingSimple, getGrandPrixHistory, type GrandPrixHistoryResponse, type SeasonRankingResponse } from '../../../services/history';
 import { eventsService, type GrandPrixEvent } from '../../../services/events';
 
 export default function HistoricoPage() {
@@ -45,7 +45,7 @@ export default function HistoricoPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await historyService.getSimpleSeasonRanking(selectedSeason);
+      const data = await getSeasonRankingSimple(selectedSeason);
       setSeasonRanking(data);
     } catch (err) {
       setError('Erro ao carregar ranking da temporada');
@@ -61,7 +61,7 @@ export default function HistoricoPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await historyService.getGrandPrixHistory(selectedGrandPrix);
+      const data = await getGrandPrixHistory(selectedGrandPrix);
       setGrandPrixHistory(data);
     } catch (err) {
       setError('Erro ao carregar histórico do Grand Prix');

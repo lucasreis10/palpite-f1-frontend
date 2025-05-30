@@ -1,5 +1,5 @@
-import { authService } from './auth';
 import { API_URLS } from '../config/api';
+import { authService } from './auth';
 
 export interface Constructor {
   id: number;
@@ -79,7 +79,7 @@ class GuessService {
 
   async getAllPilots(): Promise<Pilot[]> {
     try {
-      const response = await fetch(`${API_URLS.PILOTS}/active`);
+      const response = await authService.authenticatedFetch(`${API_URLS.PILOTS}/active`);
       if (!response.ok) {
         throw new Error('Erro ao buscar pilotos');
       }
@@ -92,7 +92,7 @@ class GuessService {
 
   async getNextGrandPrix(): Promise<NextGrandPrix | null> {
     try {
-      const response = await fetch(`${API_URLS.GRAND_PRIX}/next`);
+      const response = await authService.authenticatedFetch(`${API_URLS.GRAND_PRIX}/next`);
       if (!response.ok) {
         if (response.status === 404) {
           return null; // Nenhum GP futuro encontrado

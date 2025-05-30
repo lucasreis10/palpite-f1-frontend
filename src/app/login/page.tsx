@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { authService } from './../../services/auth';
@@ -12,7 +12,17 @@ export default function LoginPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [authMessage, setAuthMessage] = useState('');
   const router = useRouter();
+
+  // Verificar se há mensagem de token expirado
+  useEffect(() => {
+    const message = sessionStorage.getItem('auth_message');
+    if (message) {
+      setAuthMessage(message);
+      sessionStorage.removeItem('auth_message'); // Limpar após mostrar
+    }
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -26,6 +36,7 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setAuthMessage(''); // Limpar mensagem de token expirado ao tentar login
 
     try {
       await authService.login(formData);
@@ -84,6 +95,13 @@ export default function LoginPage() {
               placeholder="••••••••"
             />
           </div>
+
+          {/* Mensagem de Token Expirado */}
+          {authMessage && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <p className="text-yellow-800 text-sm font-medium">{authMessage}</p>
+            </div>
+          )}
 
           {/* Erro */}
           {error && (

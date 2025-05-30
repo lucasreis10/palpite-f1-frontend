@@ -1,4 +1,5 @@
 import { API_URLS } from '../config/api';
+import { authService } from './auth';
 
 export interface GrandPrixHistoryResponse {
   grandPrixId: number;
@@ -93,30 +94,47 @@ export interface SeasonStatistics {
   topPerformerScore: number;
 }
 
-class HistoryService {
-  async getGrandPrixHistory(grandPrixId: number): Promise<GrandPrixHistoryResponse> {
-    const response = await fetch(`${API_URLS.BASE_URL}/history/grand-prix/${grandPrixId}`);
+export async function getGrandPrixHistory(grandPrixId: number): Promise<GrandPrixHistoryResponse> {
+  try {
+    const response = await authService.authenticatedFetch(`${API_URLS.BASE_URL}/history/grand-prix/${grandPrixId}`);
+    
     if (!response.ok) {
-      throw new Error('Erro ao buscar histórico do Grand Prix');
+      throw new Error(`Erro ao buscar histórico do GP: ${response.status}`);
     }
-    return response.json();
-  }
-
-  async getSeasonRanking(season: number): Promise<SeasonRankingResponse> {
-    const response = await fetch(`${API_URLS.BASE_URL}/history/season/${season}`);
-    if (!response.ok) {
-      throw new Error('Erro ao buscar ranking da temporada');
-    }
-    return response.json();
-  }
-
-  async getSimpleSeasonRanking(season: number): Promise<SeasonRankingResponse> {
-    const response = await fetch(`${API_URLS.BASE_URL}/history/season/${season}/simple`);
-    if (!response.ok) {
-      throw new Error('Erro ao buscar ranking simples da temporada');
-    }
-    return response.json();
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Erro ao buscar histórico do GP:', error);
+    throw error;
   }
 }
 
-export const historyService = new HistoryService(); 
+export async function getSeasonHistory(season: number): Promise<SeasonRankingResponse> {
+  try {
+    const response = await authService.authenticatedFetch(`${API_URLS.BASE_URL}/history/season/${season}`);
+    
+    if (!response.ok) {
+      throw new Error(`Erro ao buscar histórico da temporada: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Erro ao buscar histórico da temporada:', error);
+    throw error;
+  }
+}
+
+export async function getSeasonRankingSimple(season: number): Promise<SeasonRankingResponse> {
+  try {
+    const response = await authService.authenticatedFetch(`${API_URLS.BASE_URL}/history/season/${season}/simple`);
+    
+    if (!response.ok) {
+      throw new Error(`Erro ao buscar ranking simples da temporada: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Erro ao buscar ranking simples da temporada:', error);
+    throw error;
+  }
+} 
