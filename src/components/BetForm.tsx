@@ -7,6 +7,7 @@ import { Tab } from '@headlessui/react';
 import { guessService, Pilot, NextGrandPrix, GuessResponse } from './../services/guesses';
 import { useAuth } from './../hooks/useAuth';
 import { useCopyToClipboard } from './../hooks/useCopyToClipboard';
+import './../utils/auth-debug'; // Importar utilitário de debug
 
 interface Driver {
   id: number;

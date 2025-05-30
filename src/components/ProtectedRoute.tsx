@@ -21,20 +21,26 @@ export default function ProtectedRoute({
 
   useEffect(() => {
     const checkAuth = () => {
+      console.log('[ProtectedRoute] Verificando autenticação...');
+      
       // Aguardar um pouco para garantir que o localStorage foi carregado
       setTimeout(() => {
         const isAuthenticated = authService.isAuthenticated();
+        console.log('[ProtectedRoute] isAuthenticated:', isAuthenticated);
         
         if (!isAuthenticated) {
+          console.log('[ProtectedRoute] Não autenticado, redirecionando para /login');
           router.push('/login');
           return;
         }
 
         if (requireAdmin && !authService.isAdmin()) {
+          console.log('[ProtectedRoute] Não é admin, redirecionando para /');
           router.push('/'); // Redirecionar para home se não for admin
           return;
         }
 
+        console.log('[ProtectedRoute] Autorizado!');
         setIsAuthorized(true);
         setIsLoading(false);
       }, 100);

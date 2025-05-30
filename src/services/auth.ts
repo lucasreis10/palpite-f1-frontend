@@ -138,23 +138,42 @@ class AuthService {
   // Verificar se o token JWT está válido e não expirado
   isTokenValid(token?: string): boolean {
     const authToken = token || this.getToken();
-    if (!authToken) return false;
+    if (!authToken) {
+      console.log('[AUTH] Token não encontrado');
+      return false;
+    }
 
     try {
       // Decodificar o payload do JWT (sem verificar assinatura)
-      const payload = JSON.parse(atob(authToken.split('.')[1]));
+      const parts = authToken.split('.');
+      if (parts.length !== 3) {
+        console.error('[AUTH] Token JWT inválido - formato incorreto:', authToken);
+        this.logout();
+        return false;
+      }
+
+      const payload = JSON.parse(atob(parts[1]));
       const currentTime = Math.floor(Date.now() / 1000);
+      
+      console.log('[AUTH] Verificando token:', {
+        payload,
+        currentTime,
+        exp: payload.exp,
+        timeUntilExpiry: payload.exp ? payload.exp - currentTime : 'sem expiração',
+        isExpired: payload.exp && payload.exp < currentTime
+      });
       
       // Verificar se o token expirou
       if (payload.exp && payload.exp < currentTime) {
-        console.warn('Token JWT expirado');
+        console.warn('[AUTH] Token JWT expirado');
         this.logout();
         return false;
       }
       
+      console.log('[AUTH] Token válido');
       return true;
     } catch (error) {
-      console.warn('Erro ao validar token JWT:', error);
+      console.error('[AUTH] Erro ao validar token JWT:', error);
       this.logout();
       return false;
     }
