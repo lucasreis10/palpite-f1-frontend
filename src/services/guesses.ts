@@ -1,5 +1,5 @@
+import axiosInstance from '../config/axios';
 import { API_URLS } from '../config/api';
-import { authService } from './auth';
 
 export interface Constructor {
   id: number;
@@ -79,11 +79,8 @@ class GuessService {
 
   async getAllPilots(): Promise<Pilot[]> {
     try {
-      const response = await authService.authenticatedFetch(`${API_URLS.PILOTS}/active`);
-      if (!response.ok) {
-        throw new Error('Erro ao buscar pilotos');
-      }
-      return await response.json();
+      const response = await axiosInstance.get(`${API_URLS.PILOTS}/active`);
+      return response.data;
     } catch (error) {
       console.error('Erro ao buscar pilotos:', error);
       return [];
@@ -92,15 +89,12 @@ class GuessService {
 
   async getNextGrandPrix(): Promise<NextGrandPrix | null> {
     try {
-      const response = await authService.authenticatedFetch(`${API_URLS.GRAND_PRIX}/next`);
-      if (!response.ok) {
-        if (response.status === 404) {
-          return null; // Nenhum GP futuro encontrado
-        }
-        throw new Error('Erro ao buscar próximo Grande Prêmio');
+      const response = await axiosInstance.get(`${API_URLS.GRAND_PRIX}/next`);
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        return null; // Nenhum GP futuro encontrado
       }
-      return await response.json();
-    } catch (error) {
       console.error('Erro ao buscar próximo Grande Prêmio:', error);
       return null;
     }
@@ -108,40 +102,14 @@ class GuessService {
 
   async getUserGuessForGrandPrix(userId: number, grandPrixId: number, guessType: 'QUALIFYING' | 'RACE'): Promise<GuessResponse | null> {
     try {
-      const response = await authService.authenticatedFetch(
+      const response = await axiosInstance.get(
         `${this.baseUrl}/user/${userId}/grand-prix/${grandPrixId}?guessType=${guessType}`
       );
       
-      if (!response.ok) {
-        if (response.status === 404) {
-          return null; // Usuário ainda não fez palpite
-        }
-        throw new Error('Erro ao buscar palpite do usuário');
-      }
-      
-      // Verificar se a resposta tem conteúdo antes de tentar fazer parse do JSON
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        console.warn('Resposta não é JSON válido');
-        return null;
-      }
-      
-      const text = await response.text();
-      if (!text || text.trim() === '' || text.trim() === 'null') {
-        return null; // Resposta vazia ou null
-      }
-      
-      try {
-        const parsed = JSON.parse(text);
-        return parsed;
-      } catch (jsonError) {
-        console.error('Erro ao fazer parse do JSON:', jsonError, 'Texto recebido:', text);
-        return null;
-      }
-    } catch (error) {
-      if (error instanceof SyntaxError && error.message.includes('JSON')) {
-        console.error('Erro de JSON detectado, retornando null:', error);
-        return null;
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        return null; // Usuário ainda não fez palpite
       }
       console.error('Erro ao buscar palpite do usuário:', error);
       return null;
@@ -150,61 +118,30 @@ class GuessService {
 
   async createGuess(userId: number, request: CreateGuessRequest): Promise<GuessResponse> {
     try {
-      const response = await authService.authenticatedFetch(
-        `${this.baseUrl}/user/${userId}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(request),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(errorData || 'Erro ao criar palpite');
-      }
-
-      return await response.json();
-    } catch (error) {
+      const response = await axiosInstance.post(`${this.baseUrl}/user/${userId}`, request);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Erro ao criar palpite';
       console.error('Erro ao criar palpite:', error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
   async updateGuess(userId: number, guessId: number, request: UpdateGuessRequest): Promise<GuessResponse> {
     try {
-      const response = await authService.authenticatedFetch(
-        `${this.baseUrl}/user/${userId}/${guessId}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(request),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(errorData || 'Erro ao atualizar palpite');
-      }
-
-      return await response.json();
-    } catch (error) {
+      const response = await axiosInstance.put(`${this.baseUrl}/user/${userId}/${guessId}`, request);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Erro ao atualizar palpite';
       console.error('Erro ao atualizar palpite:', error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
   async getUserGuesses(userId: number): Promise<GuessResponse[]> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/user/${userId}`);
-      if (!response.ok) {
-        throw new Error('Erro ao buscar palpites do usuário');
-      }
-      return await response.json();
+      const response = await axiosInstance.get(`${this.baseUrl}/user/${userId}`);
+      return response.data;
     } catch (error) {
       console.error('Erro ao buscar palpites do usuário:', error);
       return [];
@@ -213,13 +150,8 @@ class GuessService {
 
   async getUserGuessesBySeason(userId: number, season: number): Promise<GuessResponse[]> {
     try {
-      const response = await authService.authenticatedFetch(
-        `${this.baseUrl}/user/${userId}/season/${season}`
-      );
-      if (!response.ok) {
-        throw new Error('Erro ao buscar palpites da temporada');
-      }
-      return await response.json();
+      const response = await axiosInstance.get(`${this.baseUrl}/user/${userId}/season/${season}`);
+      return response.data;
     } catch (error) {
       console.error('Erro ao buscar palpites da temporada:', error);
       return [];
@@ -228,19 +160,11 @@ class GuessService {
 
   async deleteGuess(userId: number, guessId: number): Promise<void> {
     try {
-      const response = await authService.authenticatedFetch(
-        `${this.baseUrl}/user/${userId}/${guessId}`,
-        {
-          method: 'DELETE',
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Erro ao deletar palpite');
-      }
-    } catch (error) {
+      await axiosInstance.delete(`${this.baseUrl}/user/${userId}/${guessId}`);
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Erro ao deletar palpite';
       console.error('Erro ao deletar palpite:', error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 

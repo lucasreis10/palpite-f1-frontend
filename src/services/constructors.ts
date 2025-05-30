@@ -1,5 +1,6 @@
-import { authService } from './auth';
+import axiosInstance from '../config/axios';
 import { API_URLS } from '../config/api';
+import { authService } from './auth';
 
 export interface Constructor {
   id: number;
@@ -40,79 +41,67 @@ class ConstructorsService {
 
   async getAllConstructors(): Promise<Constructor[]> {
     try {
-      const response = await fetch(`${this.baseUrl}`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao buscar construtores');
-    } catch (error) {
+      const response = await axiosInstance.get(this.baseUrl);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Erro ao buscar construtores';
       console.error('Erro ao buscar todos os construtores:', error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
   async getActiveConstructors(): Promise<Constructor[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/active`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao buscar construtores ativos');
-    } catch (error) {
+      const response = await axiosInstance.get(`${this.baseUrl}/active`);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Erro ao buscar construtores ativos';
       console.error('Erro ao buscar construtores ativos:', error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
   async getConstructorById(id: number): Promise<Constructor> {
     try {
-      const response = await fetch(`${this.baseUrl}/${id}`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Construtor não encontrado');
-    } catch (error) {
+      const response = await axiosInstance.get(`${this.baseUrl}/${id}`);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Construtor não encontrado';
       console.error(`Erro ao buscar construtor ${id}:`, error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
   async getConstructorByConstructorId(constructorId: string): Promise<Constructor> {
     try {
-      const response = await fetch(`${this.baseUrl}/constructor-id/${constructorId}`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Construtor não encontrado');
-    } catch (error) {
+      const response = await axiosInstance.get(`${this.baseUrl}/constructor-id/${constructorId}`);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Construtor não encontrado';
       console.error(`Erro ao buscar construtor por constructorId ${constructorId}:`, error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
   async searchConstructorsByName(name: string): Promise<Constructor[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/search?name=${encodeURIComponent(name)}`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao buscar construtores por nome');
-    } catch (error) {
+      const response = await axiosInstance.get(`${this.baseUrl}/search?name=${encodeURIComponent(name)}`);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Erro ao buscar construtores por nome';
       console.error(`Erro ao buscar construtores por nome ${name}:`, error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
   async getConstructorsByNationality(nationality: string): Promise<Constructor[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/nationality/${nationality}`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao buscar construtores por nacionalidade');
-    } catch (error) {
+      const response = await axiosInstance.get(`${this.baseUrl}/nationality/${nationality}`);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Erro ao buscar construtores por nacionalidade';
       console.error(`Erro ao buscar construtores por nacionalidade ${nationality}:`, error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 

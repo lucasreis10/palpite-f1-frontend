@@ -1,3 +1,4 @@
+import axiosInstance from '../config/axios';
 import { API_URLS } from '../config/api';
 import { authService } from './auth';
 
@@ -40,24 +41,23 @@ class UsersService {
 
   async getAllUsers(): Promise<User[]> {
     try {
-      const response = await fetch(`${this.baseUrl}`);
-      if (response.ok) {
-        const users = await response.json();
-        // Mapear para incluir campos adicionais com valores padrão
-        return users.map((user: { id: number; name: string; email: string; role?: string; active?: boolean; createdAt?: string; updatedAt?: string }) => ({
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role || 'USER',
-          active: user.active !== false,
-          createdAt: user.createdAt || new Date().toISOString(),
-          updatedAt: user.updatedAt || new Date().toISOString()
-        }));
-      }
-      throw new Error('Erro ao buscar usuários');
-    } catch (error) {
+      const response = await axiosInstance.get(this.baseUrl);
+      const users = response.data;
+      
+      // Mapear para incluir campos adicionais com valores padrão
+      return users.map((user: { id: number; name: string; email: string; role?: string; active?: boolean; createdAt?: string; updatedAt?: string }) => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role || 'USER',
+        active: user.active !== false,
+        createdAt: user.createdAt || new Date().toISOString(),
+        updatedAt: user.updatedAt || new Date().toISOString()
+      }));
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Erro ao buscar usuários';
       console.error('Erro ao buscar usuários:', error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
@@ -73,23 +73,22 @@ class UsersService {
 
   async getUserById(id: number): Promise<User> {
     try {
-      const response = await fetch(`${this.baseUrl}/${id}`);
-      if (response.ok) {
-        const user = await response.json();
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role || 'USER',
-          active: user.active !== false,
-          createdAt: user.createdAt || new Date().toISOString(),
-          updatedAt: user.updatedAt || new Date().toISOString()
-        };
-      }
-      throw new Error('Usuário não encontrado');
-    } catch (error) {
+      const response = await axiosInstance.get(`${this.baseUrl}/${id}`);
+      const user = response.data;
+      
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role || 'USER',
+        active: user.active !== false,
+        createdAt: user.createdAt || new Date().toISOString(),
+        updatedAt: user.updatedAt || new Date().toISOString()
+      };
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Usuário não encontrado';
       console.error(`Erro ao buscar usuário ${id}:`, error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
@@ -117,33 +116,21 @@ class UsersService {
     }
   }
 
-  // ========== OPERAÇÕES ADMINISTRATIVAS (SIMULADAS) ==========
-  // Nota: Estas operações são simuladas localmente até que os endpoints administrativos sejam implementados no backend
+  // ========== OPERAÇÕES ADMINISTRATIVAS ==========
 
   async createUser(request: CreateUserRequest): Promise<User> {
     try {
       console.log('Criando usuário:', request);
       
-      const response = await authService.authenticatedFetch(this.baseUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('Erro na resposta do servidor:', errorData);
-        throw new Error(`Erro ao criar usuário: ${response.status} - ${errorData}`);
-      }
-
-      const userData = await response.json();
+      const response = await axiosInstance.post(this.baseUrl, request);
+      const userData = response.data;
+      
       console.log('Usuário criado com sucesso:', userData);
       return userData;
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Erro ao criar usuário';
       console.error('Erro ao criar usuário:', error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
@@ -151,26 +138,15 @@ class UsersService {
     try {
       console.log('Atualizando usuário:', id, request);
       
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('Erro na resposta do servidor:', errorData);
-        throw new Error(`Erro ao atualizar usuário: ${response.status} - ${errorData}`);
-      }
-
-      const userData = await response.json();
+      const response = await axiosInstance.put(`${this.baseUrl}/${id}`, request);
+      const userData = response.data;
+      
       console.log('Usuário atualizado com sucesso:', userData);
       return userData;
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Erro ao atualizar usuário';
       console.error(`Erro ao atualizar usuário ${id}:`, error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
@@ -178,20 +154,13 @@ class UsersService {
     try {
       console.log('Deletando usuário:', id);
       
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('Erro na resposta do servidor:', errorData);
-        throw new Error(`Erro ao deletar usuário: ${response.status} - ${errorData}`);
-      }
-
+      await axiosInstance.delete(`${this.baseUrl}/${id}`);
+      
       console.log('Usuário deletado com sucesso:', id);
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Erro ao deletar usuário';
       console.error(`Erro ao deletar usuário ${id}:`, error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
@@ -226,13 +195,8 @@ class UsersService {
 
   async getUserStats(): Promise<UserStats> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/stats`);
-      
-      if (!response.ok) {
-        throw new Error('Erro ao buscar estatísticas de usuários');
-      }
-      
-      const backendStats = await response.json();
+      const response = await axiosInstance.get(`${this.baseUrl}/stats`);
+      const backendStats = response.data;
       
       // Mapear a resposta do backend para nossa interface
       // O backend retorna { total, active }, vamos calcular o resto localmente
@@ -247,9 +211,10 @@ class UsersService {
         adminUsers: adminUsers.length,
         regularUsers: regularUsers.length,
       };
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Erro ao buscar estatísticas de usuários';
       console.error('Erro ao buscar estatísticas de usuários:', error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 

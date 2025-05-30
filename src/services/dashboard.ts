@@ -1,4 +1,4 @@
-import { authService } from './auth';
+import axiosInstance from '../config/axios';
 import { API_URLS } from '../config/api';
 
 export interface NextRace {
@@ -48,114 +48,100 @@ export interface TopTeam {
 }
 
 export interface DashboardStats {
-  bestScore: {
-    score: number;
-    userName: string;
-    grandPrixName: string;
-  };
-  totalGuesses: number;
-  averageGuessesPerRace: number;
   totalUsers: number;
+  totalPredictions: number;
   totalRaces: number;
+  averageScore: number;
+  totalEvents: number;
+}
+
+export interface DashboardData {
+  nextRace: NextRace | null;
+  lastResult: LastResult | null;
+  topUsers: TopUser[];
+  topTeams: TopTeam[];
+  stats: DashboardStats;
 }
 
 class DashboardService {
   private readonly baseUrl = API_URLS.DASHBOARD;
 
-  async getNextRaces(): Promise<NextRace[]> {
+  async getDashboardData(): Promise<DashboardData> {
     try {
-      const response = await fetch(`${API_URLS.GRAND_PRIX}/upcoming`);
-      if (!response.ok) {
-        throw new Error('Erro ao buscar próximas corridas');
-      }
-      const data = await response.json();
-      
-      // Mapear os dados do backend para o formato esperado
-      return data.map((gp: any) => ({
-        id: gp.id,
-        name: gp.name,
-        circuit: gp.circuitName,
-        date: new Date(gp.raceDateTime).toLocaleDateString('pt-BR'),
-        time: new Date(gp.raceDateTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-        location: gp.location,
-        country: gp.country,
-        season: gp.season,
-      }));
+      const response = await axiosInstance.get(this.baseUrl);
+      return response.data;
     } catch (error) {
-      console.error('Erro ao buscar próximas corridas:', error);
+      console.error('Erro ao buscar dados do dashboard:', error);
+      throw error;
+    }
+  }
+
+  async getTopUsers(limit: number = 10, season: number = 2025): Promise<TopUser[]> {
+    try {
+      const response = await axiosInstance.get(`${this.baseUrl}/top-users`, {
+        params: { limit, season }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar top usuários:', error);
       return [];
+    }
+  }
+
+  async getTopTeams(limit: number = 10, season: number = 2025): Promise<TopTeam[]> {
+    try {
+      const response = await axiosInstance.get(`${this.baseUrl}/top-teams`, {
+        params: { limit, season }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar top equipes:', error);
+      return [];
+    }
+  }
+
+  async getStats(): Promise<DashboardStats> {
+    try {
+      const response = await axiosInstance.get(`${this.baseUrl}/stats`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar estatísticas:', error);
+      throw error;
+    }
+  }
+
+  async getNextRace(): Promise<NextRace | null> {
+    try {
+      const response = await axiosInstance.get(`${this.baseUrl}/next-race`);
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        return null;
+      }
+      console.error('Erro ao buscar próxima corrida:', error);
+      return null;
     }
   }
 
   async getLastResult(): Promise<LastResult | null> {
     try {
-      const response = await fetch(`${this.baseUrl}/last-result`);
-      if (!response.ok) {
-        throw new Error('Erro ao buscar último resultado');
+      const response = await axiosInstance.get(`${this.baseUrl}/last-result`);
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        return null;
       }
-      return await response.json();
-    } catch (error) {
       console.error('Erro ao buscar último resultado:', error);
       return null;
     }
   }
 
-  async getTopUsers(limit: number = 10): Promise<TopUser[]> {
+  async getUserPreviewData(userId: number): Promise<any> {
     try {
-      const currentYear = new Date().getFullYear();
-      const response = await fetch(`${this.baseUrl}/top-users?limit=${limit}&season=${currentYear}`);
-      if (!response.ok) {
-        throw new Error('Erro ao buscar ranking de usuários');
-      }
-      return await response.json();
+      const response = await axiosInstance.get(`${API_URLS.GUESSES}/user/${userId}`);
+      return response.data;
     } catch (error) {
-      console.error('Erro ao buscar ranking de usuários:', error);
-      return [];
-    }
-  }
-
-  async getTopTeams(limit: number = 5): Promise<TopTeam[]> {
-    try {
-      const currentYear = new Date().getFullYear();
-      const response = await fetch(`${API_URLS.TEAMS}/ranking/season/${currentYear}?limit=${limit}`);
-      if (!response.ok) {
-        throw new Error('Erro ao buscar ranking de equipes');
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Erro ao buscar ranking de equipes:', error);
-      return [];
-    }
-  }
-
-  async getDashboardStats(): Promise<DashboardStats> {
-    try {
-      const response = await fetch(`${this.baseUrl}/stats`);
-      if (!response.ok) {
-        throw new Error('Erro ao buscar estatísticas');
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Erro ao buscar estatísticas:', error);
-      return {
-        bestScore: { score: 0, userName: '', grandPrixName: '' },
-        totalGuesses: 0,
-        averageGuessesPerRace: 0,
-        totalUsers: 0,
-        totalRaces: 0,
-      };
-    }
-  }
-
-  async getUserGuesses(userId: number): Promise<any[]> {
-    try {
-      const response = await authService.authenticatedFetch(`${API_URLS.GUESSES}/user/${userId}`);
-      if (!response.ok) {
-        throw new Error('Erro ao buscar palpites do usuário');
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Erro ao buscar palpites do usuário:', error);
+      console.error('Erro ao buscar dados de preview do usuário:', error);
       return [];
     }
   }

@@ -1,5 +1,6 @@
-import { authService } from './auth';
+import axiosInstance from '../config/axios';
 import { API_URLS } from '../config/api';
+import { authService } from './auth';
 
 export interface GrandPrixEvent {
   id: number;
@@ -110,11 +111,8 @@ class EventsService {
 
   async getAllEvents(): Promise<GrandPrixEvent[]> {
     try {
-      const response = await fetch(`${this.baseUrl}`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao buscar eventos');
+      const response = await axiosInstance.get(this.baseUrl);
+      return response.data;
     } catch (error) {
       console.error('Erro ao buscar todos os eventos:', error);
       throw error;
@@ -123,11 +121,8 @@ class EventsService {
 
   async getEventsBySeason(season: number): Promise<GrandPrixEvent[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/season/${season}`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao buscar eventos da temporada');
+      const response = await axiosInstance.get(`${this.baseUrl}/season/${season}`);
+      return response.data;
     } catch (error) {
       console.error(`Erro ao buscar eventos da temporada ${season}:`, error);
       throw error;
@@ -136,11 +131,8 @@ class EventsService {
 
   async getActiveEventsBySeason(season: number): Promise<GrandPrixEvent[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/season/${season}/active`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao buscar eventos ativos');
+      const response = await axiosInstance.get(`${this.baseUrl}/season/${season}/active`);
+      return response.data;
     } catch (error) {
       console.error(`Erro ao buscar eventos ativos da temporada ${season}:`, error);
       throw error;
@@ -149,11 +141,8 @@ class EventsService {
 
   async getCompletedEventsBySeason(season: number): Promise<GrandPrixEvent[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/season/${season}/completed`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao buscar eventos concluídos');
+      const response = await axiosInstance.get(`${this.baseUrl}/season/${season}/completed`);
+      return response.data;
     } catch (error) {
       console.error(`Erro ao buscar eventos concluídos da temporada ${season}:`, error);
       throw error;
@@ -162,11 +151,8 @@ class EventsService {
 
   async getPendingEventsBySeason(season: number): Promise<GrandPrixEvent[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/season/${season}/pending`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao buscar eventos pendentes');
+      const response = await axiosInstance.get(`${this.baseUrl}/season/${season}/pending`);
+      return response.data;
     } catch (error) {
       console.error(`Erro ao buscar eventos pendentes da temporada ${season}:`, error);
       throw error;
@@ -175,11 +161,8 @@ class EventsService {
 
   async getEventById(id: number): Promise<GrandPrixEvent> {
     try {
-      const response = await fetch(`${this.baseUrl}/${id}`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Evento não encontrado');
+      const response = await axiosInstance.get(`${this.baseUrl}/${id}`);
+      return response.data;
     } catch (error) {
       console.error(`Erro ao buscar evento ${id}:`, error);
       throw error;
@@ -188,11 +171,8 @@ class EventsService {
 
   async getUpcomingEvents(): Promise<GrandPrixEvent[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/upcoming`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao buscar próximos eventos');
+      const response = await axiosInstance.get(`${this.baseUrl}/upcoming`);
+      return response.data;
     } catch (error) {
       console.error('Erro ao buscar próximos eventos:', error);
       throw error;
@@ -201,11 +181,8 @@ class EventsService {
 
   async getNextEvent(): Promise<GrandPrixEvent> {
     try {
-      const response = await fetch(`${this.baseUrl}/next`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Nenhum próximo evento encontrado');
+      const response = await axiosInstance.get(`${this.baseUrl}/next`);
+      return response.data;
     } catch (error) {
       console.error('Erro ao buscar próximo evento:', error);
       throw error;
@@ -214,11 +191,8 @@ class EventsService {
 
   async getAvailableSeasons(): Promise<number[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/seasons`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao buscar temporadas disponíveis');
+      const response = await axiosInstance.get(`${this.baseUrl}/seasons`);
+      return response.data;
     } catch (error) {
       console.error('Erro ao buscar temporadas disponíveis:', error);
       throw error;
@@ -229,122 +203,77 @@ class EventsService {
 
   async createEvent(request: CreateEventRequest): Promise<GrandPrixEvent> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-      });
-
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao criar evento');
-    } catch (error) {
+      const response = await axiosInstance.post(this.baseUrl, request);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Erro ao criar evento';
       console.error('Erro ao criar evento:', error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
   async updateEvent(id: number, request: UpdateEventRequest): Promise<GrandPrixEvent> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-      });
-
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao atualizar evento');
-    } catch (error) {
+      const response = await axiosInstance.put(`${this.baseUrl}/${id}`, request);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Erro ao atualizar evento';
       console.error(`Erro ao atualizar evento ${id}:`, error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
   async deleteEvent(id: number): Promise<void> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Erro ao deletar evento');
-      }
-    } catch (error) {
+      await axiosInstance.delete(`${this.baseUrl}/${id}`);
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Erro ao deletar evento';
       console.error(`Erro ao deletar evento ${id}:`, error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
   async markAsCompleted(id: number): Promise<GrandPrixEvent> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/${id}/complete`, {
-        method: 'PATCH',
-      });
-
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao marcar evento como concluído');
-    } catch (error) {
+      const response = await axiosInstance.patch(`${this.baseUrl}/${id}/complete`);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Erro ao marcar evento como concluído';
       console.error(`Erro ao marcar evento ${id} como concluído:`, error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
   async markAsCompletedWithScoreCalculation(id: number): Promise<CompleteEventResponse> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/${id}/complete-with-scores`, {
-        method: 'PATCH',
-      });
-
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao marcar evento como concluído e calcular pontuações');
-    } catch (error) {
+      const response = await axiosInstance.patch(`${this.baseUrl}/${id}/complete-with-scores`);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Erro ao marcar evento como concluído e calcular pontuações';
       console.error(`Erro ao marcar evento ${id} como concluído e calcular pontuações:`, error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
   async markAsPending(id: number): Promise<GrandPrixEvent> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/${id}/pending`, {
-        method: 'PATCH',
-      });
-
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao marcar evento como pendente');
-    } catch (error) {
+      const response = await axiosInstance.patch(`${this.baseUrl}/${id}/pending`);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Erro ao marcar evento como pendente';
       console.error(`Erro ao marcar evento ${id} como pendente:`, error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
   async importEventsFromJolpica(season: number): Promise<ImportEventsResponse> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/import/${season}`, {
-        method: 'POST',
-      });
-
-      if (response.ok) {
-        return await response.json();
-      }
-      
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || 'Erro ao importar eventos da API jolpica-f1');
-    } catch (error) {
+      const response = await axiosInstance.post(`${this.baseUrl}/import/${season}`);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Erro ao importar eventos da API jolpica-f1';
       console.error(`Erro ao importar eventos da temporada ${season}:`, error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
@@ -352,22 +281,12 @@ class EventsService {
 
   async setRealResultAndCalculateScores(request: SetResultRequest): Promise<CalculateScoresResponse> {
     try {
-      const urlPadrao =  API_URLS.BASE_URL;
-      const response = await authService.authenticatedFetch(`${urlPadrao}/guesses/admin/calculate-scores`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-      });
-
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao definir resultado e calcular pontuações');
-    } catch (error) {
+      const response = await axiosInstance.post('/guesses/admin/calculate-scores', request);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Erro ao definir resultado e calcular pontuações';
       console.error('Erro ao definir resultado e calcular pontuações:', error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
@@ -375,29 +294,23 @@ class EventsService {
 
   async getEventResults(grandPrixId: number, guessType: 'QUALIFYING' | 'RACE'): Promise<EventResult[]> {
     try {
-      const urlPadrao = API_URLS.BASE_URL;
-      const response = await authService.authenticatedFetch(
-        `${urlPadrao}/guesses/grand-prix/${grandPrixId}?guessType=${guessType}`
+      const response = await axiosInstance.get(`/guesses/grand-prix/${grandPrixId}?guessType=${guessType}`);
+      const guesses = response.data;
+      
+      // Procurar por um palpite que tenha resultado real definido
+      const guessWithRealResult = guesses.find((guess: any) => 
+        guess.realResultPilots && guess.realResultPilots.length > 0
       );
 
-      if (response.ok) {
-        const guesses = await response.json();
-        
-        // Procurar por um palpite que tenha resultado real definido
-        const guessWithRealResult = guesses.find((guess: any) => 
-          guess.realResultPilots && guess.realResultPilots.length > 0
-        );
-
-        if (guessWithRealResult) {
-          // Converter resultado real para formato EventResult
-          return guessWithRealResult.realResultPilots.map((pilot: any, index: number) => ({
-            position: index + 1,
-            driver: `${pilot.givenName} ${pilot.familyName}`,
-            team: typeof pilot.constructor === 'string' ? pilot.constructor : 
-                  (pilot.constructor?.name || 'F1 Team'), // Garantir que seja string
-            pilotId: pilot.id
-          }));
-        }
+      if (guessWithRealResult) {
+        // Converter resultado real para formato EventResult
+        return guessWithRealResult.realResultPilots.map((pilot: any, index: number) => ({
+          position: index + 1,
+          driver: `${pilot.givenName} ${pilot.familyName}`,
+          team: typeof pilot.constructor === 'string' ? pilot.constructor : 
+                (pilot.constructor?.name || 'F1 Team'), // Garantir que seja string
+          pilotId: pilot.id
+        }));
       }
       
       return [];
@@ -442,8 +355,6 @@ class EventsService {
       throw error;
     }
   }
-
-
 
   formatEventDate(dateTime: string): string {
     try {

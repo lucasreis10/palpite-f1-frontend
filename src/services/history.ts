@@ -1,3 +1,4 @@
+import axiosInstance from '../config/axios';
 import { API_URLS } from '../config/api';
 import { authService } from './auth';
 
@@ -96,45 +97,33 @@ export interface SeasonStatistics {
 
 export async function getGrandPrixHistory(grandPrixId: number): Promise<GrandPrixHistoryResponse> {
   try {
-    const response = await authService.authenticatedFetch(`${API_URLS.BASE_URL}/history/grand-prix/${grandPrixId}`);
-    
-    if (!response.ok) {
-      throw new Error(`Erro ao buscar histórico do GP: ${response.status}`);
-    }
-    
-    return await response.json();
-  } catch (error) {
+    const response = await axiosInstance.get(`/history/grand-prix/${grandPrixId}`);
+    return response.data;
+  } catch (error: any) {
+    const errorMessage = error.response?.data || error.message || `Erro ao buscar histórico do GP: ${error.response?.status}`;
     console.error('Erro ao buscar histórico do GP:', error);
-    throw error;
+    throw new Error(errorMessage);
   }
 }
 
 export async function getSeasonHistory(season: number): Promise<SeasonRankingResponse> {
   try {
-    const response = await authService.authenticatedFetch(`${API_URLS.BASE_URL}/history/season/${season}`);
-    
-    if (!response.ok) {
-      throw new Error(`Erro ao buscar histórico da temporada: ${response.status}`);
-    }
-    
-    return await response.json();
-  } catch (error) {
+    const response = await axiosInstance.get(`/history/season/${season}`);
+    return response.data;
+  } catch (error: any) {
+    const errorMessage = error.response?.data || error.message || `Erro ao buscar histórico da temporada: ${error.response?.status}`;
     console.error('Erro ao buscar histórico da temporada:', error);
-    throw error;
+    throw new Error(errorMessage);
   }
 }
 
 export async function getSeasonRankingSimple(season: number): Promise<SeasonRankingResponse> {
   try {
-    const response = await authService.authenticatedFetch(`${API_URLS.BASE_URL}/history/season/${season}/simple`);
-    
-    if (!response.ok) {
-      throw new Error(`Erro ao buscar ranking simples da temporada: ${response.status}`);
-    }
-    
-    return await response.json();
-  } catch (error) {
+    const response = await axiosInstance.get(`/history/season/${season}/simple`);
+    return response.data;
+  } catch (error: any) {
+    const errorMessage = error.response?.data || error.message || `Erro ao buscar ranking simples da temporada: ${error.response?.status}`;
     console.error('Erro ao buscar ranking simples da temporada:', error);
-    throw error;
+    throw new Error(errorMessage);
   }
 } 

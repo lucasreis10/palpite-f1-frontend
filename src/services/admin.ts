@@ -1,5 +1,6 @@
-import { authService } from './auth';
+import axiosInstance from '../config/axios';
 import { API_URLS } from '../config/api';
+import { authService } from './auth';
 
 export interface AdminStats {
   totalEvents: number;
@@ -64,21 +65,21 @@ class AdminService {
     try {
       const currentYear = new Date().getFullYear();
       const [allGP, completedGP, pendingGP] = await Promise.all([
-        fetch(`${API_URLS.GRAND_PRIX}/season/${currentYear}`),
-        fetch(`${API_URLS.GRAND_PRIX}/season/${currentYear}/completed`),
-        fetch(`${API_URLS.GRAND_PRIX}/season/${currentYear}/pending`)
+        axiosInstance.get(`${API_URLS.GRAND_PRIX}/season/${currentYear}`),
+        axiosInstance.get(`${API_URLS.GRAND_PRIX}/season/${currentYear}/completed`),
+        axiosInstance.get(`${API_URLS.GRAND_PRIX}/season/${currentYear}/pending`)
       ]);
 
       const [allData, completedData, pendingData] = await Promise.all([
-        allGP.ok ? allGP.json() : [],
-        completedGP.ok ? completedGP.json() : [],
-        pendingGP.ok ? pendingGP.json() : []
+        allGP.data.length || 24,
+        completedGP.data.length || 12,
+        pendingGP.data.length || 12
       ]);
 
       return {
-        total: allData.length || 24,
-        completed: completedData.length || 12,
-        pending: pendingData.length || 12
+        total: allData,
+        completed: completedData,
+        pending: pendingData
       };
     } catch (error) {
       console.error('Erro ao buscar estatísticas de GP:', error);
@@ -89,18 +90,18 @@ class AdminService {
   private async fetchPilotsStats() {
     try {
       const [allPilots, activePilots] = await Promise.all([
-        fetch(`${API_URLS.PILOTS}`),
-        fetch(`${API_URLS.PILOTS}/active`)
+        axiosInstance.get(`${API_URLS.PILOTS}`),
+        axiosInstance.get(`${API_URLS.PILOTS}/active`)
       ]);
 
       const [allData, activeData] = await Promise.all([
-        allPilots.ok ? allPilots.json() : [],
-        activePilots.ok ? activePilots.json() : []
+        allPilots.data.length || 24,
+        activePilots.data.length || 20
       ]);
 
       return {
-        total: allData.length || 24,
-        active: activeData.length || 20
+        total: allData,
+        active: activeData
       };
     } catch (error) {
       console.error('Erro ao buscar estatísticas de pilotos:', error);
@@ -112,18 +113,18 @@ class AdminService {
     try {
       const currentYear = new Date().getFullYear();
       const [allTeams, activeTeams] = await Promise.all([
-        fetch(`${API_URLS.TEAMS}/year/${currentYear}`),
-        fetch(`${API_URLS.TEAMS}/year/${currentYear}/active`)
+        axiosInstance.get(`${API_URLS.TEAMS}/year/${currentYear}`),
+        axiosInstance.get(`${API_URLS.TEAMS}/year/${currentYear}/active`)
       ]);
 
       const [allData, activeData] = await Promise.all([
-        allTeams.ok ? allTeams.json() : [],
-        activeTeams.ok ? activeTeams.json() : []
+        allTeams.data.length || 15,
+        activeTeams.data.length || 12
       ]);
 
       return {
-        total: allData.length || 15,
-        active: activeData.length || 12
+        total: allData,
+        active: activeData
       };
     } catch (error) {
       console.error('Erro ao buscar estatísticas de equipes:', error);
@@ -134,17 +135,13 @@ class AdminService {
   private async fetchUsersStats() {
     try {
       // Endpoint correto considerando que API_BASE_URL já inclui /api
-      const response = await authService.authenticatedFetch(`${API_URLS.USERS}/stats`);
+      const response = await axiosInstance.get(`${API_URLS.USERS}/stats`);
+      const data = response.data;
       
-      if (response.ok) {
-        const data = await response.json();
-        return {
-          total: data.total || 50,
-          active: data.active || 48
-        };
-      }
-      
-      return { total: 50, active: 48 };
+      return {
+        total: data.total || 50,
+        active: data.active || 48
+      };
     } catch (error) {
       console.error('Erro ao buscar estatísticas de usuários:', error);
       return { total: 50, active: 48 };
@@ -153,11 +150,8 @@ class AdminService {
 
   private async fetchUpcomingRaces() {
     try {
-      const response = await fetch(`${API_URLS.GRAND_PRIX}/upcoming`);
-      if (response.ok) {
-        return await response.json();
-      }
-      return [];
+      const response = await axiosInstance.get(`${API_URLS.GRAND_PRIX}/upcoming`);
+      return response.data;
     } catch (error) {
       console.error('Erro ao buscar próximas corridas:', error);
       return [];

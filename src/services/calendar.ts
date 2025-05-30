@@ -1,3 +1,4 @@
+import axiosInstance from '../config/axios';
 import { API_URLS } from '../config/api';
 
 export interface CalendarEvent {
@@ -112,27 +113,23 @@ class CalendarService {
 
   async getAllEvents(): Promise<CalendarEvent[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/grand-prix`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao buscar eventos do calendário');
-    } catch (error) {
+      const response = await axiosInstance.get(`${this.baseUrl}/grand-prix`);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Erro ao buscar eventos do calendário';
       console.error('Erro ao buscar eventos do calendário:', error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
   async getEventsBySeason(season: number): Promise<CalendarEvent[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/season/${season}`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao buscar eventos da temporada');
-    } catch (error) {
+      const response = await axiosInstance.get(`${this.baseUrl}/season/${season}`);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Erro ao buscar eventos da temporada';
       console.error(`Erro ao buscar eventos da temporada ${season}:`, error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
@@ -443,8 +440,6 @@ class CalendarService {
     
     return daysUntil >= 0 && daysUntil <= 3;
   }
-
-
 
   // ========== VALIDAÇÕES ==========
 

@@ -21,8 +21,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
-    setUser(currentUser);
+    
+    // Verificar se o token ainda está válido
+    if (currentUser && authService.isTokenValid()) {
+      setUser(currentUser);
+      
+      // Iniciar verificação periódica do token
+      authService.startTokenValidation();
+    } else if (currentUser) {
+      // Token inválido ou expirado, fazer logout
+      authService.logout();
+      setUser(null);
+    }
+    
     setIsLoading(false);
+
+    // Cleanup: parar verificação quando o componente for desmontado
+    return () => {
+      authService.stopTokenValidation();
+    };
   }, []);
 
   const login = async (credentials: LoginRequest) => {
@@ -36,6 +53,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role: response.role,
       };
       setUser(userData);
+      
+      // Iniciar verificação periódica do token após login
+      authService.startTokenValidation();
     } catch (error) {
       throw error;
     } finally {
@@ -54,6 +74,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role: response.role,
       };
       setUser(newUser);
+      
+      // Iniciar verificação periódica do token após registro
+      authService.startTokenValidation();
     } catch (error) {
       throw error;
     } finally {
@@ -62,6 +85,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
+    // Parar verificação periódica antes do logout
+    authService.stopTokenValidation();
     authService.logout();
     setUser(null);
   };
@@ -69,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const contextValue: AuthContextType = {
     user,
     isLoading,
-    isAuthenticated: !!user,
+    isAuthenticated: !!user && authService.isTokenValid(),
     isAdmin: user?.role === 'ADMIN',
     login,
     register,

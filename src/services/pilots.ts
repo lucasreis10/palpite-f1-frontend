@@ -1,4 +1,4 @@
-import { authService } from './auth';
+import axiosInstance from '../config/axios';
 import { API_URLS } from '../config/api';
 
 export interface Constructor {
@@ -65,11 +65,8 @@ class PilotsService {
 
   async getAllPilots(): Promise<Pilot[]> {
     try {
-      const response = await fetch(`${this.baseUrl}`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao buscar pilotos');
+      const response = await axiosInstance.get(this.baseUrl);
+      return response.data;
     } catch (error) {
       console.error('Erro ao buscar todos os pilotos:', error);
       throw error;
@@ -78,11 +75,8 @@ class PilotsService {
 
   async getActivePilots(): Promise<Pilot[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/active`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao buscar pilotos ativos');
+      const response = await axiosInstance.get(`${this.baseUrl}/active`);
+      return response.data;
     } catch (error) {
       console.error('Erro ao buscar pilotos ativos:', error);
       throw error;
@@ -91,11 +85,8 @@ class PilotsService {
 
   async getPilotsByStatus(active: boolean): Promise<Pilot[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/status/${active}`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao buscar pilotos por status');
+      const response = await axiosInstance.get(`${this.baseUrl}/status/${active}`);
+      return response.data;
     } catch (error) {
       console.error(`Erro ao buscar pilotos por status ${active}:`, error);
       throw error;
@@ -104,11 +95,8 @@ class PilotsService {
 
   async getPilotById(id: number): Promise<Pilot> {
     try {
-      const response = await fetch(`${this.baseUrl}/${id}`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Piloto não encontrado');
+      const response = await axiosInstance.get(`${this.baseUrl}/${id}`);
+      return response.data;
     } catch (error) {
       console.error(`Erro ao buscar piloto ${id}:`, error);
       throw error;
@@ -117,11 +105,8 @@ class PilotsService {
 
   async getPilotByDriverId(driverId: string): Promise<Pilot> {
     try {
-      const response = await fetch(`${this.baseUrl}/driver/${driverId}`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Piloto não encontrado');
+      const response = await axiosInstance.get(`${this.baseUrl}/driver/${driverId}`);
+      return response.data;
     } catch (error) {
       console.error(`Erro ao buscar piloto por driverId ${driverId}:`, error);
       throw error;
@@ -130,11 +115,8 @@ class PilotsService {
 
   async searchPilotsByName(name: string): Promise<Pilot[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/search?name=${encodeURIComponent(name)}`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao buscar pilotos por nome');
+      const response = await axiosInstance.get(`${this.baseUrl}/search?name=${encodeURIComponent(name)}`);
+      return response.data;
     } catch (error) {
       console.error(`Erro ao buscar pilotos por nome ${name}:`, error);
       throw error;
@@ -143,11 +125,8 @@ class PilotsService {
 
   async searchActivePilotsByName(name: string): Promise<Pilot[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/active/search?name=${encodeURIComponent(name)}`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao buscar pilotos ativos por nome');
+      const response = await axiosInstance.get(`${this.baseUrl}/active/search?name=${encodeURIComponent(name)}`);
+      return response.data;
     } catch (error) {
       console.error(`Erro ao buscar pilotos ativos por nome ${name}:`, error);
       throw error;
@@ -156,11 +135,8 @@ class PilotsService {
 
   async getPilotsByNationality(nationality: string): Promise<Pilot[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/nationality/${nationality}`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao buscar pilotos por nacionalidade');
+      const response = await axiosInstance.get(`${this.baseUrl}/nationality/${nationality}`);
+      return response.data;
     } catch (error) {
       console.error(`Erro ao buscar pilotos por nacionalidade ${nationality}:`, error);
       throw error;
@@ -169,11 +145,8 @@ class PilotsService {
 
   async getActivePilotsByNationality(nationality: string): Promise<Pilot[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/active/nationality/${nationality}`);
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao buscar pilotos ativos por nacionalidade');
+      const response = await axiosInstance.get(`${this.baseUrl}/active/nationality/${nationality}`);
+      return response.data;
     } catch (error) {
       console.error(`Erro ao buscar pilotos ativos por nacionalidade ${nationality}:`, error);
       throw error;
@@ -184,18 +157,8 @@ class PilotsService {
 
   async createPilot(request: CreatePilotRequest): Promise<Pilot> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-      });
-
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao criar piloto');
+      const response = await axiosInstance.post(this.baseUrl, request);
+      return response.data;
     } catch (error) {
       console.error('Erro ao criar piloto:', error);
       throw error;
@@ -204,18 +167,8 @@ class PilotsService {
 
   async updatePilot(id: number, request: UpdatePilotRequest): Promise<Pilot> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-      });
-
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao atualizar piloto');
+      const response = await axiosInstance.put(`${this.baseUrl}/${id}`, request);
+      return response.data;
     } catch (error) {
       console.error(`Erro ao atualizar piloto ${id}:`, error);
       throw error;
@@ -224,29 +177,18 @@ class PilotsService {
 
   async deletePilot(id: number): Promise<void> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Erro ao deletar piloto');
-      }
-    } catch (error) {
+      await axiosInstance.delete(`${this.baseUrl}/${id}`);
+    } catch (error: any) {
+      const errorMessage = error.response?.data || error.message || 'Erro ao deletar piloto';
       console.error(`Erro ao deletar piloto ${id}:`, error);
-      throw error;
+      throw new Error(errorMessage);
     }
   }
 
   async activatePilot(id: number): Promise<Pilot> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/${id}/activate`, {
-        method: 'PATCH',
-      });
-
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao ativar piloto');
+      const response = await axiosInstance.patch(`${this.baseUrl}/${id}/activate`);
+      return response.data;
     } catch (error) {
       console.error(`Erro ao ativar piloto ${id}:`, error);
       throw error;
@@ -255,14 +197,8 @@ class PilotsService {
 
   async deactivatePilot(id: number): Promise<Pilot> {
     try {
-      const response = await authService.authenticatedFetch(`${this.baseUrl}/${id}/deactivate`, {
-        method: 'PATCH',
-      });
-
-      if (response.ok) {
-        return await response.json();
-      }
-      throw new Error('Erro ao inativar piloto');
+      const response = await axiosInstance.patch(`${this.baseUrl}/${id}/deactivate`);
+      return response.data;
     } catch (error) {
       console.error(`Erro ao inativar piloto ${id}:`, error);
       throw error;
