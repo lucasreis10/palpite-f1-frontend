@@ -53,6 +53,13 @@ export interface DashboardStats {
   totalRaces: number;
   averageScore: number;
   totalEvents: number;
+  totalGuesses: number;
+  averageGuessesPerRace: number;
+  bestScore: {
+    score: number;
+    userName: string;
+    grandPrixName: string;
+  };
 }
 
 export interface DashboardData {
@@ -110,6 +117,16 @@ class DashboardService {
     }
   }
 
+  async getDashboardStats(): Promise<DashboardStats> {
+    try {
+      const response = await axiosInstance.get(`${this.baseUrl}/stats`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar estatísticas do dashboard:', error);
+      throw error;
+    }
+  }
+
   async getNextRace(): Promise<NextRace | null> {
     try {
       const response = await axiosInstance.get(`${this.baseUrl}/next-race`);
@@ -120,6 +137,21 @@ class DashboardService {
       }
       console.error('Erro ao buscar próxima corrida:', error);
       return null;
+    }
+  }
+
+  async getNextRaces(limit: number = 5): Promise<NextRace[]> {
+    try {
+      const response = await axiosInstance.get(`${this.baseUrl}/next-races`, {
+        params: { limit }
+      });
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        return [];
+      }
+      console.error('Erro ao buscar próximas corridas:', error);
+      return [];
     }
   }
 

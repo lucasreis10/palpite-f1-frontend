@@ -85,13 +85,21 @@ const ResultForm = ({ onSubmit, onImport, isLoading = false, selectedTab, pilots
     onSubmit(results);
   };
 
-  const handleDriverSelect = (driver: { name: string; team: string }, position: number) => {
+  const handleDriverSelect = (driver: { id: number; name: string; team: string } | null, position: number) => {
     const newResults = [...results];
-    newResults[position - 1] = {
-      position,
-      driver: driver.name,
-      team: driver.team,
-    };
+    if (driver) {
+      newResults[position - 1] = {
+        position,
+        driver: driver.name,
+        team: driver.team
+      };
+    } else {
+      newResults[position - 1] = {
+        position,
+        driver: '',
+        team: ''
+      };
+    }
     setResults(newResults);
   };
 
@@ -119,7 +127,7 @@ const ResultForm = ({ onSubmit, onImport, isLoading = false, selectedTab, pilots
             )}
             selectedDriver={
               result.driver ? 
-              { id: index, name: result.driver, team: result.team } :
+              { id: index + 1, name: result.driver, team: result.team } :
               null
             }
             onSelect={(driver) => handleDriverSelect(driver, index + 1)}

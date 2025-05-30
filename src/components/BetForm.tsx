@@ -6,6 +6,7 @@ import { Toast } from './Toast';
 import { Tab } from '@headlessui/react';
 import { guessService, Pilot, NextGrandPrix, GuessResponse } from './../services/guesses';
 import { useAuth } from './../hooks/useAuth';
+import { useCopyToClipboard } from './../hooks/useCopyToClipboard';
 
 interface Driver {
   id: number;
@@ -15,6 +16,7 @@ interface Driver {
 
 export function BetForm() {
   const { user, isLoading: authLoading } = useAuth();
+  const { copyToClipboard, isCopying, copySuccess, formatGuessToText } = useCopyToClipboard();
   const [selectedQualifyingDrivers, setSelectedQualifyingDrivers] = useState<(Driver | null)[]>(new Array(10).fill(null));
   const [selectedRaceDrivers, setSelectedRaceDrivers] = useState<(Driver | null)[]>(new Array(10).fill(null));
   const [pilots, setPilots] = useState<Pilot[]>([]);
@@ -35,6 +37,7 @@ export function BetForm() {
     isVisible: false
   });
   const [showPreview, setShowPreview] = useState(false);
+  const [showTextPreview, setShowTextPreview] = useState(false);
 
   // Converter Pilot para Driver (compatibilidade com componente existente)
   const convertPilotToDriver = (pilot: Pilot): Driver => ({
@@ -274,6 +277,34 @@ export function BetForm() {
     setError(null);
     setSuccessMessage(null);
     showToast(`${qualifyingDrivers.length} pilotos copiados da classificação para a corrida! 📋`, 'success');
+  };
+
+  const handleCopyPalpitesToClipboard = async () => {
+    const hasAnyGuess = selectedQualifyingDrivers.some(d => d !== null) || selectedRaceDrivers.some(d => d !== null);
+    
+    if (!hasAnyGuess) {
+      showToast('Nenhum palpite selecionado para copiar', 'error');
+      return;
+    }
+
+    const success = await copyToClipboard(selectedQualifyingDrivers, selectedRaceDrivers, nextGrandPrix);
+    
+    if (success) {
+      showToast('Palpites copiados para a área de transferência! 📋', 'success');
+    } else {
+      showToast('Erro ao copiar palpites. Tente novamente.', 'error');
+    }
+  };
+
+  const handleShowTextPreview = () => {
+    const hasAnyGuess = selectedQualifyingDrivers.some(d => d !== null) || selectedRaceDrivers.some(d => d !== null);
+    
+    if (!hasAnyGuess) {
+      showToast('Nenhum palpite selecionado para visualizar', 'error');
+      return;
+    }
+
+    setShowTextPreview(true);
   };
 
   if (isLoading || authLoading) {
@@ -589,6 +620,47 @@ export function BetForm() {
             <div className="flex flex-col sm:flex-row gap-3 justify-end pt-4 border-t border-gray-200">
               <button
                 type="button"
+                onClick={handleShowTextPreview}
+                className="w-full sm:w-auto px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                disabled={!selectedQualifyingDrivers.some(d => d !== null) && !selectedRaceDrivers.some(d => d !== null)}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span className="hidden sm:inline">Preview Texto</span>
+                <span className="sm:hidden">👁️ Preview</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleCopyPalpitesToClipboard}
+                className="w-full sm:w-auto px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                disabled={isCopying || (!selectedQualifyingDrivers.some(d => d !== null) && !selectedRaceDrivers.some(d => d !== null))}
+              >
+                {isCopying ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Copiando...</span>
+                  </>
+                ) : copySuccess ? (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Copiado!</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <span className="hidden sm:inline">Copiar Palpites</span>
+                    <span className="sm:hidden">📋 Copiar</span>
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
                 onClick={handleRepeatLastBet}
                 className="w-full sm:w-auto px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium text-sm"
                 disabled={isSaving}
@@ -623,6 +695,65 @@ export function BetForm() {
           </form>
         </div>
       </div>
+
+      {/* Modal de Preview do Texto */}
+      {showTextPreview && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900">📋 Preview do Texto</h3>
+              <button
+                onClick={() => setShowTextPreview(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="p-4 max-h-96 overflow-y-auto">
+              <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                <p className="text-sm text-gray-600 mb-2">Este é o texto que será copiado:</p>
+                <pre className="whitespace-pre-wrap text-sm text-gray-800 font-mono leading-relaxed">
+                  {formatGuessToText(selectedQualifyingDrivers, selectedRaceDrivers, nextGrandPrix)}
+                </pre>
+              </div>
+            </div>
+            
+            <div className="flex gap-3 p-4 border-t border-gray-200">
+              <button
+                onClick={() => setShowTextPreview(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Fechar
+              </button>
+              <button
+                onClick={async () => {
+                  await handleCopyPalpitesToClipboard();
+                  setShowTextPreview(false);
+                }}
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                disabled={isCopying}
+              >
+                {isCopying ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Copiando...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Copiar
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 } 
