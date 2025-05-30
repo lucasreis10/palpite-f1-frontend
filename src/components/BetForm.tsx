@@ -34,6 +34,7 @@ export function BetForm() {
     type: 'success',
     isVisible: false
   });
+  const [showPreview, setShowPreview] = useState(false);
 
   // Converter Pilot para Driver (compatibilidade com componente existente)
   const convertPilotToDriver = (pilot: Pilot): Driver => ({
@@ -277,10 +278,10 @@ export function BetForm() {
 
   if (isLoading || authLoading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden w-full max-w-full">
-        <div className="p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="p-4 sm:p-6">
           <div className="flex items-center justify-center min-h-[200px]">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-f1-red"></div>
           </div>
         </div>
       </div>
@@ -289,10 +290,10 @@ export function BetForm() {
 
   if (!nextGrandPrix) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden w-full max-w-full">
-        <div className="p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="p-4 sm:p-6">
           <div className="text-center">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Nenhum Grande Prêmio Disponível</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">❌ Nenhum Grande Prêmio Disponível</h2>
             <p className="text-gray-600">
               Não há nenhum Grande Prêmio futuro disponível para palpites no momento.
             </p>
@@ -305,6 +306,37 @@ export function BetForm() {
   const qualifyingDeadlineOpen = guessService.isGuessDeadlineOpen(nextGrandPrix, 'QUALIFYING');
   const raceDeadlineOpen = guessService.isGuessDeadlineOpen(nextGrandPrix, 'RACE');
 
+  const PreviewComponent = ({ drivers, title, type }: { drivers: (Driver | null)[], title: string, type: 'qualifying' | 'race' }) => (
+    <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+      <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+        <span>{type === 'qualifying' ? '🏎️' : '🏁'}</span>
+        {title}
+      </h4>
+      <div className="space-y-2">
+        {drivers.slice(0, 3).map((driver, index) => (
+          <div key={index} className="flex items-center gap-2 p-2 bg-white rounded border">
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-400 text-yellow-900 font-bold text-xs">
+              {index + 1}
+            </span>
+            {driver ? (
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-gray-900 text-sm truncate">{driver.name.split(' ').slice(-1)[0]}</p>
+                <p className="text-xs text-gray-500 truncate">{driver.team.substring(0, 12)}...</p>
+              </div>
+            ) : (
+              <p className="text-gray-400 italic text-sm">Selecione um piloto</p>
+            )}
+          </div>
+        ))}
+        {drivers.filter(d => d !== null).length > 3 && (
+          <p className="text-xs text-gray-500 text-center">
+            +{drivers.filter(d => d !== null).length - 3} pilotos selecionados
+          </p>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <>
       <Toast
@@ -314,245 +346,285 @@ export function BetForm() {
         onClose={closeToast}
       />
       
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden w-full max-w-full">
-        <div className="p-4 sm:p-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">{nextGrandPrix.name}</h2>
-            <p className="text-gray-600 text-sm sm:text-base">
-              {nextGrandPrix.circuitName} - {nextGrandPrix.city}, {nextGrandPrix.country}
-            </p>
-            <p className="text-sm text-gray-500">
-              Temporada {nextGrandPrix.season} - Rodada {nextGrandPrix.round}
-            </p>
-          </div>
-          <div className="flex gap-4">
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-green-100"></span>
-              <span className="text-sm text-gray-600">Pódio</span>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        {/* Header do GP - compacto para mobile */}
+        <div className="bg-white border-b border-gray-200 p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div className="text-gray-900">
+              <h2 className="text-lg sm:text-xl font-bold truncate">{nextGrandPrix.name}</h2>
+              <p className="text-gray-600 text-sm truncate">
+                {nextGrandPrix.circuitName} - {nextGrandPrix.city}
+              </p>
+              <p className="text-gray-500 text-xs">
+                Temporada {nextGrandPrix.season} • Rodada {nextGrandPrix.round}
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-blue-100"></span>
-              <span className="text-sm text-gray-600">Pontos</span>
-            </div>
+            {/* Preview rápido apenas em mobile */}
+            <button
+              type="button"
+              onClick={() => setShowPreview(!showPreview)}
+              className="sm:hidden bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg text-gray-700 text-sm font-medium transition-colors"
+            >
+              {showPreview ? '🔼 Ocultar' : '🔽 Preview'}
+            </button>
           </div>
         </div>
 
-
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <Tab.Group>
-            <Tab.List className="flex space-x-1 rounded-xl bg-gray-100 p-1">
-              <Tab
-                className={({ selected }) =>
-                  `w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-colors
-                  ${selected
-                    ? 'bg-white text-f1-red shadow'
-                    : 'text-gray-700 hover:bg-gray-50'
-                  }`
-                }
-              >
-                Classificação
-                {!qualifyingDeadlineOpen && (
-                  <span className="ml-2 text-xs text-red-600">(Prazo encerrado)</span>
-                )}
-              </Tab>
-              <Tab
-                className={({ selected }) =>
-                  `w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-colors
-                  ${selected
-                    ? 'bg-white text-f1-red shadow'
-                    : 'text-gray-700 hover:bg-gray-50'
-                  }`
-                }
-              >
-                Corrida
-                {!raceDeadlineOpen && (
-                  <span className="ml-2 text-xs text-red-600">(Prazo encerrado)</span>
-                )}
-              </Tab>
-            </Tab.List>
-            <Tab.Panels className="mt-6">
-              <Tab.Panel>
-                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                  <p className="text-blue-800 text-sm">
-                    <strong>Prazo:</strong> {guessService.getGuessDeadline(nextGrandPrix, 'QUALIFYING')}
-                    {existingQualifyingGuess && (
-                      <span className="ml-2 text-green-700">(Palpite já enviado - você pode editar)</span>
-                    )}
-                  </p>
-                </div>
-                
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Seleção de Pilotos - Classificação */}
-                  <div className="order-2 lg:order-1">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Selecione os Pilotos - Classificação</h3>
-                    <div className="space-y-3">
-                      {Array.from({ length: 10 }, (_, i) => i + 1).map((position) => (
-                        <DriverAutocomplete
-                          key={position}
-                          drivers={drivers.filter(d => {
-                            // Permite o piloto se ele não está selecionado em nenhuma posição
-                            // OU se ele está selecionado na posição atual
-                            const isSelected = selectedQualifyingDrivers.some(selected => selected && selected.id === d.id);
-                            const isCurrentPosition = selectedQualifyingDrivers[position - 1]?.id === d.id;
-                            return !isSelected || isCurrentPosition;
-                          })}
-                          selectedDriver={selectedQualifyingDrivers[position - 1]}
-                          onSelect={(driver) => handleQualifyingDriverSelect(driver, position)}
-                          position={position}
-                          disabled={!qualifyingDeadlineOpen}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Preview do Palpite - Classificação */}
-                  <div className="order-1 lg:order-2 sticky top-0 lg:top-4">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Seu Palpite - Classificação</h3>
-                    <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
-                      {selectedQualifyingDrivers.map((driver, index) => (
-                        <div 
-                          key={index}
-                          className="flex items-center gap-3 py-2 border-b border-gray-200 last:border-0"
-                        >
-                          <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold ${
-                            index < 3 ? 'bg-green-100 text-green-800' : 
-                            index < 6 ? 'bg-blue-100 text-blue-800' : 
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {index + 1}
-                          </span>
-                          {driver ? (
-                            <div className="min-w-0 flex-1">
-                              <p className="font-medium text-gray-900 truncate">{driver.name}</p>
-                              <p className="text-sm text-gray-500 truncate">{driver.team}</p>
-                            </div>
-                          ) : (
-                            <p className="text-gray-400 italic">Selecione um piloto</p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </Tab.Panel>
-              <Tab.Panel>
-                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                  <p className="text-blue-800 text-sm">
-                    <strong>Prazo:</strong> {guessService.getGuessDeadline(nextGrandPrix, 'RACE')}
-                    {existingRaceGuess && (
-                      <span className="ml-2 text-green-700">(Palpite já enviado - você pode editar)</span>
-                    )}
-                  </p>
-                </div>
-
-                <div className="mb-4 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={handleCopyQualifyingToRace}
-                    className="px-4 py-2 bg-blue-600 text-black rounded-md hover:bg-blue-700 transition-colors font-medium text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={!raceDeadlineOpen || selectedQualifyingDrivers.every(driver => driver === null)}
-                    title={
-                      !raceDeadlineOpen 
-                        ? "Prazo da corrida encerrado" 
-                        : selectedQualifyingDrivers.every(driver => driver === null)
-                        ? "Selecione pilotos na classificação primeiro"
-                        : "Copiar todos os pilotos da classificação para a corrida"
-                    }
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                    Copiar da Classificação
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Seleção de Pilotos - Corrida */}
-                  <div className="order-2 lg:order-1">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Selecione os Pilotos - Corrida</h3>
-                    <div className="space-y-3">
-                      {Array.from({ length: 10 }, (_, i) => i + 1).map((position) => (
-                        <DriverAutocomplete
-                          key={position}
-                          drivers={drivers.filter(d => {
-                            // Permite o piloto se ele não está selecionado em nenhuma posição
-                            // OU se ele está selecionado na posição atual
-                            const isSelected = selectedRaceDrivers.some(selected => selected && selected.id === d.id);
-                            const isCurrentPosition = selectedRaceDrivers[position - 1]?.id === d.id;
-                            return !isSelected || isCurrentPosition;
-                          })}
-                          selectedDriver={selectedRaceDrivers[position - 1]}
-                          onSelect={(driver) => handleRaceDriverSelect(driver, position)}
-                          position={position}
-                          disabled={!raceDeadlineOpen}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Preview do Palpite - Corrida */}
-                  <div className="order-1 lg:order-2 sticky top-0 lg:top-4">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Seu Palpite - Corrida</h3>
-                    <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
-                      {selectedRaceDrivers.map((driver, index) => (
-                        <div 
-                          key={index}
-                          className="flex items-center gap-3 py-2 border-b border-gray-200 last:border-0"
-                        >
-                          <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold ${
-                            index < 3 ? 'bg-green-100 text-green-800' : 
-                            index < 6 ? 'bg-blue-100 text-blue-800' : 
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {index + 1}
-                          </span>
-                          {driver ? (
-                            <div className="min-w-0 flex-1">
-                              <p className="font-medium text-gray-900 truncate">{driver.name}</p>
-                              <p className="text-sm text-gray-500 truncate">{driver.team}</p>
-                            </div>
-                          ) : (
-                            <p className="text-gray-400 italic">Selecione um piloto</p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </Tab.Panel>
-            </Tab.Panels>
-          </Tab.Group>
-
-          <div className="flex flex-col sm:flex-row gap-3 justify-end pt-4 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={handleRepeatLastBet}
-              className="w-full sm:w-auto px-6 py-2.5 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors font-medium text-sm"
-              disabled={isSaving}
-            >
-              Repetir Último Palpite
-            </button>
-            <button
-              type="button"
-              onClick={handleClear}
-              className="w-full sm:w-auto px-6 py-2.5 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors font-medium text-sm"
-              disabled={isSaving}
-            >
-              Limpar
-            </button>
-            <button
-              type="submit"
-              className="w-full sm:w-auto px-6 py-2.5 bg-f1-red text-black rounded-md hover:bg-f1-red/90 transition-colors font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={isSaving || (!qualifyingDeadlineOpen && !raceDeadlineOpen)}
-            >
-              {isSaving ? 'Salvando...' : 'Salvar Palpites'}
-            </button>
+        {/* Preview móvel expandível */}
+        {showPreview && (
+          <div className="sm:hidden border-b border-gray-200 p-4 bg-gray-50">
+            <div className="grid grid-cols-2 gap-3">
+              <PreviewComponent 
+                drivers={selectedQualifyingDrivers} 
+                title="Classificação" 
+                type="qualifying"
+              />
+              <PreviewComponent 
+                drivers={selectedRaceDrivers} 
+                title="Corrida" 
+                type="race"
+              />
+            </div>
           </div>
-        </form>
+        )}
+
+        <div className="p-4 sm:p-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+            <Tab.Group>
+              <Tab.List className="flex space-x-1 rounded-xl bg-gray-100 p-1">
+                <Tab
+                  className={({ selected }) =>
+                    `w-full rounded-lg py-3 px-3 text-sm font-medium leading-5 transition-all
+                    ${selected
+                      ? 'bg-white text-f1-red shadow-sm ring-1 ring-f1-red/20'
+                      : 'text-gray-700 hover:bg-gray-50'
+                    }`
+                  }
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    🏎️ <span className="hidden sm:inline">Classificação</span>
+                    <span className="sm:hidden">Quali</span>
+                  </span>
+                  {!qualifyingDeadlineOpen && (
+                    <span className="block text-xs text-red-600 mt-1">Prazo encerrado</span>
+                  )}
+                </Tab>
+                <Tab
+                  className={({ selected }) =>
+                    `w-full rounded-lg py-3 px-3 text-sm font-medium leading-5 transition-all
+                    ${selected
+                      ? 'bg-white text-f1-red shadow-sm ring-1 ring-f1-red/20'
+                      : 'text-gray-700 hover:bg-gray-50'
+                    }`
+                  }
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    🏁 <span className="hidden sm:inline">Corrida</span>
+                    <span className="sm:hidden">Race</span>
+                  </span>
+                  {!raceDeadlineOpen && (
+                    <span className="block text-xs text-red-600 mt-1">Prazo encerrado</span>
+                  )}
+                </Tab>
+              </Tab.List>
+              <Tab.Panels className="mt-4 sm:mt-6">
+                <Tab.Panel>
+                  {/* Info do prazo */}
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-blue-800 text-sm">
+                      <strong>⏰ Prazo:</strong> {guessService.getGuessDeadline(nextGrandPrix, 'QUALIFYING')}
+                      {existingQualifyingGuess && (
+                        <span className="block sm:inline sm:ml-2 text-green-700 font-medium">
+                          ✓ Palpite enviado - você pode editar
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 xl:gap-6">
+                    {/* Seleção de Pilotos - Classificação */}
+                    <div className="xl:col-span-2">
+                      <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        🏎️ Selecione os Pilotos - Classificação
+                      </h3>
+                      <div className="space-y-3">
+                        {Array.from({ length: 10 }, (_, i) => i + 1).map((position) => (
+                          <DriverAutocomplete
+                            key={position}
+                            drivers={drivers.filter(d => {
+                              const isSelected = selectedQualifyingDrivers.some(selected => selected && selected.id === d.id);
+                              const isCurrentPosition = selectedQualifyingDrivers[position - 1]?.id === d.id;
+                              return !isSelected || isCurrentPosition;
+                            })}
+                            selectedDriver={selectedQualifyingDrivers[position - 1]}
+                            onSelect={(driver) => handleQualifyingDriverSelect(driver, position)}
+                            position={position}
+                            disabled={!qualifyingDeadlineOpen}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Preview do Palpite - Classificação - apenas desktop */}
+                    <div className="hidden xl:block">
+                      <div className="sticky top-4">
+                        <h3 className="text-lg font-bold text-gray-900 mb-4">🏎️ Seu Palpite - Classificação</h3>
+                        <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
+                          {selectedQualifyingDrivers.map((driver, index) => (
+                            <div 
+                              key={index}
+                              className="flex items-center gap-3 py-2 border-b border-gray-200 last:border-0"
+                            >
+                              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold ${
+                                index < 3 ? 'bg-yellow-400 text-yellow-900' : 
+                                index < 6 ? 'bg-blue-100 text-blue-800' : 
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {index + 1}
+                              </span>
+                              {driver ? (
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-medium text-gray-900 truncate">{driver.name}</p>
+                                  <p className="text-sm text-gray-500 truncate">{driver.team}</p>
+                                </div>
+                              ) : (
+                                <p className="text-gray-400 italic">Selecione um piloto</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Tab.Panel>
+                <Tab.Panel>
+                  {/* Info do prazo */}
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-blue-800 text-sm">
+                      <strong>⏰ Prazo:</strong> {guessService.getGuessDeadline(nextGrandPrix, 'RACE')}
+                      {existingRaceGuess && (
+                        <span className="block sm:inline sm:ml-2 text-green-700 font-medium">
+                          ✓ Palpite enviado - você pode editar
+                        </span>
+                      )}
+                    </p>
+                  </div>
+
+                  {/* Botão copiar */}
+                  <div className="mb-4 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={handleCopyQualifyingToRace}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={!raceDeadlineOpen || selectedQualifyingDrivers.every(driver => driver === null)}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      <span className="hidden sm:inline">Copiar da Classificação</span>
+                      <span className="sm:hidden">Copiar</span>
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 xl:gap-6">
+                    {/* Seleção de Pilotos - Corrida */}
+                    <div className="xl:col-span-2">
+                      <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        🏁 Selecione os Pilotos - Corrida
+                      </h3>
+                      <div className="space-y-3">
+                        {Array.from({ length: 10 }, (_, i) => i + 1).map((position) => (
+                          <DriverAutocomplete
+                            key={position}
+                            drivers={drivers.filter(d => {
+                              const isSelected = selectedRaceDrivers.some(selected => selected && selected.id === d.id);
+                              const isCurrentPosition = selectedRaceDrivers[position - 1]?.id === d.id;
+                              return !isSelected || isCurrentPosition;
+                            })}
+                            selectedDriver={selectedRaceDrivers[position - 1]}
+                            onSelect={(driver) => handleRaceDriverSelect(driver, position)}
+                            position={position}
+                            disabled={!raceDeadlineOpen}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Preview do Palpite - Corrida - apenas desktop */}
+                    <div className="hidden xl:block">
+                      <div className="sticky top-4">
+                        <h3 className="text-lg font-bold text-gray-900 mb-4">🏁 Seu Palpite - Corrida</h3>
+                        <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
+                          {selectedRaceDrivers.map((driver, index) => (
+                            <div 
+                              key={index}
+                              className="flex items-center gap-3 py-2 border-b border-gray-200 last:border-0"
+                            >
+                              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold ${
+                                index < 3 ? 'bg-yellow-400 text-yellow-900' : 
+                                index < 6 ? 'bg-blue-100 text-blue-800' : 
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {index + 1}
+                              </span>
+                              {driver ? (
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-medium text-gray-900 truncate">{driver.name}</p>
+                                  <p className="text-sm text-gray-500 truncate">{driver.team}</p>
+                                </div>
+                              ) : (
+                                <p className="text-gray-400 italic">Selecione um piloto</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Tab.Panel>
+              </Tab.Panels>
+            </Tab.Group>
+
+            {/* Botões de ação - mobile-friendly */}
+            <div className="flex flex-col sm:flex-row gap-3 justify-end pt-4 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={handleRepeatLastBet}
+                className="w-full sm:w-auto px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium text-sm"
+                disabled={isSaving}
+              >
+                <span className="hidden sm:inline">Repetir Último Palpite</span>
+                <span className="sm:hidden">🔄 Repetir Último</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleClear}
+                className="w-full sm:w-auto px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium text-sm"
+                disabled={isSaving}
+              >
+                <span className="hidden sm:inline">Limpar</span>
+                <span className="sm:hidden">🗑️ Limpar</span>
+              </button>
+              <button
+                type="submit"
+                className="w-full sm:w-auto px-6 py-3 bg-f1-red text-white rounded-lg hover:bg-f1-red/90 transition-colors font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                disabled={isSaving || (!qualifyingDeadlineOpen && !raceDeadlineOpen)}
+              >
+                {isSaving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Salvando...</span>
+                  </>
+                ) : (
+                  <>
+                    💾 <span>Salvar Palpites</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
     </>
   );
 } 

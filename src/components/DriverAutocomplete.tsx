@@ -53,54 +53,71 @@ export function DriverAutocomplete({ drivers, selectedDriver, onSelect, position
     }
   }
 
+  // Definir cores da posição
+  const getPositionStyle = (pos: number) => {
+    if (pos <= 3) return 'bg-yellow-400 text-yellow-900 border-yellow-500'
+    if (pos <= 6) return 'bg-blue-100 text-blue-800 border-blue-300'
+    return 'bg-gray-100 text-gray-800 border-gray-300'
+  }
+
   return (
-    <div className="flex items-center gap-4">
-      <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold ${
-        position <= 3 ? 'bg-green-100 text-green-800' : 
-        position <= 6 ? 'bg-blue-100 text-blue-800' : 
-        'bg-gray-100 text-gray-800'
-      }`}>
+    <div className="flex items-center gap-3 sm:gap-4">
+      {/* Badge da posição - maior em mobile */}
+      <div className={`inline-flex items-center justify-center w-10 h-10 sm:w-8 sm:h-8 rounded-full font-bold text-sm sm:text-xs border-2 flex-shrink-0 ${getPositionStyle(position)}`}>
         {position}
-      </span>
+      </div>
+      
       <Combobox value={selectedDriver} onChange={(driver: Driver | null) => handleSelect(driver)} disabled={disabled}>
         <div className="relative flex-1">
-          <div className={`relative w-full cursor-default overflow-hidden rounded-md border border-gray-300 text-left focus-within:border-f1-red focus-within:ring-1 focus-within:ring-f1-red ${
-            disabled ? 'bg-gray-100' : 'bg-white'
+          <div className={`relative w-full cursor-default overflow-hidden rounded-lg border-2 text-left transition-all ${
+            disabled 
+              ? 'bg-gray-100 border-gray-200' 
+              : isOpen
+              ? 'border-f1-red ring-2 ring-f1-red/20'
+              : 'border-gray-300 hover:border-gray-400 focus-within:border-f1-red focus-within:ring-2 focus-within:ring-f1-red/20'
           }`}>
             <Combobox.Input
-              className={`w-full border-none py-2 pl-3 pr-16 text-sm leading-5 focus:ring-0 ${
+              className={`w-full border-none py-3 sm:py-2 pl-4 sm:pl-3 pr-20 sm:pr-16 text-sm leading-5 focus:ring-0 ${
                 disabled ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white text-gray-900'
               }`}
-              displayValue={(driver: Driver) => driver ? `${driver.name} - ${driver.team}` : ''}
+              displayValue={(driver: Driver) => {
+                if (!driver) return '';
+                // Em mobile, mostrar apenas o sobrenome para economizar espaço
+                const names = driver.name.split(' ');
+                const lastName = names[names.length - 1];
+                const teamShort = driver.team.substring(0, 15);
+                return window.innerWidth < 640 ? `${lastName} - ${teamShort}` : `${driver.name} - ${driver.team}`;
+              }}
               onChange={(event) => setQuery(event.target.value)}
               onFocus={handleFocus}
               onBlur={handleBlur}
-              placeholder={disabled ? "Prazo encerrado" : "Selecione um piloto"}
+              placeholder={disabled ? "⏰ Prazo encerrado" : "🔍 Toque para selecionar piloto"}
               disabled={disabled}
             />
             
-            {/* Botão de limpar */}
+            {/* Botão de limpar - maior em mobile */}
             {selectedDriver && selectedDriver.name && !disabled && (
               <button
                 type="button"
-                className="absolute inset-y-0 right-8 flex items-center pr-1 hover:bg-gray-100 rounded"
+                className="absolute inset-y-0 right-10 sm:right-8 flex items-center pr-1 hover:bg-gray-100 rounded p-1 transition-colors"
                 onClick={handleClear}
                 title="Limpar seleção"
               >
                 <XMarkIcon
-                  className="h-4 w-4 text-gray-400 hover:text-gray-600"
+                  className="h-5 w-5 sm:h-4 sm:w-4 text-gray-400 hover:text-gray-600"
                   aria-hidden="true"
                 />
               </button>
             )}
             
+            {/* Botão dropdown - maior em mobile */}
             <Combobox.Button 
-              className="absolute inset-y-0 right-0 flex items-center pr-2" 
+              className="absolute inset-y-0 right-0 flex items-center pr-2 sm:pr-2" 
               disabled={disabled}
               onClick={() => !disabled && setIsOpen(!isOpen)}
             >
               <ChevronUpDownIcon
-                className={`h-5 w-5 ${disabled ? 'text-gray-300' : 'text-gray-400'}`}
+                className={`h-6 w-6 sm:h-5 sm:w-5 ${disabled ? 'text-gray-300' : 'text-gray-400'}`}
                 aria-hidden="true"
               />
             </Combobox.Button>
@@ -115,32 +132,33 @@ export function DriverAutocomplete({ drivers, selectedDriver, onSelect, position
             afterLeave={() => setQuery('')}
           >
             <Combobox.Options 
-              className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+              className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white py-1 text-base shadow-xl ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-200"
               static
             >
               {filteredDrivers.length === 0 && query !== '' ? (
-                <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
-                  Nenhum piloto encontrado.
+                <div className="relative cursor-default select-none py-4 px-4 text-gray-700 text-center">
+                  <span className="block text-sm">🔍 Nenhum piloto encontrado.</span>
+                  <span className="block text-xs text-gray-500 mt-1">Tente buscar por nome ou equipe</span>
                 </div>
               ) : (
                 filteredDrivers.map((driver) => (
                   <Combobox.Option
                     key={driver.id}
                     className={({ active }) =>
-                      `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                        active ? 'bg-f1-red text-black' : 'text-gray-900'
+                      `relative cursor-pointer select-none py-3 sm:py-2 pl-12 sm:pl-10 pr-4 transition-colors ${
+                        active ? 'bg-f1-red text-white' : 'text-gray-900 hover:bg-gray-50'
                       }`
                     }
                     value={driver}
                   >
                     {({ selected, active }) => (
                       <>
-                        <div className={`flex flex-col ${selected ? 'font-medium' : 'font-normal'}`}>
-                          <span className="block truncate">
+                        <div className={`flex flex-col ${selected ? 'font-semibold' : 'font-normal'}`}>
+                          <span className="block truncate text-sm sm:text-sm">
                             {driver.name}
                           </span>
-                          <span className={`block truncate text-sm ${
-                            active ? 'text-black/70' : 'text-gray-500'
+                          <span className={`block truncate text-xs sm:text-sm mt-0.5 ${
+                            active ? 'text-white/80' : 'text-gray-500'
                           }`}>
                             {driver.team}
                           </span>
@@ -148,7 +166,7 @@ export function DriverAutocomplete({ drivers, selectedDriver, onSelect, position
                         {selected ? (
                           <span
                             className={`absolute inset-y-0 left-0 flex items-center pl-3 ${
-                              active ? 'text-black' : 'text-f1-red'
+                              active ? 'text-white' : 'text-f1-red'
                             }`}
                           >
                             <CheckIcon className="h-5 w-5" aria-hidden="true" />
