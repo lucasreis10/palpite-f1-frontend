@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { authService } from '@/services/auth';
-import { authDebug } from '@/utils/auth-debug';
+import { authService } from '../../services/auth';
+import { authDebug } from '../../utils/auth-debug';
 
 export default function AuthTestPage() {
   const [authStatus, setAuthStatus] = useState<any>({});
