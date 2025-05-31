@@ -283,10 +283,19 @@ export function BetForm() {
   };
 
   const handleClear = () => {
+    // Limpar classificação
+    setExistingQualifyingGuess(null);
     setSelectedQualifyingDrivers(new Array(10).fill(null));
+    
+    // Limpar corrida
+    setExistingRaceGuess(null);
     setSelectedRaceDrivers(new Array(10).fill(null));
+    
+    // Limpar mensagens
     setError(null);
     setSuccessMessage(null);
+    
+    showToast('Palpites da classificação e corrida foram limpos!', 'success');
   };
 
   const handleRepeatLastBet = () => {

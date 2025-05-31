@@ -20,6 +20,7 @@ import { eventsService, EventWithResults, EventResult, GrandPrixEvent } from './
 import { toast } from 'react-hot-toast';
 import { DriverAutocomplete } from './../../../components/DriverAutocomplete';
 import { CreateEventModal } from './../../../components/CreateEventModal';
+import { PreviewImportModal } from './../../../components/PreviewImportModal';
 import { pilotsService } from './../../../services/pilots';
 
 // Interface para o tipo de resultado
@@ -41,6 +42,10 @@ interface ResultFormProps {
 }
 
 const ResultForm = ({ onSubmit, onImport, isLoading = false, selectedTab, pilots, initialResults, isEditing = false, onCancel }: ResultFormProps) => {
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [previewResults, setPreviewResults] = useState<Result[]>([]);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+
   // Qualifying tem 12 posições, Race tem 14 posições
   const numPositions = selectedTab === 0 ? 12 : 14;
   
@@ -116,6 +121,28 @@ const ResultForm = ({ onSubmit, onImport, isLoading = false, selectedTab, pilots
     setResults(finalResults);
   };
 
+  const handleImportClick = async () => {
+    try {
+      setIsLoadingPreview(true);
+      const results = selectedTab === 0 
+        ? await F1Service.getLatestQualifyingResults()
+        : await F1Service.getLatestRaceResults();
+      
+      setPreviewResults(results);
+      setShowPreviewModal(true);
+    } catch (error) {
+      console.error('Erro ao carregar resultados:', error);
+      toast.error('Erro ao carregar resultados da F1. Tente novamente.');
+    } finally {
+      setIsLoadingPreview(false);
+    }
+  };
+
+  const handleConfirmImport = () => {
+    setShowPreviewModal(false);
+    onImport();
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -123,12 +150,12 @@ const ResultForm = ({ onSubmit, onImport, isLoading = false, selectedTab, pilots
           {selectedTab === 0 ? 'Resultado da Classificação' : 'Resultado da Corrida'}
         </h3>
         <button
-          onClick={onImport}
-          disabled={isLoading}
+          onClick={handleImportClick}
+          disabled={isLoading || isLoadingPreview}
           className="flex items-center gap-2 px-4 py-2 text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors disabled:opacity-50"
         >
           <CloudArrowDownIcon className="w-5 h-5" />
-          {isLoading ? 'Importando...' : 'Importar da F1'}
+          {isLoading || isLoadingPreview ? 'Importando...' : 'Importar da F1'}
         </button>
       </div>
       
@@ -208,6 +235,15 @@ const ResultForm = ({ onSubmit, onImport, isLoading = false, selectedTab, pilots
           </button>
         </div>
       </form>
+
+      <PreviewImportModal
+        isOpen={showPreviewModal}
+        onClose={() => setShowPreviewModal(false)}
+        onConfirm={handleConfirmImport}
+        results={previewResults}
+        isLoading={isLoadingPreview}
+        type={selectedTab === 0 ? 'qualifying' : 'race'}
+      />
     </div>
   );
 };
@@ -525,6 +561,87 @@ export default function EventsAdminPage() {
     }
   };
 
+  const handleReconsolidatePoints = async (type: 'qualifying' | 'race') => {
+    if (!selectedEvent) return;
+
+    try {
+      // Preparar request para a API
+      const guessType: 'QUALIFYING' | 'RACE' = type === 'qualifying' ? 'QUALIFYING' : 'RACE';
+      const results = type === 'qualifying' ? selectedEvent.qualifying.results : selectedEvent.race.results;
+
+      // Verificar se há resultados para reconsolidar
+      if (!results || results.length === 0) {
+        toast.error('Não há resultados para reconsolidar.');
+        return;
+      }
+
+      // Converter nomes dos pilotos para IDs
+      const pilotIds: number[] = [];
+      const missingPilots: string[] = [];
+
+      for (const result of results) {
+        const pilot = pilots.find((p: any) => p.name === result.driver);
+        if (pilot) {
+          pilotIds.push(pilot.id);
+        } else {
+          missingPilots.push(result.driver);
+        }
+      }
+
+      if (missingPilots.length > 0) {
+        toast.error(`Pilotos não encontrados: ${missingPilots.join(', ')}`);
+        return;
+      }
+
+      // Preparar request para a API
+      const setResultRequest = {
+        grandPrixId: selectedEvent.id,
+        guessType,
+        realResultPilotIds: pilotIds
+      };
+
+      // Reconsolidar pontuações
+      const response = await eventsService.setRealResultAndCalculateScores(setResultRequest);
+      toast.success(`Pontuações reconsolidadas com sucesso! ${response.calculatedGuesses} palpites foram recalculados. 🏁`);
+    } catch (error) {
+      console.error('Erro ao reconsolidar pontuações:', error);
+      toast.error('Erro ao reconsolidar pontuações. Tente novamente.');
+    }
+  };
+
+  const handleClearResults = async (type: 'qualifying' | 'race') => {
+    if (!selectedEvent) return;
+
+    try {
+      // Atualizar o estado local
+      const updatedEvent = { ...selectedEvent };
+      if (type === 'qualifying') {
+        updatedEvent.qualifying = {
+          status: 'pending',
+          results: []
+        };
+      } else {
+        updatedEvent.race = {
+          status: 'pending',
+          results: []
+        };
+      }
+      
+      setSelectedEvent(updatedEvent);
+      
+      // Atualizar a lista de eventos
+      const updatedEvents = events.map(event => 
+        event.id === selectedEvent.id ? updatedEvent : event
+      );
+      setEvents(updatedEvents);
+      
+      toast.success(`Resultados da ${type === 'qualifying' ? 'classificação' : 'corrida'} foram limpos!`);
+    } catch (error) {
+      console.error('Erro ao limpar resultados:', error);
+      toast.error('Erro ao limpar resultados. Tente novamente.');
+    }
+  };
+
   if (isLoading && events.length === 0) {
     return (
       <main className="min-h-screen bg-white">
@@ -724,8 +841,17 @@ export default function EventsAdminPage() {
                                   >
                                     Editar Resultado
                                   </button>
-                                  <button className="text-f1-red hover:text-f1-red/80 font-medium text-sm">
+                                  <button 
+                                    onClick={() => handleReconsolidatePoints('qualifying')}
+                                    className="text-f1-red hover:text-f1-red/80 font-medium text-sm border border-gray-300 rounded-md px-2 py-1"
+                                  >
                                     Reconsolidar Pontos
+                                  </button>
+                                  <button 
+                                    onClick={() => handleClearResults('qualifying')}
+                                    className="text-red-600 hover:text-red-800 font-medium text-sm border border-red-200 rounded-md px-2 py-1"
+                                  >
+                                    Limpar Lista
                                   </button>
                                 </div>
                               </div>
@@ -781,8 +907,17 @@ export default function EventsAdminPage() {
                                   >
                                     Editar Resultado
                                   </button>
-                                  <button className="text-f1-red hover:text-f1-red/80 font-medium text-sm">
+                                  <button 
+                                    onClick={() => handleReconsolidatePoints('race')}
+                                    className="text-f1-red hover:text-f1-red/80 font-medium text-sm"
+                                  >
                                     Reconsolidar Pontos
+                                  </button>
+                                  <button 
+                                    onClick={() => handleClearResults('race')}
+                                    className="text-red-600 hover:text-red-800 font-medium text-sm border border-red-200 rounded-md px-2 py-1"
+                                  >
+                                    Limpar Lista
                                   </button>
                                 </div>
                               </div>
