@@ -68,6 +68,7 @@ export interface NextGrandPrix {
   circuitName: string;
   raceDateTime: string;
   qualifyingDateTime?: string;
+  bettingDeadline?: string;
   season: number;
   round: number;
   active: boolean;
@@ -172,6 +173,12 @@ class GuessService {
   isGuessDeadlineOpen(grandPrix: NextGrandPrix, guessType: 'QUALIFYING' | 'RACE'): boolean {
     const now = new Date();
     
+    if (grandPrix.bettingDeadline) {
+      const deadline = new Date(grandPrix.bettingDeadline);
+      return now < deadline;
+    }
+    
+    // Se não houver prazo específico, usar as datas dos eventos como fallback
     if (guessType === 'QUALIFYING' && grandPrix.qualifyingDateTime) {
       const qualifyingDate = new Date(grandPrix.qualifyingDateTime);
       return now < qualifyingDate;
@@ -185,6 +192,11 @@ class GuessService {
 
   // Método auxiliar para formatar data/hora do prazo
   getGuessDeadline(grandPrix: NextGrandPrix, guessType: 'QUALIFYING' | 'RACE'): string {
+    if (grandPrix.bettingDeadline) {
+      return new Date(grandPrix.bettingDeadline).toLocaleString('pt-BR');
+    }
+    
+    // Se não houver prazo específico, usar as datas dos eventos como fallback
     if (guessType === 'QUALIFYING' && grandPrix.qualifyingDateTime) {
       return new Date(grandPrix.qualifyingDateTime).toLocaleString('pt-BR');
     } else if (guessType === 'RACE') {
