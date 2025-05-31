@@ -193,6 +193,33 @@ class GuessService {
     
     return 'Data não disponível';
   }
+
+  // Buscar histórico de palpites do usuário
+  async getUserGuessHistory(userId: number): Promise<{
+    grandPrix: {
+      id: number;
+      name: string;
+      round: number;
+      season: number;
+      completed: boolean;
+    };
+    qualifying: {
+      pilots: Pilot[];
+      score?: number;
+    } | null;
+    race: {
+      pilots: Pilot[];
+      score?: number;
+    } | null;
+  }[]> {
+    try {
+      const response = await axiosInstance.get(`${this.baseUrl}/users/${userId}/history`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar histórico de palpites:', error);
+      throw new Error('Não foi possível carregar o histórico de palpites');
+    }
+  }
 }
 
 export const guessService = new GuessService(); 

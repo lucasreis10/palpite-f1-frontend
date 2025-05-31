@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import AuthHeader from './AuthHeader';
 import { useAuth } from './../hooks/useAuth';
+import { usePathname } from 'next/navigation';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isAdmin, isAuthenticated } = useAuth();
+  const pathname = usePathname();
 
   // Fechar menu com tecla Escape e controlar scroll
   useEffect(() => {
@@ -40,6 +42,7 @@ export function Header() {
   const baseMenuItems = [
     { href: '/', label: 'Tela Inicial' },
     { href: '/palpites', label: 'Fazer Palpite' },
+    { href: '/palpites/historico', label: 'Histórico de Palpites' },
     { href: '/historico', label: 'Ranking' },
     { href: '/ultimo-evento', label: 'Último Evento' },
     { href: '/equipes', label: 'Equipes' },
