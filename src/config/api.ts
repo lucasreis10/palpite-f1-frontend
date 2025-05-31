@@ -1,7 +1,6 @@
 // Configuração centralizada da API
 export const API_CONFIG = {
-  // BASE_URL: 'https://javaspringboot-production-a2d3.up.railway.app/api',
-  BASE_URL: 'http://localhost:8081/api',
+  BASE_URL: 'https://javaspringboot-production-a2d3.up.railway.app/api',
   ENDPOINTS: {
     AUTH: '/auth',
     USERS: '/users',
