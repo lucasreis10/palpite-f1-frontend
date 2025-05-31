@@ -321,7 +321,7 @@ class CalendarService {
 
   private async fetchF1Calendar(season: number): Promise<F1CalendarResponse> {
     try {
-      const response = await fetch(`https://ergast.com/api/f1/${season}.json`);
+      const response = await fetch(`https://api.jolpi.ca/ergast/f1/${season}.json`);
       if (!response.ok) {
         throw new Error('Falha ao buscar calendário da F1');
       }

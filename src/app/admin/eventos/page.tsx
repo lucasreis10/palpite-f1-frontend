@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Header } from './../../../components/Header';
 import { Tab } from '@headlessui/react';
 import { 
@@ -12,6 +13,7 @@ import {
   PlusIcon,
   CalendarIcon,
   MapPinIcon,
+  Bars3Icon,
 } from '@heroicons/react/24/outline';
 import { F1Service } from './../../../services/f1';
 import { eventsService, EventWithResults, EventResult, GrandPrixEvent } from './../../../services/events';
@@ -85,32 +87,45 @@ const ResultForm = ({ onSubmit, onImport, isLoading = false, selectedTab, pilots
     onSubmit(results);
   };
 
-  const handleDriverSelect = (driver: { id: number; name: string; team: string } | null, position: number) => {
-    const newResults = [...results];
-    if (driver) {
-      newResults[position - 1] = {
-        position,
-        driver: driver.name,
-        team: driver.team
-      };
-    } else {
-      newResults[position - 1] = {
-        position,
-        driver: '',
-        team: ''
-      };
-    }
-    setResults(newResults);
+  const handleDriverSelect = (driver: { name: string; team: string; } | null, position: number) => {
+    setResults(prev => prev.map(result => 
+      result.position === position
+        ? { ...result, driver: driver?.name || '', team: driver?.team || '' }
+        : result
+    ));
+  };
+
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+
+    const sourceIndex = result.source.index;
+    const destinationIndex = result.destination.index;
+
+    // Criar uma cópia do array de resultados
+    const updatedResults = Array.from(results);
+    const [movedItem] = updatedResults.splice(sourceIndex, 1);
+    updatedResults.splice(destinationIndex, 0, movedItem);
+
+    // Atualizar as posições mantendo os drivers e teams
+    const finalResults = updatedResults.map((item, index) => ({
+      position: index + 1,
+      driver: item.driver,
+      team: item.team
+    }));
+
+    setResults(finalResults);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium text-gray-900">Registrar Resultado</h3>
+        <h3 className="text-lg font-medium text-gray-900">
+          {selectedTab === 0 ? 'Resultado da Classificação' : 'Resultado da Corrida'}
+        </h3>
         <button
           onClick={onImport}
           disabled={isLoading}
-          className="flex items-center gap-2 text-f1-red hover:text-f1-red/80 font-medium"
+          className="flex items-center gap-2 px-4 py-2 text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors disabled:opacity-50"
         >
           <CloudArrowDownIcon className="w-5 h-5" />
           {isLoading ? 'Importando...' : 'Importar da F1'}
@@ -118,22 +133,62 @@ const ResultForm = ({ onSubmit, onImport, isLoading = false, selectedTab, pilots
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-4">
-        {results.map((result, index) => (
-          <DriverAutocomplete
-            key={index}
-            drivers={pilots.filter(d => 
-              !results.some(r => r.driver === d.name) || 
-              results[index].driver === d.name
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable 
+            droppableId="drivers" 
+            isDropDisabled={false}
+            isCombineEnabled={false}
+            ignoreContainerClipping={false}
+          >
+            {(provided) => (
+              <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
+                {results.map((result, index) => (
+                  <Draggable 
+                    key={result.position.toString()}
+                    draggableId={result.position.toString()}
+                    index={index}
+                    isDragDisabled={false}
+                  >
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        className={`flex items-center gap-2 bg-white rounded-lg border ${
+                          snapshot.isDragging 
+                            ? 'border-f1-red shadow-lg' 
+                            : 'border-gray-200'
+                        } p-2 transition-all duration-200`}
+                      >
+                        <div 
+                          {...provided.dragHandleProps}
+                          className="cursor-grab hover:bg-gray-100 p-2 rounded transition-colors active:cursor-grabbing"
+                        >
+                          <Bars3Icon className="w-5 h-5 text-gray-400" />
+                        </div>
+                        <div className="flex-1">
+                          <DriverAutocomplete
+                            drivers={pilots.filter(d => 
+                              !results.some(r => r.driver === d.name) || 
+                              results[index].driver === d.name
+                            )}
+                            selectedDriver={
+                              result.driver ? 
+                              { id: index + 1, name: result.driver, team: result.team } :
+                              null
+                            }
+                            onSelect={(driver) => handleDriverSelect(driver, index + 1)}
+                            position={index + 1}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
             )}
-            selectedDriver={
-              result.driver ? 
-              { id: index + 1, name: result.driver, team: result.team } :
-              null
-            }
-            onSelect={(driver) => handleDriverSelect(driver, index + 1)}
-            position={index + 1}
-          />
-        ))}
+          </Droppable>
+        </DragDropContext>
         
         <div className="flex justify-end gap-3 pt-4">
           {isEditing && onCancel && (
@@ -147,7 +202,7 @@ const ResultForm = ({ onSubmit, onImport, isLoading = false, selectedTab, pilots
           )}
           <button
             type="submit"
-            className="bg-f1-red text-black px-6 py-2 rounded-md font-medium hover:bg-f1-red/90 transition-colors"
+            className="bg-f1-red text-black px-6 py-2 rounded-md font-medium hover:bg-f1-red/90 transition-colors border border-gray-300"
           >
             {isEditing ? 'Atualizar Resultado' : 'Salvar Resultado'}
           </button>
@@ -665,7 +720,7 @@ export default function EventsAdminPage() {
                                 <div className="flex gap-2">
                                   <button 
                                     onClick={() => handleEditResults('qualifying')}
-                                    className="text-gray-600 hover:text-gray-900 font-medium text-sm"
+                                    className="text-gray-600 hover:text-gray-900 font-medium text-sm border border-gray-300 rounded-md px-2 py-1"
                                   >
                                     Editar Resultado
                                   </button>
@@ -722,7 +777,7 @@ export default function EventsAdminPage() {
                                 <div className="flex gap-2">
                                   <button 
                                     onClick={() => handleEditResults('race')}
-                                    className="text-gray-600 hover:text-gray-900 font-medium text-sm"
+                                    className="text-gray-600 hover:text-gray-900 font-medium text-sm border border-gray-300 rounded-md px-2 py-1"
                                   >
                                     Editar Resultado
                                   </button>

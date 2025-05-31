@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { DriverAutocomplete } from './DriverAutocomplete';
 import { Toast } from './Toast';
 import { Tab } from '@headlessui/react';
@@ -8,6 +9,7 @@ import { guessService, Pilot, NextGrandPrix, GuessResponse } from './../services
 import { useAuth } from './../hooks/useAuth';
 import { useCopyToClipboard } from './../hooks/useCopyToClipboard';
 import './../utils/auth-debug'; // Importar utilitário de debug
+import { Bars3Icon } from '@heroicons/react/24/outline';
 
 interface Driver {
   id: number;
@@ -166,6 +168,34 @@ export function BetForm() {
       
       newSelection[position - 1] = driver;
       return newSelection;
+    });
+  };
+
+  const handleQualifyingDragEnd = (result: DropResult) => {
+    if (!result.destination || !qualifyingDeadlineOpen) return;
+
+    const sourceIndex = result.source.index;
+    const destinationIndex = result.destination.index;
+
+    setSelectedQualifyingDrivers(prev => {
+      const updatedDrivers = Array.from(prev);
+      const [movedDriver] = updatedDrivers.splice(sourceIndex, 1);
+      updatedDrivers.splice(destinationIndex, 0, movedDriver);
+      return updatedDrivers;
+    });
+  };
+
+  const handleRaceDragEnd = (result: DropResult) => {
+    if (!result.destination || !raceDeadlineOpen) return;
+
+    const sourceIndex = result.source.index;
+    const destinationIndex = result.destination.index;
+
+    setSelectedRaceDrivers(prev => {
+      const updatedDrivers = Array.from(prev);
+      const [movedDriver] = updatedDrivers.splice(sourceIndex, 1);
+      updatedDrivers.splice(destinationIndex, 0, movedDriver);
+      return updatedDrivers;
     });
   };
 
@@ -479,22 +509,55 @@ export function BetForm() {
                       <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                         🏎️ Selecione os Pilotos - Classificação
                       </h3>
-                      <div className="space-y-3">
-                        {Array.from({ length: 10 }, (_, i) => i + 1).map((position) => (
-                          <DriverAutocomplete
-                            key={position}
-                            drivers={drivers.filter(d => {
-                              const isSelected = selectedQualifyingDrivers.some(selected => selected && selected.id === d.id);
-                              const isCurrentPosition = selectedQualifyingDrivers[position - 1]?.id === d.id;
-                              return !isSelected || isCurrentPosition;
-                            })}
-                            selectedDriver={selectedQualifyingDrivers[position - 1]}
-                            onSelect={(driver) => handleQualifyingDriverSelect(driver, position)}
-                            position={position}
-                            disabled={!qualifyingDeadlineOpen}
-                          />
-                        ))}
-                      </div>
+                      <DragDropContext onDragEnd={handleQualifyingDragEnd}>
+                        <Droppable droppableId="qualifying-drivers" isDropDisabled={!qualifyingDeadlineOpen} isCombineEnabled={false} ignoreContainerClipping={false}>
+                          {(provided) => (
+                            <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3">
+                              {Array.from({ length: 10 }, (_, i) => i + 1).map((position, index) => (
+                                <Draggable 
+                                  key={position.toString()}
+                                  draggableId={position.toString()}
+                                  index={index}
+                                  isDragDisabled={!qualifyingDeadlineOpen}
+                                >
+                                  {(provided, snapshot) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      className={`flex items-center gap-2 bg-white rounded-lg border ${
+                                        snapshot.isDragging 
+                                          ? 'border-f1-red shadow-lg' 
+                                          : 'border-gray-200'
+                                      } p-2 transition-all duration-200`}
+                                    >
+                                      <div 
+                                        {...provided.dragHandleProps}
+                                        className="cursor-grab hover:bg-gray-100 p-2 rounded transition-colors active:cursor-grabbing"
+                                      >
+                                        <Bars3Icon className="w-5 h-5 text-gray-400" />
+                                      </div>
+                                      <div className="flex-1">
+                                        <DriverAutocomplete
+                                          drivers={drivers.filter(d => {
+                                            const isSelected = selectedQualifyingDrivers.some(selected => selected && selected.id === d.id);
+                                            const isCurrentPosition = selectedQualifyingDrivers[position - 1]?.id === d.id;
+                                            return !isSelected || isCurrentPosition;
+                                          })}
+                                          selectedDriver={selectedQualifyingDrivers[position - 1]}
+                                          onSelect={(driver) => handleQualifyingDriverSelect(driver, position)}
+                                          position={position}
+                                          disabled={!qualifyingDeadlineOpen}
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
+                      </DragDropContext>
                     </div>
 
                     {/* Preview do Palpite - Classificação - apenas desktop */}
@@ -564,22 +627,55 @@ export function BetForm() {
                       <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                         🏁 Selecione os Pilotos - Corrida
                       </h3>
-                      <div className="space-y-3">
-                        {Array.from({ length: 10 }, (_, i) => i + 1).map((position) => (
-                          <DriverAutocomplete
-                            key={position}
-                            drivers={drivers.filter(d => {
-                              const isSelected = selectedRaceDrivers.some(selected => selected && selected.id === d.id);
-                              const isCurrentPosition = selectedRaceDrivers[position - 1]?.id === d.id;
-                              return !isSelected || isCurrentPosition;
-                            })}
-                            selectedDriver={selectedRaceDrivers[position - 1]}
-                            onSelect={(driver) => handleRaceDriverSelect(driver, position)}
-                            position={position}
-                            disabled={!raceDeadlineOpen}
-                          />
-                        ))}
-                      </div>
+                      <DragDropContext onDragEnd={handleRaceDragEnd}>
+                        <Droppable droppableId="race-drivers" isDropDisabled={!raceDeadlineOpen} isCombineEnabled={false} ignoreContainerClipping={false}>
+                          {(provided) => (
+                            <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3">
+                              {Array.from({ length: 10 }, (_, i) => i + 1).map((position, index) => (
+                                <Draggable 
+                                  key={position.toString()}
+                                  draggableId={position.toString()}
+                                  index={index}
+                                  isDragDisabled={!raceDeadlineOpen}
+                                >
+                                  {(provided, snapshot) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      className={`flex items-center gap-2 bg-white rounded-lg border ${
+                                        snapshot.isDragging 
+                                          ? 'border-f1-red shadow-lg' 
+                                          : 'border-gray-200'
+                                      } p-2 transition-all duration-200`}
+                                    >
+                                      <div 
+                                        {...provided.dragHandleProps}
+                                        className="cursor-grab hover:bg-gray-100 p-2 rounded transition-colors active:cursor-grabbing"
+                                      >
+                                        <Bars3Icon className="w-5 h-5 text-gray-400" />
+                                      </div>
+                                      <div className="flex-1">
+                                        <DriverAutocomplete
+                                          drivers={drivers.filter(d => {
+                                            const isSelected = selectedRaceDrivers.some(selected => selected && selected.id === d.id);
+                                            const isCurrentPosition = selectedRaceDrivers[position - 1]?.id === d.id;
+                                            return !isSelected || isCurrentPosition;
+                                          })}
+                                          selectedDriver={selectedRaceDrivers[position - 1]}
+                                          onSelect={(driver) => handleRaceDriverSelect(driver, position)}
+                                          position={position}
+                                          disabled={!raceDeadlineOpen}
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
+                      </DragDropContext>
                     </div>
 
                     {/* Preview do Palpite - Corrida - apenas desktop */}

@@ -4,12 +4,12 @@ interface F1Result {
   team: string;
 }
 
-const F1_API_BASE_URL = 'http://ergast.com/api/f1';
+const JOLPICA_API_BASE_URL = 'https://api.jolpi.ca/ergast/f1';
 
 export const F1Service = {
   async getLatestRaceResults(): Promise<F1Result[]> {
     try {
-      const response = await fetch(`${F1_API_BASE_URL}/current/last/results.json`);
+      const response = await fetch(`${JOLPICA_API_BASE_URL}/current/last/results.json`);
       const data = await response.json();
       
       const raceResults = data.MRData.RaceTable.Races[0].Results;
@@ -27,7 +27,7 @@ export const F1Service = {
 
   async getLatestQualifyingResults(): Promise<F1Result[]> {
     try {
-      const response = await fetch(`${F1_API_BASE_URL}/current/last/qualifying.json`);
+      const response = await fetch(`${JOLPICA_API_BASE_URL}/current/last/qualifying.json`);
       const data = await response.json();
       
       const qualifyingResults = data.MRData.RaceTable.Races[0].QualifyingResults;

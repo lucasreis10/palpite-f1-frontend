@@ -32,9 +32,53 @@ export interface F1Calendar {
   races: Race[];
 }
 
+interface F1CalendarResponse {
+  MRData: {
+    RaceTable: {
+      season: string;
+      Races: Array<{
+        round: string;
+        raceName: string;
+        Circuit: {
+          circuitName: string;
+          Location: {
+            locality: string;
+            country: string;
+          }
+        };
+        date: string;
+        time?: string;
+        FirstPractice?: {
+          date: string;
+          time?: string;
+        };
+        SecondPractice?: {
+          date: string;
+          time?: string;
+        };
+        ThirdPractice?: {
+          date: string;
+          time?: string;
+        };
+        Qualifying?: {
+          date: string;
+          time?: string;
+        };
+        Sprint?: {
+          date: string;
+          time?: string;
+        };
+      }>;
+    };
+  };
+}
+
 export async function getF1Calendar(year: number = new Date().getFullYear()): Promise<F1Calendar> {
   try {
-    const response = await fetch(`https://ergast.com/api/f1/${year}.json`);
+    const response = await fetch(`https://api.jolpi.ca/ergast/f1/${year}.json`);
+    if (!response.ok) {
+      throw new Error('Falha ao buscar calendário da F1');
+    }
     const data = await response.json();
 
     const races: Race[] = data.MRData.RaceTable.Races.map((race: any) => ({
@@ -56,7 +100,20 @@ export async function getF1Calendar(year: number = new Date().getFullYear()): Pr
       races,
     };
   } catch (error) {
-    console.error('Erro ao buscar calendário da F1:', error);
+    console.error(`Erro ao buscar calendário da F1 para ${year}:`, error);
+    throw error;
+  }
+}
+
+export async function fetchCalendar(year: number): Promise<F1CalendarResponse> {
+  try {
+    const response = await fetch(`https://api.jolpi.ca/ergast/f1/${year}.json`);
+    if (!response.ok) {
+      throw new Error('Falha ao buscar calendário da F1');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Erro ao buscar calendário da F1 para ${year}:`, error);
     throw error;
   }
 } 
