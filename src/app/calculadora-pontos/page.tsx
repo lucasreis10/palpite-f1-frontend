@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { Bars3Icon } from '@heroicons/react/24/outline';
+import { DriverAutocomplete } from '../../components/DriverAutocomplete';
 import { RaceScoreCalculator, QualifyingScoreCalculator } from '../../utils/scoreCalculators';
 
 interface Pilot {
@@ -13,11 +16,10 @@ interface Pilot {
   teamColor: string;
 }
 
-interface PilotPosition {
-  position: number;
-  pilotId: number;
-  pilotName: string;
-  code: string;
+interface Driver {
+  id: number;
+  name: string;
+  team: string;
 }
 
 interface ScoreDetail {
@@ -33,11 +35,12 @@ export default function CalculadoraPontosPage() {
   const [guessType, setGuessType] = useState<'QUALIFYING' | 'RACE'>('RACE');
   const [numPositions, setNumPositions] = useState(10);
   
-  // Palpites do usuário
-  const [userGuess, setUserGuess] = useState<PilotPosition[]>([]);
+  // Resultado real sempre tem 12 posições
+  const NUM_POSITIONS_RESULT = 12;
   
-  // Resultado real
-  const [actualResult, setActualResult] = useState<PilotPosition[]>([]);
+  // Arrays de drivers para drag and drop
+  const [userGuessDrivers, setUserGuessDrivers] = useState<(Driver | null)[]>([]);
+  const [actualResultDrivers, setActualResultDrivers] = useState<(Driver | null)[]>([]);
   
   // Resultado do cálculo
   const [scoreDetails, setScoreDetails] = useState<ScoreDetail[]>([]);
@@ -91,58 +94,20 @@ export default function CalculadoraPontosPage() {
     { id: 20, name: 'Valtteri', familyName: 'Bottas', code: 'BOT', teamName: 'Alfa Romeo', teamColor: '9B0B2C' }
   ];
 
+  // Converter pilotos para drivers (formato do DriverAutocomplete)
+  const drivers: Driver[] = pilots.map(pilot => ({
+    id: pilot.id,
+    name: `${pilot.name} ${pilot.familyName}`,
+    team: pilot.teamName
+  }));
+
   const initializePositions = () => {
-    const newUserGuess: PilotPosition[] = [];
-    const newActualResult: PilotPosition[] = [];
-
-    for (let i = 1; i <= numPositions; i++) {
-      newUserGuess.push({
-        position: i,
-        pilotId: 0,
-        pilotName: '',
-        code: ''
-      });
-      
-      newActualResult.push({
-        position: i,
-        pilotId: 0,
-        pilotName: '',
-        code: ''
-      });
-    }
-
-    setUserGuess(newUserGuess);
-    setActualResult(newActualResult);
+    const emptyArrayGuess = new Array(numPositions).fill(null);
+    const emptyArrayResult = new Array(NUM_POSITIONS_RESULT).fill(null);
+    setUserGuessDrivers([...emptyArrayGuess]);
+    setActualResultDrivers([...emptyArrayResult]);
     setScoreDetails([]);
     setTotalScore(0);
-  };
-
-  const updateGuess = (position: number, pilotId: number) => {
-    const pilot = pilots.find(p => p.id === pilotId);
-    if (!pilot) return;
-
-    const newGuess = [...userGuess];
-    newGuess[position - 1] = {
-      position,
-      pilotId,
-      pilotName: pilot.familyName,
-      code: pilot.code
-    };
-    setUserGuess(newGuess);
-  };
-
-  const updateActual = (position: number, pilotId: number) => {
-    const pilot = pilots.find(p => p.id === pilotId);
-    if (!pilot) return;
-
-    const newActual = [...actualResult];
-    newActual[position - 1] = {
-      position,
-      pilotId,
-      pilotName: pilot.familyName,
-      code: pilot.code
-    };
-    setActualResult(newActual);
   };
 
   const handleGuessTypeChange = (newType: 'QUALIFYING' | 'RACE') => {
@@ -156,10 +121,84 @@ export default function CalculadoraPontosPage() {
     }
   };
 
+  // Handlers para drag and drop - Palpite
+  const handleGuessDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+
+    const sourceIndex = result.source.index;
+    const destinationIndex = result.destination.index;
+
+    setUserGuessDrivers(prev => {
+      const updatedDrivers = Array.from(prev);
+      const [movedDriver] = updatedDrivers.splice(sourceIndex, 1);
+      updatedDrivers.splice(destinationIndex, 0, movedDriver);
+      return updatedDrivers;
+    });
+  };
+
+  // Handlers para drag and drop - Resultado Real
+  const handleActualDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+
+    const sourceIndex = result.source.index;
+    const destinationIndex = result.destination.index;
+
+    setActualResultDrivers(prev => {
+      const updatedDrivers = Array.from(prev);
+      const [movedDriver] = updatedDrivers.splice(sourceIndex, 1);
+      updatedDrivers.splice(destinationIndex, 0, movedDriver);
+      return updatedDrivers;
+    });
+  };
+
+  // Handlers para seleção de pilotos
+  const handleGuessDriverSelect = (driver: Driver | null, position: number) => {
+    setUserGuessDrivers(prev => {
+      const newSelection = [...prev];
+      
+      // Se driver é null, apenas limpar a posição
+      if (!driver) {
+        newSelection[position - 1] = null;
+        return newSelection;
+      }
+      
+      // Se o piloto já está selecionado em outra posição, remove ele de lá
+      const existingIndex = newSelection.findIndex(d => d && d.id === driver.id);
+      if (existingIndex !== -1 && existingIndex !== position - 1) {
+        newSelection[existingIndex] = null;
+      }
+      
+      newSelection[position - 1] = driver;
+      return newSelection;
+    });
+  };
+
+  const handleActualDriverSelect = (driver: Driver | null, position: number) => {
+    setActualResultDrivers(prev => {
+      const newSelection = [...prev];
+      
+      // Se driver é null, apenas limpar a posição
+      if (!driver) {
+        newSelection[position - 1] = null;
+        return newSelection;
+      }
+      
+      // Se o piloto já está selecionado em outra posição, remove ele de lá
+      const existingIndex = newSelection.findIndex(d => d && d.id === driver.id);
+      if (existingIndex !== -1 && existingIndex !== position - 1) {
+        newSelection[existingIndex] = null;
+      }
+      
+      newSelection[position - 1] = driver;
+      return newSelection;
+    });
+  };
+
   const calculateScore = () => {
     // Verificar se todos os campos estão preenchidos
-    const allGuessesSet = userGuess.every(g => g.pilotId !== 0);
-    const allActualSet = actualResult.every(a => a.pilotId !== 0);
+    const allGuessesSet = userGuessDrivers.every(d => d !== null);
+    // Verificar apenas as primeiras posições do resultado real baseado no palpite
+    const allActualSet = actualResultDrivers.slice(0, numPositions).every(d => d !== null);
     
     if (!allGuessesSet || !allActualSet) {
       alert('Por favor, preencha todas as posições antes de calcular.');
@@ -167,8 +206,9 @@ export default function CalculadoraPontosPage() {
     }
 
     // Converter para arrays de IDs dos pilotos para usar nas calculadoras
-    const guessArray = userGuess.map(g => g.pilotId);
-    const actualArray = actualResult.map(a => a.pilotId);
+    const guessArray = userGuessDrivers.map(d => d!.id);
+    // Usar apenas as primeiras posições do resultado real baseado no número de posições do palpite
+    const actualArray = actualResultDrivers.slice(0, numPositions).map(d => d!.id);
 
     // Usar a calculadora apropriada baseada no tipo
     let calculator;
@@ -186,13 +226,13 @@ export default function CalculadoraPontosPage() {
     const details: ScoreDetail[] = [];
     
     for (let i = 0; i < numPositions; i++) {
-      const guessPos = userGuess[i];
-      const actualPos = actualResult[i];
+      const guessDriver = userGuessDrivers[i];
+      const actualDriver = actualResultDrivers[i];
 
-      if (guessPos.pilotId && actualPos.pilotId) {
+      if (guessDriver && actualDriver) {
         // Calcular pontos individuais usando mini-calculadora
-        const singleGuess = [guessPos.pilotId];
-        const singleActual = [actualPos.pilotId];
+        const singleGuess = [guessDriver.id];
+        const singleActual = [actualDriver.id];
         
         let individualPoints = 0;
         if (guessType === 'QUALIFYING') {
@@ -204,9 +244,9 @@ export default function CalculadoraPontosPage() {
         }
 
         const detail: ScoreDetail = {
-          position: guessPos.position,
-          guessPilot: guessPos.pilotName,
-          actualPilot: actualPos.pilotName,
+          position: i + 1,
+          guessPilot: guessDriver.name,
+          actualPilot: actualDriver.name,
           points: Math.round(individualPoints * 1000) / 1000
         };
 
@@ -267,6 +307,58 @@ export default function CalculadoraPontosPage() {
           </p>
         </div>
 
+        {/* Seção Explicativa do Sistema de Pontuação */}
+        <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-lg p-6 mb-6 border border-red-200">
+          <h2 className="text-xl font-bold text-black mb-4 flex items-center gap-2">
+            📊 Como Funciona a Pontuação
+          </h2>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="font-semibold text-black mb-3">🏎️ Sistema de Corrida</h3>
+              <div className="bg-white rounded-lg p-4 space-y-2">
+                <p className="text-sm text-black">
+                  <strong>Máximo por posição:</strong> 25 pontos (1º lugar)
+                </p>
+                <p className="text-sm text-black">
+                  • Pontuação varia conforme a precisão do palpite
+                </p>
+                <p className="text-sm text-black">
+                  • Cada posição tem uma tabela própria de pontos
+                </p>
+                <p className="text-sm text-black">
+                  • Quanto mais próximo da realidade, mais pontos
+                </p>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-black mb-3">🏁 Sistema de Qualifying</h3>
+              <div className="bg-white rounded-lg p-4 space-y-2">
+                <p className="text-sm text-black">
+                  <strong>Máximo por posição:</strong> 5 pontos (1º lugar)
+                </p>
+                <p className="text-sm text-black">
+                  • Sistema mais simples que a corrida
+                </p>
+                <p className="text-sm text-black">
+                  • Foco nas primeiras 12 posições
+                </p>
+                <p className="text-sm text-black">
+                  • Menor variação de pontos entre posições
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <p className="text-sm text-black">
+              <strong>💡 Dica:</strong> O sistema premia não apenas acertos exatos, mas também proximidade. 
+              Mesmo errando por algumas posições, você ainda ganha pontos!
+            </p>
+          </div>
+        </div>
+
         {/* Controles */}
         <div className="bg-white rounded-lg p-6 mb-6 shadow-sm border border-gray-200">
           <div className="flex flex-wrap gap-4 items-center">
@@ -325,56 +417,112 @@ export default function CalculadoraPontosPage() {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6 mb-6">
-          {/* Palpite do Usuário */}
+          {/* Palpite do Usuário com Drag and Drop */}
           <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-            <h2 className="text-xl font-bold text-black mb-4">Seu Palpite</h2>
-            <div className="space-y-3">
-              {userGuess.map((guess, index) => (
-                <div key={index} className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center font-bold text-sm">
-                    {guess.position}
-                  </div>
-                  <select
-                    value={guess.pilotId}
-                    onChange={(e) => updateGuess(guess.position, Number(e.target.value))}
-                    className="flex-1 border border-gray-300 rounded-md px-3 py-2 bg-white text-black"
-                  >
-                    <option value={0}>Selecione um piloto...</option>
-                    {pilots.map(pilot => (
-                      <option key={pilot.id} value={pilot.id}>
-                        {pilot.code} - {pilot.familyName}
-                      </option>
+            <h2 className="text-xl font-bold text-black mb-4 flex items-center gap-2">
+              🎯 Seu Palpite
+            </h2>
+            <DragDropContext onDragEnd={handleGuessDragEnd}>
+              <Droppable droppableId="guess-drivers">
+                {(provided) => (
+                  <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3">
+                    {Array.from({ length: numPositions }, (_, i) => i + 1).map((position, index) => (
+                      <Draggable 
+                        key={position.toString()}
+                        draggableId={`guess-${position.toString()}`}
+                        index={index}
+                      >
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            className={`flex items-center gap-2 bg-white rounded-lg border ${
+                              snapshot.isDragging 
+                                ? 'border-f1-red shadow-lg' 
+                                : 'border-gray-200'
+                            } p-2 transition-all duration-200`}
+                          >
+                            <div 
+                              {...provided.dragHandleProps}
+                              className="cursor-grab hover:bg-gray-100 p-2 rounded transition-colors active:cursor-grabbing"
+                            >
+                              <Bars3Icon className="w-5 h-5 text-gray-400" />
+                            </div>
+                            <div className="flex-1">
+                              <DriverAutocomplete
+                                drivers={drivers.filter(d => {
+                                  const isSelected = userGuessDrivers.some(selected => selected && selected.id === d.id);
+                                  const isCurrentPosition = userGuessDrivers[position - 1]?.id === d.id;
+                                  return !isSelected || isCurrentPosition;
+                                })}
+                                selectedDriver={userGuessDrivers[position - 1]}
+                                onSelect={(driver) => handleGuessDriverSelect(driver, position)}
+                                position={position}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </Draggable>
                     ))}
-                  </select>
-                </div>
-              ))}
-            </div>
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
           </div>
 
-          {/* Resultado Real */}
+          {/* Resultado Real com Drag and Drop */}
           <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-            <h2 className="text-xl font-bold text-black mb-4">Resultado Real</h2>
-            <div className="space-y-3">
-              {actualResult.map((result, index) => (
-                <div key={index} className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-green-100 text-green-800 rounded-full flex items-center justify-center font-bold text-sm">
-                    {result.position}
-                  </div>
-                  <select
-                    value={result.pilotId}
-                    onChange={(e) => updateActual(result.position, Number(e.target.value))}
-                    className="flex-1 border border-gray-300 rounded-md px-3 py-2 bg-white text-black"
-                  >
-                    <option value={0}>Selecione um piloto...</option>
-                    {pilots.map(pilot => (
-                      <option key={pilot.id} value={pilot.id}>
-                        {pilot.code} - {pilot.familyName}
-                      </option>
+            <h2 className="text-xl font-bold text-black mb-4 flex items-center gap-2">
+              🏆 Resultado Real
+            </h2>
+            <DragDropContext onDragEnd={handleActualDragEnd}>
+              <Droppable droppableId="actual-drivers">
+                {(provided) => (
+                  <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3">
+                    {Array.from({ length: NUM_POSITIONS_RESULT }, (_, i) => i + 1).map((position, index) => (
+                      <Draggable 
+                        key={position.toString()}
+                        draggableId={`actual-${position.toString()}`}
+                        index={index}
+                      >
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            className={`flex items-center gap-2 bg-white rounded-lg border ${
+                              snapshot.isDragging 
+                                ? 'border-f1-red shadow-lg' 
+                                : 'border-gray-200'
+                            } p-2 transition-all duration-200`}
+                          >
+                            <div 
+                              {...provided.dragHandleProps}
+                              className="cursor-grab hover:bg-gray-100 p-2 rounded transition-colors active:cursor-grabbing"
+                            >
+                              <Bars3Icon className="w-5 h-5 text-gray-400" />
+                            </div>
+                            <div className="flex-1">
+                              <DriverAutocomplete
+                                drivers={drivers.filter(d => {
+                                  const isSelected = actualResultDrivers.some(selected => selected && selected.id === d.id);
+                                  const isCurrentPosition = actualResultDrivers[position - 1]?.id === d.id;
+                                  return !isSelected || isCurrentPosition;
+                                })}
+                                selectedDriver={actualResultDrivers[position - 1]}
+                                onSelect={(driver) => handleActualDriverSelect(driver, position)}
+                                position={position}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </Draggable>
                     ))}
-                  </select>
-                </div>
-              ))}
-            </div>
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
           </div>
         </div>
 
