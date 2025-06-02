@@ -20,10 +20,14 @@ export function DriverAutocomplete({ drivers, selectedDriver, onSelect, position
   const [query, setQuery] = useState('')
   const [isOpen, setIsOpen] = useState(false)
 
+  console.log(`DriverAutocomplete posição ${position}: recebeu ${drivers.length} drivers`);
+
   const filteredDrivers =
     query === ''
       ? drivers
       : drivers.filter((driver) => {
+          // Verificação de segurança antes de filtrar
+          if (!driver || !driver.name || !driver.team) return false;
           const searchStr = `${driver.name} ${driver.team}`.toLowerCase()
           return searchStr.includes(query.toLowerCase())
         })
@@ -84,6 +88,9 @@ export function DriverAutocomplete({ drivers, selectedDriver, onSelect, position
               }`}
               displayValue={(driver: Driver) => {
                 if (!driver) return '';
+                // Verificações de segurança para evitar erros
+                if (!driver.name || !driver.team) return '';
+                
                 // Em mobile, mostrar apenas o sobrenome para economizar espaço
                 const names = driver.name.split(' ');
                 const lastName = names[names.length - 1];
@@ -98,7 +105,7 @@ export function DriverAutocomplete({ drivers, selectedDriver, onSelect, position
             />
             
             {/* Botão de limpar - maior em mobile */}
-            {selectedDriver && selectedDriver.name && !disabled && (
+            {selectedDriver && selectedDriver.name && selectedDriver.team && !disabled && (
               <button
                 type="button"
                 className="absolute inset-y-0 right-10 sm:right-8 flex items-center pr-1 hover:bg-gray-700 rounded p-1 transition-colors"
@@ -143,7 +150,9 @@ export function DriverAutocomplete({ drivers, selectedDriver, onSelect, position
                   <span className="block text-xs text-gray-500 mt-1">Tente buscar por nome ou equipe</span>
                 </div>
               ) : (
-                filteredDrivers.map((driver) => (
+                filteredDrivers
+                  .filter(driver => driver && driver.name && driver.team) // Filtrar drivers válidos
+                  .map((driver) => (
                   <Combobox.Option
                     key={driver.id}
                     className={({ active }) =>

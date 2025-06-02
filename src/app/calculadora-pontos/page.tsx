@@ -6,15 +6,7 @@ import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea
 import { Bars3Icon } from '@heroicons/react/24/outline';
 import { DriverAutocomplete } from '../../components/DriverAutocomplete';
 import { RaceScoreCalculator, QualifyingScoreCalculator } from '../../utils/scoreCalculators';
-
-interface Pilot {
-  id: number;
-  name: string;
-  familyName: string;
-  code: string;
-  teamName: string;
-  teamColor: string;
-}
+import { guessService, Pilot } from '../../services/guesses';
 
 interface Driver {
   id: number;
@@ -35,6 +27,18 @@ export default function CalculadoraPontosPage() {
   const [guessType, setGuessType] = useState<'QUALIFYING' | 'RACE'>('RACE');
   const [numPositions, setNumPositions] = useState(10);
   
+  // Log detalhado do estado atual no render
+  console.log('=== RENDER CALCULADORA ===');
+  console.log('🎬 pilots.length:', pilots.length);
+  console.log('⏳ loading:', loading);
+  console.log('🏁 guessType:', guessType);
+  console.log('📊 numPositions:', numPositions);
+  if (pilots.length > 0) {
+    console.log('✅ Primeiro piloto:', pilots[0].givenName, pilots[0].familyName);
+    console.log('✅ FullName do primeiro piloto:', pilots[0].fullName);
+  }
+  console.log('========================');
+  
   // Resultado real sempre tem 12 posições
   const NUM_POSITIONS_RESULT = 12;
   
@@ -46,60 +50,82 @@ export default function CalculadoraPontosPage() {
   const [scoreDetails, setScoreDetails] = useState<ScoreDetail[]>([]);
   const [totalScore, setTotalScore] = useState(0);
 
+  // Converter Pilot para Driver (mesma função do BetForm)
+  const convertPilotToDriver = (pilot: Pilot): Driver => ({
+    id: pilot.id,
+    name: pilot.fullName,
+    team: pilot.constructor?.name || 'Sem Equipe'
+  });
+
   useEffect(() => {
     loadPilots();
   }, []);
 
   useEffect(() => {
-    // Inicializar arrays quando número de posições muda
+    console.log('🔄 useEffect [pilots] - Estado pilots mudou:', pilots.length, 'pilotos');
+    if (pilots.length > 0) {
+      console.log('✅ Primeiro piloto no estado:', pilots[0]);
+      console.log('👥 Todos os pilotos:', pilots.map(p => `${p.givenName} ${p.familyName}`));
+    } else {
+      console.log('❌ Array pilots ainda vazio');
+    }
+  }, [pilots]);
+
+  useEffect(() => {
+    console.log('🔄 useEffect [numPositions, pilots] - Chamando initializePositions');
+    console.log('📊 numPositions:', numPositions, 'pilots.length:', pilots.length);
     initializePositions();
   }, [numPositions, pilots]);
 
   const loadPilots = async () => {
     try {
-      const response = await fetch('/api/pilots');
-      if (response.ok) {
-        const data = await response.json();
-        setPilots(data);
+      console.log('🔍 Iniciando loadPilots...');
+      console.log('🧩 Estado atual pilots antes da chamada:', pilots.length);
+      
+      // Usar o mesmo método do BetForm
+      const pilotsData = await guessService.getAllPilots();
+      console.log('📦 Dados recebidos do guessService:', pilotsData);
+      console.log('📊 Quantidade de pilotos recebidos:', pilotsData.length);
+      
+      if (pilotsData.length > 0) {
+        console.log('🏎️ Primeiro piloto do guessService:', pilotsData[0]);
+        console.log('🔍 Estrutura do primeiro piloto:');
+        console.log('🔍 Propriedades:', Object.keys(pilotsData[0]));
+        console.log('🔍 Valores:');
+        Object.keys(pilotsData[0]).forEach(key => {
+          const value = (pilotsData[0] as any)[key];
+          console.log(`  ${key}: "${value}" (tipo: ${typeof value})`);
+        });
       }
+      
+      console.log('🔧 Chamando setPilots com', pilotsData.length, 'pilotos...');
+      setPilots(pilotsData);
+      console.log('✅ setPilots executado');
+      
+      // Verificar estado imediatamente após setPilots (pode não refletir ainda)
+      console.log('🔍 Estado pilots logo após setPilots:', pilots.length);
     } catch (error) {
-      console.error('Erro ao carregar pilotos:', error);
-      // Usar pilotos mock se API falhar
-      setPilots(getMockPilots());
+      console.error('🚨 Erro ao carregar pilotos:', error);
+      // Em caso de erro, usar dados mock
+      console.log('🔄 Usando pilotos mock por erro');
+      setPilots([]);
     } finally {
+      console.log('🏁 Finalizando loadPilots, setLoading(false)');
       setLoading(false);
     }
   };
 
-  const getMockPilots = (): Pilot[] => [
-    { id: 1, name: 'Max', familyName: 'Verstappen', code: 'VER', teamName: 'Red Bull Racing', teamColor: '4781D7' },
-    { id: 2, name: 'Lewis', familyName: 'Hamilton', code: 'HAM', teamName: 'Mercedes', teamColor: '00D7B6' },
-    { id: 3, name: 'Charles', familyName: 'Leclerc', code: 'LEC', teamName: 'Ferrari', teamColor: 'ED1131' },
-    { id: 4, name: 'Lando', familyName: 'Norris', code: 'NOR', teamName: 'McLaren', teamColor: 'F47600' },
-    { id: 5, name: 'George', familyName: 'Russell', code: 'RUS', teamName: 'Mercedes', teamColor: '00D7B6' },
-    { id: 6, name: 'Carlos', familyName: 'Sainz Jr.', code: 'SAI', teamName: 'Ferrari', teamColor: 'ED1131' },
-    { id: 7, name: 'Sergio', familyName: 'Pérez', code: 'PER', teamName: 'Red Bull Racing', teamColor: '4781D7' },
-    { id: 8, name: 'Oscar', familyName: 'Piastri', code: 'PIA', teamName: 'McLaren', teamColor: 'F47600' },
-    { id: 9, name: 'Fernando', familyName: 'Alonso', code: 'ALO', teamName: 'Aston Martin', teamColor: '229971' },
-    { id: 10, name: 'Lance', familyName: 'Stroll', code: 'STR', teamName: 'Aston Martin', teamColor: '229971' },
-    { id: 11, name: 'Pierre', familyName: 'Gasly', code: 'GAS', teamName: 'Alpine', teamColor: '00A1E8' },
-    { id: 12, name: 'Esteban', familyName: 'Ocon', code: 'OCO', teamName: 'Alpine', teamColor: '00A1E8' },
-    { id: 13, name: 'Alexander', familyName: 'Albon', code: 'ALB', teamName: 'Williams', teamColor: '1868DB' },
-    { id: 14, name: 'Logan', familyName: 'Sargeant', code: 'SAR', teamName: 'Williams', teamColor: '1868DB' },
-    { id: 15, name: 'Kevin', familyName: 'Magnussen', code: 'MAG', teamName: 'Haas F1 Team', teamColor: '9C9FA2' },
-    { id: 16, name: 'Nico', familyName: 'Hülkenberg', code: 'HUL', teamName: 'Haas F1 Team', teamColor: '9C9FA2' },
-    { id: 17, name: 'Yuki', familyName: 'Tsunoda', code: 'TSU', teamName: 'AlphaTauri', teamColor: '6C98FF' },
-    { id: 18, name: 'Daniel', familyName: 'Ricciardo', code: 'RIC', teamName: 'AlphaTauri', teamColor: '6C98FF' },
-    { id: 19, name: 'Zhou', familyName: 'Guanyu', code: 'ZHO', teamName: 'Alfa Romeo', teamColor: '9B0B2C' },
-    { id: 20, name: 'Valtteri', familyName: 'Bottas', code: 'BOT', teamName: 'Alfa Romeo', teamColor: '9B0B2C' }
-  ];
-
   // Converter pilotos para drivers (formato do DriverAutocomplete)
-  const drivers: Driver[] = pilots.map(pilot => ({
-    id: pilot.id,
-    name: `${pilot.name} ${pilot.familyName}`,
-    team: pilot.teamName
-  }));
+  const drivers: Driver[] = pilots.map(convertPilotToDriver);
+
+  console.log('🔄 Conversão pilots -> drivers:');
+  console.log('📊 pilots.length:', pilots.length);
+  console.log('🚗 drivers.length:', drivers.length);
+  if (drivers.length > 0) {
+    console.log('✅ Primeiro driver convertido:', drivers[0]);
+  } else {
+    console.log('❌ Nenhum driver convertido - pilots está vazio');
+  }
 
   const initializePositions = () => {
     const emptyArrayGuess = new Array(numPositions).fill(null);
@@ -450,11 +476,7 @@ export default function CalculadoraPontosPage() {
                             </div>
                             <div className="flex-1">
                               <DriverAutocomplete
-                                drivers={drivers.filter(d => {
-                                  const isSelected = userGuessDrivers.some(selected => selected && selected.id === d.id);
-                                  const isCurrentPosition = userGuessDrivers[position - 1]?.id === d.id;
-                                  return !isSelected || isCurrentPosition;
-                                })}
+                                drivers={drivers}
                                 selectedDriver={userGuessDrivers[position - 1]}
                                 onSelect={(driver) => handleGuessDriverSelect(driver, position)}
                                 position={position}
@@ -504,11 +526,7 @@ export default function CalculadoraPontosPage() {
                             </div>
                             <div className="flex-1">
                               <DriverAutocomplete
-                                drivers={drivers.filter(d => {
-                                  const isSelected = actualResultDrivers.some(selected => selected && selected.id === d.id);
-                                  const isCurrentPosition = actualResultDrivers[position - 1]?.id === d.id;
-                                  return !isSelected || isCurrentPosition;
-                                })}
+                                drivers={drivers}
                                 selectedDriver={actualResultDrivers[position - 1]}
                                 onSelect={(driver) => handleActualDriverSelect(driver, position)}
                                 position={position}
