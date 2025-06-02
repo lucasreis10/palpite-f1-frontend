@@ -2,8 +2,13 @@ import axios from 'axios';
 import { API_URLS } from './api';
 import { showWarningToast } from '../utils/notifications';
 
+// Função para verificar se estamos no browser
+const isBrowser = () => typeof window !== 'undefined';
+
 // Função para limpar dados de autenticação
 const clearAuthData = () => {
+  if (!isBrowser()) return;
+  
   localStorage.removeItem('auth_token');
   localStorage.removeItem('user_data');
   
@@ -40,18 +45,18 @@ const isJwtExpiredError = (error: any): boolean => {
 
 // Função para redirecionar para login
 const redirectToLogin = () => {
-  if (typeof window !== 'undefined') {
-    // Guardar mensagem no sessionStorage para mostrar na tela de login
-    sessionStorage.setItem('auth_message', '🔒 Sua sessão expirou. Por favor, faça login novamente.');
-    
-    // Mostrar toast imediatamente
-    showWarningToast('🔒 Sua sessão expirou. Redirecionando para o login...');
-    
-    // Redirecionar para login imediatamente
-    setTimeout(() => {
-      window.location.href = '/login';
-    }, 1500);
-  }
+  if (!isBrowser()) return;
+  
+  // Guardar mensagem no sessionStorage para mostrar na tela de login
+  sessionStorage.setItem('auth_message', '🔒 Sua sessão expirou. Por favor, faça login novamente.');
+  
+  // Mostrar toast imediatamente
+  showWarningToast('🔒 Sua sessão expirou. Redirecionando para o login...');
+  
+  // Redirecionar para login imediatamente
+  setTimeout(() => {
+    window.location.href = '/login';
+  }, 1500);
 };
 
 // Verificar se o token está expirado antes de fazer a requisição
@@ -72,33 +77,35 @@ const isTokenExpired = (token: string): boolean => {
 
 // Listener para verificar token quando o usuário volta para a aba
 const setupVisibilityListener = () => {
-  if (typeof window !== 'undefined') {
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
-        // Usuário voltou para a aba, verificar token
-        const token = localStorage.getItem('auth_token');
-        if (token && isTokenExpired(token)) {
-          console.warn('Token expirado detectado ao voltar para a aba');
-          clearAuthData();
-          redirectToLogin();
-        }
-      }
-    });
-
-    // Também verificar quando a janela ganha foco
-    window.addEventListener('focus', () => {
+  if (!isBrowser()) return;
+  
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      // Usuário voltou para a aba, verificar token
       const token = localStorage.getItem('auth_token');
       if (token && isTokenExpired(token)) {
-        console.warn('Token expirado detectado ao focar na janela');
+        console.warn('Token expirado detectado ao voltar para a aba');
         clearAuthData();
         redirectToLogin();
       }
-    });
-  }
+    }
+  });
+
+  // Também verificar quando a janela ganha foco
+  window.addEventListener('focus', () => {
+    const token = localStorage.getItem('auth_token');
+    if (token && isTokenExpired(token)) {
+      console.warn('Token expirado detectado ao focar na janela');
+      clearAuthData();
+      redirectToLogin();
+    }
+  });
 };
 
-// Inicializar listener
-setupVisibilityListener();
+// Inicializar listener apenas no browser
+if (isBrowser()) {
+  setupVisibilityListener();
+}
 
 // Criar instância do axios com configuração base
 const axiosInstance = axios.create({
@@ -112,19 +119,21 @@ const axiosInstance = axios.create({
 // Interceptor de requisição para adicionar token automaticamente
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Obter token do localStorage
-    const token = localStorage.getItem('auth_token');
-    
-    if (token) {
-      // Verificar se o token está expirado antes de fazer a requisição
-      if (isTokenExpired(token)) {
-        console.warn('Token JWT expirado detectado antes da requisição');
-        clearAuthData();
-        redirectToLogin();
-        return Promise.reject(new Error('Token expirado'));
-      }
+    // Só tentar acessar localStorage no browser
+    if (isBrowser()) {
+      const token = localStorage.getItem('auth_token');
       
-      config.headers['Authorization'] = `Bearer ${token}`;
+      if (token) {
+        // Verificar se o token está expirado antes de fazer a requisição
+        if (isTokenExpired(token)) {
+          console.warn('Token JWT expirado detectado antes da requisição');
+          clearAuthData();
+          redirectToLogin();
+          return Promise.reject(new Error('Token expirado'));
+        }
+        
+        config.headers['Authorization'] = `Bearer ${token}`;
+      }
     }
     
     return config;

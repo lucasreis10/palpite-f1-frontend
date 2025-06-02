@@ -209,20 +209,21 @@ export default function Home() {
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
-                  <h3 className="text-2xl font-bold text-white">Live Timing F1</h3>
+                  <h3 className="text-2xl font-bold text-white">Live Timing F1 - Ranking do Bolão</h3>
                   <span className="bg-yellow-500 text-black px-3 py-1 rounded-full text-xs font-bold">
                     EXPERIMENTAL
                   </span>
                 </div>
                 <p className="text-gray-300 mb-4">
-                  Acompanhe os resultados do bolão em tempo real durante as corridas e treinos!
+                  Veja em tempo real quem está ganhando o bolão durante a corrida! 
+                  Acompanhe como seus palpites reais se comparam aos outros participantes conforme as posições mudam na pista.
                 </p>
-                <div className="flex items-center gap-2 text-yellow-400 mb-4">
+                <div className="flex items-center gap-2 text-blue-400 mb-4">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <span className="text-sm">
-                    Funcionalidade em desenvolvimento - Dados podem não estar disponíveis fora das sessões
+                    Funcionalidade usa palpites reais dos usuários. Dados da F1 disponíveis apenas durante sessões oficiais.
                   </span>
                 </div>
                 <Link 
@@ -230,9 +231,9 @@ export default function Home() {
                   className="inline-flex items-center gap-2 bg-f1-red text-black py-3 px-6 rounded-md hover:bg-f1-red/90 transition-colors font-bold"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
-                  Acessar Live Timing
+                  Ver Ranking ao Vivo
                 </Link>
               </div>
               <div className="hidden md:block ml-6">
@@ -241,15 +242,15 @@ export default function Home() {
                   <ul className="space-y-1 text-sm text-gray-300">
                     <li className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
-                      Posições em tempo real
+                      Ranking em tempo real
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
-                      Gaps e intervalos
+                      Pontuação dinâmica
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
-                      Mensagens de controle
+                      Acertos em tempo real
                     </li>
                   </ul>
                 </div>

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { liveTimingService } from '@/services/liveTimingService';
+import { liveTimingService } from '../../../services/liveTimingService';
 
 export const dynamic = 'force-dynamic';
 

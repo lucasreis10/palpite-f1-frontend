@@ -68,6 +68,37 @@ export interface RaceControl {
   meeting_key: number;
 }
 
+export interface UserGuess {
+  id: number;
+  userId: number;
+  userName: string;
+  userEmail: string;
+  grandPrixId: number;
+  qualifyingGuesses: PilotPosition[];
+  raceGuesses: PilotPosition[];
+  totalScore?: number;
+  currentScore?: number;
+}
+
+export interface PilotPosition {
+  position: number;
+  pilotId: number;
+  pilotName: string;
+  familyName?: string;
+  code?: string;
+}
+
+export interface LiveRanking {
+  userId: number;
+  userName: string;
+  userEmail: string;
+  currentScore: number;
+  totalPossibleScore: number;
+  correctGuesses: number;
+  raceGuesses: PilotPosition[];
+  positionDifferences: { [position: number]: number };
+}
+
 interface CacheEntry<T> {
   data: T;
   timestamp: number;
@@ -206,55 +237,307 @@ class LiveTimingService {
     }
   }
 
-  // Buscar dados completos da sessão com cache inteligente
+  // Buscar palpites dos usuários para um Grand Prix via serviço existente
+  async getUserGuessesForGrandPrix(grandPrixId: number): Promise<UserGuess[]> {
+    try {
+      // Importar dinamicamente para evitar problemas no servidor
+      const { default: axiosInstance } = await import('../config/axios');
+      const { API_URLS } = await import('../config/api');
+      
+      console.log('Buscando palpites reais para GP:', grandPrixId);
+      
+      // Buscar palpites de corrida do Grand Prix
+      const response = await axiosInstance.get(
+        `${API_URLS.GUESSES}/grand-prix/${grandPrixId}?guessType=RACE`
+      );
+      
+      const guessesData = response.data;
+      console.log('Palpites encontrados:', guessesData.length);
+      
+      // Converter formato da API para formato interno
+      const userGuesses: UserGuess[] = guessesData.map((guess: any) => {
+        // Converter pilotos da API para formato interno
+        const raceGuesses: PilotPosition[] = guess.pilots.map((pilot: any, index: number) => ({
+          position: index + 1,
+          pilotId: pilot.id,
+          pilotName: pilot.name,
+          familyName: pilot.familyName,
+          code: pilot.code
+        }));
+        
+        return {
+          id: guess.id,
+          userId: guess.user.id,
+          userName: guess.user.name,
+          userEmail: guess.user.email,
+          grandPrixId: guess.grandPrixId,
+          qualifyingGuesses: [],
+          raceGuesses,
+          totalScore: guess.score || 0,
+          currentScore: 0 // Será calculado em tempo real
+        };
+      });
+      
+      return userGuesses;
+    } catch (error) {
+      console.error('Erro ao buscar palpites:', error);
+      // Se der erro na API, retornar array vazio ao invés de dados mock
+      return [];
+    }
+  }
+
+  // Buscar próximo Grand Prix usando o serviço existente
+  async getNextGrandPrix(): Promise<any> {
+    try {
+      // Importar dinamicamente para evitar dependência circular
+      const { guessService } = await import('./guesses');
+      return await guessService.getNextGrandPrix();
+    } catch (error) {
+      console.error('Erro ao buscar próximo Grand Prix:', error);
+      return null;
+    }
+  }
+
+  // Mapear pilot code para driverAcronym da F1
+  mapPilotCodeToDriverAcronym(pilotCode: string): string {
+    const mapping: { [key: string]: string } = {
+      'VER': 'VER', 'HAM': 'HAM', 'RUS': 'RUS', 'LEC': 'LEC', 'SAI': 'SAI',
+      'NOR': 'NOR', 'PIA': 'PIA', 'ALO': 'ALO', 'STR': 'STR', 'PER': 'PER',
+      'OCO': 'OCO', 'GAS': 'GAS', 'ALB': 'ALB', 'SAR': 'SAR', 'MAG': 'MAG',
+      'HUL': 'HUL', 'TSU': 'TSU', 'RIC': 'RIC', 'ZHO': 'ZHO', 'BOT': 'BOT'
+    };
+    
+    return mapping[pilotCode] || pilotCode;
+  }
+
+  // Calcular pontuação de um palpite baseado nas posições atuais
+  calculateCurrentScore(raceGuesses: PilotPosition[], currentPositions: any[]): number {
+    let score = 0;
+    
+    raceGuesses.forEach(guess => {
+      // Procurar pelo code do piloto ou nome
+      const guessCode = this.mapPilotCodeToDriverAcronym(guess.code || guess.familyName || '');
+      const actualPosition = currentPositions.find(p => 
+        p.driverAcronym === guessCode || 
+        p.driverName.includes(guess.familyName || '') ||
+        p.driverAcronym === guess.pilotName
+      );
+      
+      if (actualPosition) {
+        const positionDiff = Math.abs(guess.position - actualPosition.position);
+        
+        // Sistema de pontuação: 10 pontos para acerto exato, decrescendo
+        if (positionDiff === 0) {
+          score += 10; // Acerto exato
+        } else if (positionDiff === 1) {
+          score += 8; // 1 posição de diferença
+        } else if (positionDiff === 2) {
+          score += 6; // 2 posições de diferença
+        } else if (positionDiff === 3) {
+          score += 4; // 3 posições de diferença
+        } else if (positionDiff === 4) {
+          score += 2; // 4 posições de diferença
+        } else if (positionDiff === 5) {
+          score += 1; // 5 posições de diferença
+        }
+        // Mais de 5 posições = 0 pontos
+      }
+    });
+    
+    return score;
+  }
+
+  // Buscar ranking ao vivo dos palpiteiros
+  async getLiveRanking(sessionKey: number): Promise<LiveRanking[]> {
+    try {
+      // Buscar dados da corrida atual
+      const [positions, nextGrandPrix] = await Promise.all([
+        this.getPositions(sessionKey),
+        this.getNextGrandPrix()
+      ]);
+
+      if (!nextGrandPrix) {
+        console.log('Nenhum Grand Prix disponível');
+        return [];
+      }
+
+      // Buscar palpites reais para o Grand Prix atual
+      const userGuesses = await this.getUserGuessesForGrandPrix(nextGrandPrix.id);
+      
+      if (!userGuesses.length) {
+        console.log('Nenhum palpite encontrado para o GP atual:', nextGrandPrix.id);
+        return [];
+      }
+
+      console.log('Usando palpites reais:', userGuesses.length, 'participantes');
+
+      // Se não há posições da F1, usar dados mock apenas para as posições
+      let currentPositions;
+      if (!positions.length) {
+        console.log('Sem posições F1 disponíveis, usando posições mock para demonstração');
+        currentPositions = this.generateMockPositions();
+      } else {
+        // Mapear posições atuais para um formato mais fácil de trabalhar
+        const drivers = this.getCachedData<any[]>('drivers') || [];
+        currentPositions = positions.map(pos => {
+          const driver = drivers.find(d => d.driver_number === pos.driver_number);
+          
+          return {
+            position: pos.position,
+            driverNumber: pos.driver_number,
+            driverAcronym: driver?.name_acronym || '???',
+            driverName: driver?.full_name || 'Unknown'
+          };
+        });
+      }
+
+      // Calcular pontuação atual para cada usuário baseado em palpites reais
+      const liveRanking: LiveRanking[] = userGuesses.map(userGuess => {
+        const currentScore = this.calculateCurrentScore(userGuess.raceGuesses, currentPositions);
+        const totalPossibleScore = userGuess.raceGuesses.length * 10; // 10 pontos máximo por posição
+        
+        // Calcular quantos palpites estão corretos
+        const correctGuesses = userGuess.raceGuesses.filter(guess => {
+          const actualPosition = currentPositions.find(p => 
+            p.driverAcronym === guess.code || 
+            p.driverName.includes(guess.familyName || '') ||
+            p.driverAcronym === guess.pilotName
+          );
+          return actualPosition && actualPosition.position === guess.position;
+        }).length;
+
+        // Calcular diferenças de posição para cada palpite
+        const positionDifferences: { [position: number]: number } = {};
+        userGuess.raceGuesses.forEach(guess => {
+          const actualPosition = currentPositions.find(p => 
+            p.driverAcronym === guess.code || 
+            p.driverName.includes(guess.familyName || '') ||
+            p.driverAcronym === guess.pilotName
+          );
+          if (actualPosition) {
+            positionDifferences[guess.position] = actualPosition.position - guess.position;
+          }
+        });
+
+        return {
+          userId: userGuess.userId,
+          userName: userGuess.userName,
+          userEmail: userGuess.userEmail,
+          currentScore,
+          totalPossibleScore,
+          correctGuesses,
+          raceGuesses: userGuess.raceGuesses,
+          positionDifferences
+        };
+      });
+
+      // Ordenar por pontuação atual (maior para menor)
+      return liveRanking.sort((a, b) => b.currentScore - a.currentScore);
+
+    } catch (error) {
+      console.error('Erro ao calcular ranking ao vivo:', error);
+      return [];
+    }
+  }
+
+  // Gerar posições mock apenas quando não há dados F1 disponíveis
+  private generateMockPositions(): any[] {
+    return [
+      { position: 1, driverAcronym: 'VER', driverName: 'Max Verstappen' },
+      { position: 2, driverAcronym: 'HAM', driverName: 'Lewis Hamilton' },
+      { position: 3, driverAcronym: 'LEC', driverName: 'Charles Leclerc' },
+      { position: 4, driverAcronym: 'RUS', driverName: 'George Russell' },
+      { position: 5, driverAcronym: 'SAI', driverName: 'Carlos Sainz' },
+      { position: 6, driverAcronym: 'NOR', driverName: 'Lando Norris' },
+      { position: 7, driverAcronym: 'PIA', driverName: 'Oscar Piastri' },
+      { position: 8, driverAcronym: 'ALO', driverName: 'Fernando Alonso' },
+      { position: 9, driverAcronym: 'STR', driverName: 'Lance Stroll' },
+      { position: 10, driverAcronym: 'PER', driverName: 'Sergio Perez' },
+      { position: 11, driverAcronym: 'OCO', driverName: 'Esteban Ocon' },
+      { position: 12, driverAcronym: 'GAS', driverName: 'Pierre Gasly' },
+      { position: 13, driverAcronym: 'ALB', driverName: 'Alexander Albon' },
+      { position: 14, driverAcronym: 'SAR', driverName: 'Logan Sargeant' },
+      { position: 15, driverAcronym: 'MAG', driverName: 'Kevin Magnussen' },
+      { position: 16, driverAcronym: 'HUL', driverName: 'Nico Hulkenberg' },
+      { position: 17, driverAcronym: 'TSU', driverName: 'Yuki Tsunoda' },
+      { position: 18, driverAcronym: 'RIC', driverName: 'Daniel Ricciardo' },
+      { position: 19, driverAcronym: 'ZHO', driverName: 'Zhou Guanyu' },
+      { position: 20, driverAcronym: 'BOT', driverName: 'Valtteri Bottas' }
+    ];
+  }
+
+  // Buscar dados completos incluindo ranking ao vivo
   async getSessionData(sessionKey: number) {
     const cacheKey = `session-data-${sessionKey}`;
     const cached = this.getCachedData<any>(cacheKey);
     if (cached) return cached;
 
     try {
-      const [session, drivers, positions, intervals, raceControl] = await Promise.all([
+      const [session, drivers, positions, intervals, raceControl, liveRanking] = await Promise.all([
         this.getLatestSession(),
         this.getDrivers(sessionKey),
         this.getPositions(sessionKey),
         this.getIntervals(sessionKey),
-        this.getRaceControl(sessionKey)
+        this.getRaceControl(sessionKey),
+        this.getLiveRanking(sessionKey)
       ]);
 
-      // Verificar se temos dados válidos
-      if (!positions.length && !drivers.length) {
-        throw new Error('Nenhum dado disponível para esta sessão');
+      // Cache drivers para usar no cálculo de ranking
+      if (drivers.length > 0) {
+        this.setCachedData('drivers', drivers);
       }
 
-      // Combinar dados
-      const driversMap = new Map(drivers.map(d => [d.driver_number, d]));
-      const intervalsMap = new Map(intervals.map(i => [i.driver_number, i]));
+      // Verificar se temos dados válidos para F1
+      const hasF1Data = positions.length > 0 || drivers.length > 0;
 
-      const combinedData = positions.map(pos => {
-        const driver = driversMap.get(pos.driver_number);
-        const interval = intervalsMap.get(pos.driver_number);
+      // Combinar dados da corrida (se disponíveis)
+      interface CombinedDriverData {
+        position: number;
+        driverNumber: number;
+        driverName: string;
+        driverAcronym: string;
+        teamName: string;
+        teamColor: string;
+        gapToLeader: number | null | undefined;
+        interval: number | null | undefined;
+        lastUpdate: string;
+      }
 
-        return {
-          position: pos.position,
-          driverNumber: pos.driver_number,
-          driverName: driver?.full_name || 'Unknown',
-          driverAcronym: driver?.name_acronym || '???',
-          teamName: driver?.team_name || 'Unknown',
-          teamColor: driver?.team_colour || 'FFFFFF',
-          gapToLeader: interval?.gap_to_leader,
-          interval: interval?.interval,
-          lastUpdate: pos.date
-        };
-      });
+      let combinedData: CombinedDriverData[] = [];
+      if (hasF1Data) {
+        const driversMap = new Map(drivers.map(d => [d.driver_number, d]));
+        const intervalsMap = new Map(intervals.map(i => [i.driver_number, i]));
+
+        combinedData = positions.map(pos => {
+          const driver = driversMap.get(pos.driver_number);
+          const interval = intervalsMap.get(pos.driver_number);
+
+          return {
+            position: pos.position,
+            driverNumber: pos.driver_number,
+            driverName: driver?.full_name || 'Unknown',
+            driverAcronym: driver?.name_acronym || '???',
+            teamName: driver?.team_name || 'Unknown',
+            teamColor: driver?.team_colour || 'FFFFFF',
+            gapToLeader: interval?.gap_to_leader,
+            interval: interval?.interval,
+            lastUpdate: pos.date
+          };
+        });
+      }
 
       const result = {
         session,
         standings: combinedData,
-        raceControl
+        raceControl,
+        liveRanking,
+        hasGuesses: liveRanking.length > 0,
+        isMockData: false, // Agora sempre usamos dados reais quando disponíveis
+        hasF1Data
       };
 
       // Cachear apenas se tivermos dados válidos
-      if (combinedData.length > 0) {
+      if (hasF1Data || liveRanking.length > 0) {
         this.setCachedData(cacheKey, result);
       }
 

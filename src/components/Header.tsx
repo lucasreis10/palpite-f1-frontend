@@ -45,6 +45,7 @@ export function Header() {
     { href: '/palpites/historico', label: 'Meus Palpites' },
     { href: '/historico', label: 'Ranking' },
     { href: '/ultimo-evento', label: 'Último Evento' },
+    { href: '/live-timing', label: 'Live Timing', isExperimental: true },
     { href: '/equipes', label: 'Equipes' },
   ];
 
@@ -97,13 +98,18 @@ export function Header() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center px-6 py-3 text-sm font-medium transition-all ${
+                    className={`flex items-center justify-between px-6 py-3 text-sm font-medium transition-all ${
                       isActive 
                         ? 'bg-red-50 text-f1-red border-r-4 border-f1-red' 
                         : 'text-gray-700 hover:bg-gray-50 hover:text-f1-red hover:pl-8'
                     }`}
                   >
-                    {item.label}
+                    <span>{item.label}</span>
+                    {item.isExperimental && (
+                      <span className="ml-2 text-xs bg-yellow-500 text-black px-2 py-1 rounded-full font-bold">
+                        BETA
+                      </span>
+                    )}
                   </Link>
                 );
               })}
@@ -119,13 +125,18 @@ export function Header() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
                   isActive 
                     ? 'bg-red-700 text-white shadow-sm' 
                     : 'text-black hover:bg-red-700/10'
                 }`}
               >
-                {item.label}
+                <span>{item.label}</span>
+                {item.isExperimental && (
+                  <span className="text-xs bg-yellow-500 text-black px-2 py-0.5 rounded-full font-bold">
+                    BETA
+                  </span>
+                )}
               </Link>
             );
           })}
