@@ -45,6 +45,7 @@ export function Header() {
     { href: '/palpites/historico', label: 'Meus Palpites' },
     { href: '/historico', label: 'Ranking' },
     { href: '/ultimo-evento', label: 'Último Evento' },
+    { href: '/calculadora-pontos', label: 'Calculadora' },
     { href: '/live-timing', label: 'Live Timing', isExperimental: true },
     { href: '/equipes', label: 'Equipes' },
   ];

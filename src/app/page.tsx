@@ -258,6 +258,62 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* Nova Funcionalidade - Calculadora de Pontos */}
+        <section className="mt-8">
+          <div className="bg-gradient-to-r from-blue-900 to-indigo-800 p-6 rounded-lg shadow-lg">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-3">
+                  <h3 className="text-2xl font-bold text-white">Calculadora de Pontos</h3>
+                  <span className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+                    NOVO
+                  </span>
+                </div>
+                <p className="text-gray-300 mb-4">
+                  Simule seus palpites e veja exatamente como seriam pontuados! 
+                  Perfeita para treinar suas estratégias antes de fazer o palpite oficial.
+                </p>
+                <div className="flex items-center gap-2 text-green-400 mb-4">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-sm">
+                    100% offline - não salva dados, apenas para simulação e aprendizado
+                  </span>
+                </div>
+                <Link 
+                  href="/calculadora-pontos"
+                  className="inline-flex items-center gap-2 bg-f1-red text-black py-3 px-6 rounded-md hover:bg-f1-red/90 transition-colors font-bold"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                  Experimentar Calculadora
+                </Link>
+              </div>
+              <div className="hidden md:block ml-6">
+                <div className="bg-blue-700/50 p-4 rounded-lg">
+                  <div className="text-xs text-gray-400 mb-2">Recursos:</div>
+                  <ul className="space-y-1 text-sm text-gray-300">
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>
+                      Qualifying e Corrida
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>
+                      Estatísticas detalhadas
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>
+                      Sistema de pontuação
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </main>
   );
