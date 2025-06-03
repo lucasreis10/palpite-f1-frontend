@@ -97,13 +97,24 @@ export default function LastEventPage() {
         const lastResult = await dashboardService.getLastResult();
         
         if (lastResult && lastResult.grandPrixName !== 'Nenhum resultado disponível') {
-          const qualifyingEventData = convertApiDataToEventData(lastResult, 'qualifying');
-          const raceEventData = convertApiDataToEventData(lastResult, 'race');
+          // Verificar se há resultados disponíveis
+          const hasQualifyingResults = lastResult.qualifyingResults.length > 0;
+          const hasRaceResults = lastResult.raceResults.length > 0;
           
-          setQualifyingData(qualifyingEventData);
-          setRaceData(raceEventData);
-          
-          showToast(`Dados do ${lastResult.grandPrixName} carregados com sucesso! 🏁`, 'success');
+          if (hasQualifyingResults || hasRaceResults) {
+            const qualifyingEventData = convertApiDataToEventData(lastResult, 'qualifying');
+            const raceEventData = convertApiDataToEventData(lastResult, 'race');
+            
+            setQualifyingData(qualifyingEventData);
+            setRaceData(raceEventData);
+            
+            showToast(`Dados do ${lastResult.grandPrixName} carregados com sucesso! 🏁`, 'success');
+          } else {
+            // Grand Prix encontrado mas sem resultados ainda
+            showToast(`${lastResult.grandPrixName} encontrado, mas os resultados ainda não estão disponíveis.`, 'info');
+            setQualifyingData(null);
+            setRaceData(null);
+          }
         } else {
           // Fallback: tentar buscar dados da API da F1
           try {
@@ -238,8 +249,25 @@ export default function LastEventPage() {
           {raceData && <EventResults {...raceData} />}
           
           {!qualifyingData && !raceData && (
-            <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">Nenhum dado de evento disponível</p>
+            <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="mb-4">
+                <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Aguardando Resultados</h3>
+              <p className="text-gray-600 mb-4">
+                Os resultados do último Grande Prêmio ainda não estão disponíveis.
+              </p>
+              <p className="text-sm text-gray-500">
+                Os dados serão exibidos assim que a classificação e corrida forem concluídas.
+              </p>
+              <button
+                onClick={handleRefreshData}
+                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+              >
+                Verificar Novamente
+              </button>
             </div>
           )}
         </div>
