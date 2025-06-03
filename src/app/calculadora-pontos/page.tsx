@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Bars3Icon } from '@heroicons/react/24/outline';
+import { toast } from 'react-hot-toast';
 import { DriverAutocomplete } from '../../components/DriverAutocomplete';
 import { RaceScoreCalculator, QualifyingScoreCalculator } from '../../utils/scoreCalculators';
 import { guessService, Pilot } from '../../services/guesses';
@@ -130,6 +131,24 @@ export default function CalculadoraPontosPage() {
     console.log('❌ Nenhum driver convertido - pilots está vazio');
   }
 
+  // Função para obter drivers disponíveis para palpite (excluindo já selecionados)
+  const getAvailableDriversForGuess = (currentPosition: number): Driver[] => {
+    const selectedDriverIds = userGuessDrivers
+      .map((driver, index) => index !== currentPosition - 1 ? driver?.id : null)
+      .filter(id => id !== null);
+    
+    return drivers.filter(driver => !selectedDriverIds.includes(driver.id));
+  };
+
+  // Função para obter drivers disponíveis para resultado real (excluindo já selecionados)
+  const getAvailableDriversForActual = (currentPosition: number): Driver[] => {
+    const selectedDriverIds = actualResultDrivers
+      .map((driver, index) => index !== currentPosition - 1 ? driver?.id : null)
+      .filter(id => id !== null);
+    
+    return drivers.filter(driver => !selectedDriverIds.includes(driver.id));
+  };
+
   const initializePositions = () => {
     const emptyArrayGuess = new Array(numPositions).fill(null);
     const emptyArrayResult = new Array(NUM_POSITIONS_RESULT).fill(null);
@@ -230,7 +249,7 @@ export default function CalculadoraPontosPage() {
     const allActualSet = actualResultDrivers.slice(0, numPositions).every(d => d !== null);
     
     if (!allGuessesSet || !allActualSet) {
-      alert('Por favor, preencha todas as posições antes de calcular.');
+      toast.error('Por favor, preencha todas as posições antes de calcular.');
       return;
     }
 
@@ -367,7 +386,7 @@ export default function CalculadoraPontosPage() {
         </div>
 
         {/* Seção Explicativa do Sistema de Pontuação */}
-        <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-lg p-6 mb-6 border border-red-200">
+        <div className="bg-gradient-to-r from-blue-100 to-blue-100 rounded-lg p-6 mb-6 border border-blue-200">
           <h2 className="text-xl font-bold text-black mb-4 flex items-center gap-2">
             📊 Como Funciona a Pontuação
           </h2>
@@ -509,7 +528,7 @@ export default function CalculadoraPontosPage() {
                             </div>
                             <div className="flex-1">
                               <DriverAutocomplete
-                                drivers={drivers}
+                                drivers={getAvailableDriversForGuess(position)}
                                 selectedDriver={userGuessDrivers[position - 1]}
                                 onSelect={(driver) => handleGuessDriverSelect(driver, position)}
                                 position={position}
@@ -559,7 +578,7 @@ export default function CalculadoraPontosPage() {
                             </div>
                             <div className="flex-1">
                               <DriverAutocomplete
-                                drivers={drivers}
+                                drivers={getAvailableDriversForActual(position)}
                                 selectedDriver={actualResultDrivers[position - 1]}
                                 onSelect={(driver) => handleActualDriverSelect(driver, position)}
                                 position={position}
