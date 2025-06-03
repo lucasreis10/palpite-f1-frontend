@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Bars3Icon } from '@heroicons/react/24/outline';
@@ -26,6 +26,9 @@ export default function CalculadoraPontosPage() {
   const [loading, setLoading] = useState(true);
   const [guessType, setGuessType] = useState<'QUALIFYING' | 'RACE'>('RACE');
   const [numPositions, setNumPositions] = useState(10);
+  
+  // Ref para a seção de resultados
+  const resultSectionRef = useRef<HTMLDivElement>(null);
   
   // Log detalhado do estado atual no render
   console.log('=== RENDER CALCULADORA ===');
@@ -256,17 +259,42 @@ export default function CalculadoraPontosPage() {
       const actualDriver = actualResultDrivers[i];
 
       if (guessDriver && actualDriver) {
-        // Calcular pontos individuais usando mini-calculadora
-        const singleGuess = [guessDriver.id];
-        const singleActual = [actualDriver.id];
+        // Encontrar onde o piloto real terminou no meu palpite
+        const guessedPosition = userGuessDrivers.findIndex(d => d && d.id === actualDriver.id);
         
+        // Calcular pontos individuais baseado na posição real (i) e posição do palpite (guessedPosition)
         let individualPoints = 0;
-        if (guessType === 'QUALIFYING') {
-          const singleCalc = new QualifyingScoreCalculator(singleActual, singleGuess);
-          individualPoints = singleCalc.calculate();
-        } else {
-          const singleCalc = new RaceScoreCalculator(singleActual, singleGuess);
-          individualPoints = singleCalc.calculate();
+        
+        if (guessedPosition >= 0) {
+          // Criar arrays temporários para calcular pontos dessa posição específica
+          const tempActualArray = new Array(numPositions).fill(0);
+          const tempGuessArray = new Array(numPositions).fill(0);
+          
+          // Colocar o piloto na posição correta
+          tempActualArray[i] = actualDriver.id; // Posição real
+          tempGuessArray[guessedPosition] = actualDriver.id; // Posição do palpite
+          
+          // Preencher o resto com IDs únicos diferentes
+          let nextId = 9999;
+          for (let j = 0; j < numPositions; j++) {
+            if (tempActualArray[j] === 0) {
+              tempActualArray[j] = nextId;
+              nextId++;
+            }
+            if (tempGuessArray[j] === 0) {
+              tempGuessArray[j] = nextId;
+              nextId++;
+            }
+          }
+          
+          // Calcular pontos usando a calculadora apropriada
+          if (guessType === 'QUALIFYING') {
+            const singleCalc = new QualifyingScoreCalculator(tempActualArray, tempGuessArray);
+            individualPoints = singleCalc.calculate();
+          } else {
+            const singleCalc = new RaceScoreCalculator(tempActualArray, tempGuessArray);
+            individualPoints = singleCalc.calculate();
+          }
         }
 
         const detail: ScoreDetail = {
@@ -282,6 +310,11 @@ export default function CalculadoraPontosPage() {
 
     setScoreDetails(details);
     setTotalScore(Math.round(totalScore * 1000) / 1000);
+
+    // Fazer scroll automático para a seção de resultados
+    if (resultSectionRef.current) {
+      resultSectionRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const resetCalculator = () => {
@@ -546,7 +579,7 @@ export default function CalculadoraPontosPage() {
 
         {/* Resultado do Cálculo */}
         {scoreDetails.length > 0 && (
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+          <div ref={resultSectionRef} className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-black">Resultado da Pontuação</h2>
               <div className="text-right">
