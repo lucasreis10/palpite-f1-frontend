@@ -1,6 +1,15 @@
 // Configuração centralizada da API
+const getBaseUrl = () => {
+  // Se estiver em desenvolvimento ou variável de ambiente específica para desenvolvimento
+  if (process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_USE_LOCAL_API === 'true') {
+    return 'http://localhost:8081/api';
+  }
+  // Em produção, usar a URL do Railway
+  return process.env.NEXT_PUBLIC_API_URL || 'https://javaspringboot-production-a2d3.up.railway.app/api';
+};
+
 export const API_CONFIG = {
-  BASE_URL: 'https://javaspringboot-production-a2d3.up.railway.app/api',
+  BASE_URL: getBaseUrl(),
   ENDPOINTS: {
     AUTH: '/auth',
     USERS: '/users',
@@ -18,8 +27,6 @@ export const API_CONFIG = {
 export const buildApiUrl = (endpoint: string): string => {
   return `${API_CONFIG.BASE_URL}${endpoint}`;
 };
-
-
 
 // URLs específicas para cada serviço
 export const API_URLS = {

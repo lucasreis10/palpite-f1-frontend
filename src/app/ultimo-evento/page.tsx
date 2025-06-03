@@ -38,6 +38,7 @@ export default function LastEventPage() {
   const [qualifyingData, setQualifyingData] = useState<EventData | null>(null);
   const [raceData, setRaceData] = useState<EventData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentGrandPrixName, setCurrentGrandPrixName] = useState<string | null>(null);
   const [toast, setToast] = useState<{
     message: string;
     type: 'success' | 'error' | 'info';
@@ -96,26 +97,37 @@ export default function LastEventPage() {
         // Tentar carregar dados da API primeiro
         const lastResult = await dashboardService.getLastResult();
         
-        if (lastResult && lastResult.grandPrixName !== 'Nenhum resultado disponível') {
+        console.log('🔍 Dados recebidos da API:', lastResult);
+        
+        if (lastResult && lastResult.grandPrixName && lastResult.grandPrixName !== 'Nenhum resultado disponível') {
+          console.log('✅ Grand Prix encontrado:', lastResult.grandPrixName);
+          console.log('📊 Qualifying results:', lastResult.qualifyingResults.length);
+          console.log('🏁 Race results:', lastResult.raceResults.length);
+          
           // Verificar se há resultados disponíveis
           const hasQualifyingResults = lastResult.qualifyingResults.length > 0;
           const hasRaceResults = lastResult.raceResults.length > 0;
           
           if (hasQualifyingResults || hasRaceResults) {
+            console.log('✅ Resultados encontrados, criando EventData');
             const qualifyingEventData = convertApiDataToEventData(lastResult, 'qualifying');
             const raceEventData = convertApiDataToEventData(lastResult, 'race');
             
             setQualifyingData(qualifyingEventData);
             setRaceData(raceEventData);
+            setCurrentGrandPrixName(lastResult.grandPrixName);
             
             showToast(`Dados do ${lastResult.grandPrixName} carregados com sucesso! 🏁`, 'success');
           } else {
+            console.log('ℹ️ Grand Prix encontrado mas sem resultados');
             // Grand Prix encontrado mas sem resultados ainda
-            showToast(`${lastResult.grandPrixName} encontrado, mas os resultados ainda não estão disponíveis.`, 'info');
+            setCurrentGrandPrixName(lastResult.grandPrixName);
             setQualifyingData(null);
             setRaceData(null);
+            showToast(`${lastResult.grandPrixName} encontrado, mas os resultados ainda não estão disponíveis.`, 'info');
           }
         } else {
+          console.log('❌ Nenhum Grand Prix válido encontrado, tentando API F1');
           // Fallback: tentar buscar dados da API da F1
           try {
             const [qualifyingResults, raceResults] = await Promise.all([
@@ -154,7 +166,11 @@ export default function LastEventPage() {
             
             showToast('Dados carregados da API da F1! 🏎️', 'info');
           } catch (f1Error) {
-            throw new Error('Erro ao carregar dados da F1');
+            console.log('❌ Erro ao carregar dados da F1:', f1Error);
+            setCurrentGrandPrixName(null);
+            setQualifyingData(null);
+            setRaceData(null);
+            showToast('Nenhum dado de evento disponível no momento.', 'info');
           }
         }
 
@@ -163,6 +179,7 @@ export default function LastEventPage() {
         showToast('Erro ao carregar dados do último evento.', 'error');
         
         // Sem dados disponíveis
+        setCurrentGrandPrixName(null);
         setQualifyingData(null);
         setRaceData(null);
       } finally {
@@ -179,15 +196,35 @@ export default function LastEventPage() {
       
       const lastResult = await dashboardService.getLastResult();
       
-      if (lastResult && lastResult.grandPrixName !== 'Nenhum resultado disponível') {
-        const qualifyingEventData = convertApiDataToEventData(lastResult, 'qualifying');
-        const raceEventData = convertApiDataToEventData(lastResult, 'race');
+      console.log('🔄 Refresh - Dados recebidos:', lastResult);
+      
+      if (lastResult && lastResult.grandPrixName && lastResult.grandPrixName !== 'Nenhum resultado disponível') {
+        console.log('✅ Refresh - Grand Prix encontrado:', lastResult.grandPrixName);
         
-        setQualifyingData(qualifyingEventData);
-        setRaceData(raceEventData);
+        // Verificar se há resultados disponíveis
+        const hasQualifyingResults = lastResult.qualifyingResults.length > 0;
+        const hasRaceResults = lastResult.raceResults.length > 0;
         
-        showToast('Dados atualizados com sucesso! 🔄', 'success');
+        if (hasQualifyingResults || hasRaceResults) {
+          const qualifyingEventData = convertApiDataToEventData(lastResult, 'qualifying');
+          const raceEventData = convertApiDataToEventData(lastResult, 'race');
+          
+          setQualifyingData(qualifyingEventData);
+          setRaceData(raceEventData);
+          setCurrentGrandPrixName(lastResult.grandPrixName);
+          
+          showToast('Dados atualizados com sucesso! 🔄', 'success');
+        } else {
+          // Grand Prix encontrado mas sem resultados
+          setCurrentGrandPrixName(lastResult.grandPrixName);
+          setQualifyingData(null);
+          setRaceData(null);
+          showToast(`${lastResult.grandPrixName} encontrado, mas os resultados ainda não estão disponíveis.`, 'info');
+        }
       } else {
+        setCurrentGrandPrixName(null);
+        setQualifyingData(null);
+        setRaceData(null);
         showToast('Nenhum resultado disponível no momento.', 'info');
       }
     } catch (error) {
@@ -209,7 +246,7 @@ export default function LastEventPage() {
     );
   }
 
-  const eventName = qualifyingData?.eventName || raceData?.eventName || 'Último Grande Prêmio';
+  const eventName = currentGrandPrixName || qualifyingData?.eventName || raceData?.eventName || 'Último Grande Prêmio';
   const bestQualifyingUser = qualifyingData?.predictions[0];
   const bestRaceUser = raceData?.predictions[0];
 
