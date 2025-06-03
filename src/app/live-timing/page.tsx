@@ -305,13 +305,13 @@ function RaceControl({ messages }: { messages: LiveTimingData['raceControl'] }) 
 
   return (
     <div className="space-y-3">
-      {messages.map((msg) => (
-        <div key={msg.id} className="bg-gray-800 rounded-lg p-4 border-l-4 border-blue-500">
+      {messages.map((msg, index) => (
+        <div key={`${msg.date}-${index}`} className="bg-gray-800 rounded-lg p-4 border-l-4 border-blue-500">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
             <span className="px-2 py-1 bg-blue-600 text-xs font-bold rounded w-fit">
               {msg.category}
             </span>
-            <span className="text-xs text-gray-400 font-mono">{msg.timestamp}</span>
+            <span className="text-xs text-gray-400 font-mono">{msg.date}</span>
           </div>
           <p className="mt-2 text-sm sm:text-base">{msg.message}</p>
         </div>
