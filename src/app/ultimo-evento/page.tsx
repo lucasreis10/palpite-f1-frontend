@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Header } from './../../components/Header';
 import { EventResults } from './../../components/EventResults';
 import { Toast } from './../../components/Toast';
-import { dashboardService, LastResult } from './../../services/dashboard';
+import { dashboardService, LastResult, ParticipantGuess } from './../../services/dashboard';
 import { F1Service } from './../../services/f1';
 
 interface Driver {
@@ -69,16 +69,27 @@ export default function LastEventPage() {
     type: 'qualifying' | 'race'
   ): EventData => {
     const results = type === 'qualifying' ? lastResult.qualifyingResults : lastResult.raceResults;
+    const guesses = type === 'qualifying' ? lastResult.qualifyingGuesses : lastResult.raceGuesses;
     
-         const officialResults: Driver[] = results.map((result, index) => ({
-       id: index + 1,
-       name: result.pilotName,
-       team: result.teamName || 'Equipe F1',
-       position: result.position
-     }));
+    const officialResults: Driver[] = results.map((result, index) => ({
+      id: index + 1,
+      name: result.pilotName,
+      team: result.teamName || 'Equipe F1',
+      position: result.position
+    }));
 
-    // TODO: Buscar palpites reais da API
-    const predictions: Prediction[] = [];
+    // Converter palpites reais da API para formato esperado
+    const predictions: Prediction[] = guesses.map((guess) => ({
+      id: guess.userId,
+      user: {
+        id: guess.userId,
+        name: guess.userName,
+        team: 'Equipe F1' // TODO: buscar equipe real do usuário se necessário
+      },
+      predictions: [], // Array vazio - não exibimos detalhes dos palpites, apenas ranking
+      points: Math.round(guess.score * 100) / 100, // arredondar para 2 casas decimais
+      accuracy: 0 // Não calculamos acurácia neste contexto
+    }));
 
     return {
       eventName: lastResult.grandPrixName,

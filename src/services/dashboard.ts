@@ -16,6 +16,8 @@ export interface LastResult {
   grandPrixName: string;
   qualifyingResults: PilotResult[];
   raceResults: PilotResult[];
+  qualifyingGuesses: ParticipantGuess[];
+  raceGuesses: ParticipantGuess[];
 }
 
 export interface PilotResult {
@@ -68,6 +70,15 @@ export interface DashboardData {
   topUsers: TopUser[];
   topTeams: TopTeam[];
   stats: DashboardStats;
+}
+
+export interface ParticipantGuess {
+  userId: number;
+  userName: string;
+  userEmail: string;
+  score: number;
+  position: number;
+  hasGuess: boolean;
 }
 
 class DashboardService {

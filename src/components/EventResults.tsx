@@ -123,25 +123,30 @@ export function EventResults({ eventName, date, type, officialResults, predictio
                         </div>
                         <div className="text-right">
                           <p className="text-lg font-bold text-f1-red">{prediction.points} pts</p>
-                          <p className="text-sm text-gray-500">{(prediction.accuracy * 100).toFixed(0)}% acertos</p>
+                          {prediction.accuracy > 0 && (
+                            <p className="text-sm text-gray-500">{(prediction.accuracy * 100).toFixed(0)}% acertos</p>
+                          )}
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-2 mt-3 p-2 bg-white rounded-lg">
-                        {prediction.predictions.slice(0, 6).map((driver, idx) => (
-                          <div 
-                            key={driver.id}
-                            className="flex items-center gap-2"
-                          >
-                            <span className={`text-sm px-2 py-1 rounded-full ${
-                              idx < 3 ? 'bg-green-100 text-green-800' :
-                              idx < 6 ? 'bg-blue-100 text-blue-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>{idx + 1}.</span>
-                            <span className="text-sm text-gray-900">{driver.name}</span>
-                          </div>
-                        ))}
-                      </div>
+                      {/* Mostrar detalhes dos palpites apenas se disponível */}
+                      {prediction.predictions.length > 0 && (
+                        <div className="grid grid-cols-2 gap-2 mt-3 p-2 bg-white rounded-lg">
+                          {prediction.predictions.slice(0, 6).map((driver, idx) => (
+                            <div 
+                              key={driver.id}
+                              className="flex items-center gap-2"
+                            >
+                              <span className={`text-sm px-2 py-1 rounded-full ${
+                                idx < 3 ? 'bg-green-100 text-green-800' :
+                                idx < 6 ? 'bg-blue-100 text-blue-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>{idx + 1}.</span>
+                              <span className="text-sm text-gray-900">{driver.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
 
                       {index < 3 && (
                         <div className="mt-2 text-sm text-green-600 font-medium">
