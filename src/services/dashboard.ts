@@ -76,6 +76,7 @@ export interface ParticipantGuess {
   userId: number;
   userName: string;
   userEmail: string;
+  teamName: string;
   score: number;
   position: number;
   hasGuess: boolean;

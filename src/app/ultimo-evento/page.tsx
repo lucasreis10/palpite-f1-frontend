@@ -84,7 +84,7 @@ export default function LastEventPage() {
       user: {
         id: guess.userId,
         name: guess.userName,
-        team: 'Equipe F1' // TODO: buscar equipe real do usuário se necessário
+        team: guess.teamName // Usando o nome real da equipe
       },
       predictions: [], // Array vazio - não exibimos detalhes dos palpites, apenas ranking
       points: Math.round(guess.score * 100) / 100, // arredondar para 2 casas decimais
@@ -328,10 +328,13 @@ export default function LastEventPage() {
             </p>
             <p className="text-gray-600">
               {bestQualifyingUser 
-                ? `${bestQualifyingUser.points} pontos - ${(bestQualifyingUser.accuracy * 100).toFixed(0)}% de acertos`
+                ? `${bestQualifyingUser.points} pontos`
                 : 'Dados não disponíveis'
               }
             </p>
+            {bestQualifyingUser && (
+              <p className="text-sm text-gray-500 mt-1">{bestQualifyingUser.user.team}</p>
+            )}
           </div>
 
           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
@@ -341,10 +344,13 @@ export default function LastEventPage() {
             </p>
             <p className="text-gray-600">
               {bestRaceUser 
-                ? `${bestRaceUser.points} pontos - ${(bestRaceUser.accuracy * 100).toFixed(0)}% de acertos`
+                ? `${bestRaceUser.points} pontos`
                 : 'Dados não disponíveis'
               }
             </p>
+            {bestRaceUser && (
+              <p className="text-sm text-gray-500 mt-1">{bestRaceUser.user.team}</p>
+            )}
           </div>
 
           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
@@ -357,10 +363,13 @@ export default function LastEventPage() {
             </p>
             <p className="text-gray-600">
               {bestQualifyingUser && bestRaceUser && bestQualifyingUser.user.name === bestRaceUser.user.name
-                ? `${bestQualifyingUser.user.name} - ${bestQualifyingUser.user.team}`
+                ? bestQualifyingUser.user.name
                 : 'Dados não disponíveis'
               }
             </p>
+            {bestQualifyingUser && bestRaceUser && bestQualifyingUser.user.name === bestRaceUser.user.name && (
+              <p className="text-sm text-gray-500 mt-1">{bestQualifyingUser.user.team}</p>
+            )}
           </div>
         </div>
       </div>
