@@ -131,20 +131,20 @@ export default function LiveTimingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      {/* Header Mobile-First */}
-      <div className="bg-red-600 shadow-lg">
+    <div className="min-h-screen bg-slate-900 text-white">
+      {/* Header */}
+      <div className="bg-slate-800 shadow-lg border-b border-slate-700">
         <div className="container mx-auto px-4 py-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div className="flex items-center gap-3">
-              <Link href="/" className="text-white hover:text-red-200 text-sm sm:text-base">
+              <Link href="/" className="text-slate-300 hover:text-white text-sm sm:text-base">
                 ← Voltar
               </Link>
               <div>
-                <h1 className="text-lg sm:text-xl font-bold">
+                <h1 className="text-lg sm:text-xl font-bold text-white">
                   🔴 {data?.grandPrixName || 'F1 Live Timing'}
                 </h1>
-                <p className="text-red-100 text-xs sm:text-sm">
+                <p className="text-slate-400 text-xs sm:text-sm">
                   {data?.sessionName} • {data?.sessionStatus}
                 </p>
               </div>
@@ -152,8 +152,8 @@ export default function LiveTimingPage() {
             
             <button
               onClick={() => setAutoRefresh(!autoRefresh)}
-              className={`px-3 py-1 rounded-full text-sm ${
-                autoRefresh ? 'bg-green-500' : 'bg-gray-600'
+              className={`px-3 py-1 rounded-full text-sm font-medium ${
+                autoRefresh ? 'bg-green-600 text-white' : 'bg-slate-600 text-slate-300'
               }`}
             >
               {autoRefresh ? '🟢 AO VIVO' : '⏸️ PAUSADO'}
@@ -162,16 +162,16 @@ export default function LiveTimingPage() {
         </div>
       </div>
 
-      {/* Tabs Responsivas */}
-      <div className="bg-gray-800 border-b border-gray-700">
+      {/* Tabs */}
+      <div className="bg-slate-800 border-b border-slate-700">
         <div className="container mx-auto px-4">
           <div className="flex">
             <button
               onClick={() => setActiveTab('timing')}
               className={`flex-1 sm:flex-initial sm:px-6 py-3 text-sm font-medium ${
                 activeTab === 'timing'
-                  ? 'text-white border-b-2 border-red-500'
-                  : 'text-gray-400'
+                  ? 'text-red-400 border-b-2 border-red-500'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               📊 Timing
@@ -180,12 +180,26 @@ export default function LiveTimingPage() {
               onClick={() => setActiveTab('control')}
               className={`flex-1 sm:flex-initial sm:px-6 py-3 text-sm font-medium ${
                 activeTab === 'control'
-                  ? 'text-white border-b-2 border-red-500'
-                  : 'text-gray-400'
+                  ? 'text-red-400 border-b-2 border-red-500'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               🏁 Controle
             </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Banner Beta */}
+      <div className="bg-orange-600 border-b border-orange-500">
+        <div className="container mx-auto px-4 py-2">
+          <div className="flex items-center justify-center gap-2 text-sm">
+            <span className="bg-orange-800 text-orange-100 px-2 py-1 rounded text-xs font-bold">
+              BETA
+            </span>
+            <p className="text-orange-100 text-center">
+              ⚠️ Funcionalidade experimental - Dados ao vivo disponíveis apenas durante corridas oficiais da F1
+            </p>
           </div>
         </div>
       </div>
@@ -207,8 +221,8 @@ function TimingSection({ participants }: { participants: LiveTimingData['partici
   if (!participants.length) {
     return (
       <div className="text-center py-8">
-        <div className="text-gray-400 text-4xl mb-4">📊</div>
-        <p className="text-gray-400">Aguardando dados de timing...</p>
+        <div className="text-slate-400 text-4xl mb-4">📊</div>
+        <p className="text-slate-300">Aguardando dados de timing...</p>
       </div>
     );
   }
@@ -220,36 +234,36 @@ function TimingSection({ participants }: { participants: LiveTimingData['partici
         {participants.map((p) => (
           <div
             key={p.id}
-            className={`rounded-lg border p-3 ${
-              p.isLeader ? 'bg-yellow-500/10 border-yellow-500' : 'bg-gray-800 border-gray-700'
+            className={`rounded-lg border p-3 bg-slate-800 ${
+              p.isLeader ? 'border-yellow-500 ring-1 ring-yellow-500/20' : 'border-slate-600'
             }`}
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                  p.isLeader ? 'bg-yellow-500 text-black' : 'bg-gray-700'
+                  p.isLeader ? 'bg-yellow-500 text-black' : 'bg-slate-600 text-white'
                 }`}>
                   {p.position}
                 </span>
                 <div>
-                  <p className="font-semibold text-sm">{p.name}</p>
-                  <p className="text-xs text-gray-400">{p.team}</p>
+                  <p className="font-semibold text-sm text-white">{p.name}</p>
+                  <p className="text-xs text-slate-400">{p.team}</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-sm font-mono text-green-400">{p.gap}</p>
-                <p className="text-xs text-gray-400">Gap</p>
+                <p className="text-sm font-mono text-emerald-400">{p.gap}</p>
+                <p className="text-xs text-slate-400">Gap</p>
               </div>
             </div>
             
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="text-center">
                 <p className="font-mono text-blue-400">{p.lastLap}</p>
-                <p className="text-gray-500">Última</p>
+                <p className="text-slate-500">Última</p>
               </div>
               <div className="text-center">
                 <p className="font-mono text-purple-400">{p.bestLap}</p>
-                <p className="text-gray-500">Melhor</p>
+                <p className="text-slate-500">Melhor</p>
               </div>
             </div>
           </div>
@@ -258,9 +272,9 @@ function TimingSection({ participants }: { participants: LiveTimingData['partici
 
       {/* Desktop: Tabela */}
       <div className="hidden lg:block overflow-x-auto">
-        <table className="w-full bg-gray-800 rounded-lg">
-          <thead className="bg-gray-700">
-            <tr className="text-xs font-semibold text-gray-300">
+        <table className="w-full bg-slate-800 rounded-lg border border-slate-700">
+          <thead className="bg-slate-700">
+            <tr className="text-xs font-semibold text-slate-300">
               <th className="p-3 text-left">Pos</th>
               <th className="p-3 text-left">Piloto</th>
               <th className="p-3 text-left">Equipe</th>
@@ -271,17 +285,17 @@ function TimingSection({ participants }: { participants: LiveTimingData['partici
           </thead>
           <tbody>
             {participants.map((p) => (
-              <tr key={p.id} className="border-b border-gray-700 hover:bg-gray-750">
+              <tr key={p.id} className="border-b border-slate-700 hover:bg-slate-750">
                 <td className="p-3">
                   <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                    p.isLeader ? 'bg-yellow-500 text-black' : 'bg-gray-600'
+                    p.isLeader ? 'bg-yellow-500 text-black' : 'bg-slate-600 text-white'
                   }`}>
                     {p.position}
                   </span>
                 </td>
-                <td className="p-3 font-semibold">{p.name}</td>
-                <td className="p-3 text-gray-400">{p.team}</td>
-                <td className="p-3 text-center font-mono text-green-400">{p.gap}</td>
+                <td className="p-3 font-semibold text-white">{p.name}</td>
+                <td className="p-3 text-slate-300">{p.team}</td>
+                <td className="p-3 text-center font-mono text-emerald-400">{p.gap}</td>
                 <td className="p-3 text-center font-mono text-blue-400">{p.lastLap}</td>
                 <td className="p-3 text-center font-mono text-purple-400">{p.bestLap}</td>
               </tr>
@@ -297,8 +311,8 @@ function RaceControl({ messages }: { messages: LiveTimingData['raceControl'] }) 
   if (!messages.length) {
     return (
       <div className="text-center py-8">
-        <div className="text-gray-400 text-4xl mb-4">🏁</div>
-        <p className="text-gray-400">Nenhuma mensagem de controle</p>
+        <div className="text-slate-400 text-4xl mb-4">🏁</div>
+        <p className="text-slate-300">Nenhuma mensagem de controle</p>
       </div>
     );
   }
@@ -306,14 +320,14 @@ function RaceControl({ messages }: { messages: LiveTimingData['raceControl'] }) 
   return (
     <div className="space-y-3">
       {messages.map((msg, index) => (
-        <div key={`${msg.date}-${index}`} className="bg-gray-800 rounded-lg p-4 border-l-4 border-blue-500">
+        <div key={`${msg.date}-${index}`} className="bg-slate-800 rounded-lg p-4 border-l-4 border-blue-500 border border-slate-700">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <span className="px-2 py-1 bg-blue-600 text-xs font-bold rounded w-fit">
+            <span className="px-2 py-1 bg-blue-600 text-white text-xs font-bold rounded w-fit">
               {msg.category}
             </span>
-            <span className="text-xs text-gray-400 font-mono">{msg.date}</span>
+            <span className="text-xs text-slate-400 font-mono">{msg.date}</span>
           </div>
-          <p className="mt-2 text-sm sm:text-base">{msg.message}</p>
+          <p className="mt-2 text-sm sm:text-base text-slate-100">{msg.message}</p>
         </div>
       ))}
     </div>
