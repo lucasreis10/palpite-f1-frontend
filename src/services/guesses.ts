@@ -232,6 +232,7 @@ class GuessService {
       throw new Error('Não foi possível carregar o histórico de palpites');
     }
   }
+  
 }
 
 export const guessService = new GuessService(); 
