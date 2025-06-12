@@ -202,8 +202,28 @@ export function BetForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user || !nextGrandPrix) {
-      showToast('Usuário não logado ou nenhum GP disponível', 'error');
+    // Logs de diagnóstico
+    console.log('Estado atual:', {
+      user,
+      nextGrandPrix,
+      authLoading,
+      isLoading,
+      existingQualifyingGuess,
+      existingRaceGuess
+    });
+    
+    if (authLoading || isLoading) {
+      showToast('Aguarde o carregamento dos dados...', 'info');
+      return;
+    }
+
+    if (!user) {
+      showToast('Usuário não está logado. Por favor, faça login novamente.', 'error');
+      return;
+    }
+
+    if (!nextGrandPrix) {
+      showToast('Nenhum Grande Prêmio disponível no momento.', 'error');
       return;
     }
 
@@ -473,7 +493,7 @@ export function BetForm() {
                   }
                 >
                   <span className="flex items-center justify-center gap-2">
-                    🏎️ <span className="hidden sm:inline">Classificação</span>
+                    ��️ <span className="hidden sm:inline">Classificação</span>
                     <span className="sm:hidden">Quali</span>
                   </span>
                   {!qualifyingDeadlineOpen && (
@@ -786,13 +806,15 @@ export function BetForm() {
               <button
                 type="submit"
                 className="w-full sm:w-auto px-6 py-3 bg-f1-red text-gray-700 border border-gray-300 rounded-lg hover:bg-f1-red/90 transition-colors font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                disabled={isSaving || (!qualifyingDeadlineOpen && !raceDeadlineOpen)}
+                disabled={isSaving || (!qualifyingDeadlineOpen && !raceDeadlineOpen) || authLoading || isLoading || !user}
               >
                 {isSaving ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-300"></div>
                     <span>Salvando...</span>
                   </>
+                ) : authLoading || isLoading ? (
+                  <span>Carregando...</span>
                 ) : (
                   <span>Salvar Palpites</span>
                 )}
