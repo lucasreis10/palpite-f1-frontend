@@ -42,6 +42,70 @@ export function BetForm() {
   const [showPreview, setShowPreview] = useState(false);
   const [showTextPreview, setShowTextPreview] = useState(false);
 
+  // Adicionar um useEffect para debug
+  useEffect(() => {
+    console.log('Estado de autenticação:', {
+      user,
+      authLoading,
+      isLoading,
+      nextGrandPrix: !!nextGrandPrix
+    });
+  }, [user, authLoading, isLoading, nextGrandPrix]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // Carregar pilotos e próximo GP em paralelo
+        const [pilotsData, nextGpData] = await Promise.all([
+          guessService.getAllPilots(),
+          guessService.getNextGrandPrix()
+        ]);
+
+        setPilots(pilotsData);
+        setNextGrandPrix(nextGpData);
+
+        // Se há um próximo GP e usuário logado, carregar palpites existentes
+        if (nextGpData && user?.id) {
+          try {
+            const [qualifyingGuess, raceGuess] = await Promise.all([
+              guessService.getUserGuessForGrandPrix(user.id, nextGpData.id, 'QUALIFYING'),
+              guessService.getUserGuessForGrandPrix(user.id, nextGpData.id, 'RACE')
+            ]);
+
+            setExistingQualifyingGuess(qualifyingGuess);
+            setExistingRaceGuess(raceGuess);
+
+            // Preencher formulário com palpites existentes
+            if (qualifyingGuess?.pilots) {
+              const qualifyingDrivers = qualifyingGuess.pilots.map(pilot => convertPilotToDriver(pilot));
+              setSelectedQualifyingDrivers([...qualifyingDrivers, ...new Array(Math.max(0, 10 - qualifyingDrivers.length)).fill(null)]);
+            }
+
+            if (raceGuess?.pilots) {
+              const raceDrivers = raceGuess.pilots.map(pilot => convertPilotToDriver(pilot));
+              setSelectedRaceDrivers([...raceDrivers, ...new Array(Math.max(0, 10 - raceDrivers.length)).fill(null)]);
+            }
+          } catch (guessError) {
+            console.error('Erro ao carregar palpites existentes:', guessError);
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+        setError('Erro ao carregar dados. Tente novamente.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Carregar dados quando o usuário estiver disponível e não estiver carregando
+    if (!authLoading) {
+      loadData();
+    }
+  }, [user?.id, authLoading]); // Adicionar user?.id como dependência
+
   // Converter Pilot para Driver (compatibilidade com componente existente)
   const convertPilotToDriver = (pilot: Pilot): Driver => ({
     id: pilot.id,
@@ -65,67 +129,6 @@ export function BetForm() {
   const closeToast = () => {
     setToast(prev => ({ ...prev, isVisible: false }));
   };
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        // Carregar pilotos e próximo GP em paralelo
-        const [pilotsData, nextGpData] = await Promise.all([
-          guessService.getAllPilots(),
-          guessService.getNextGrandPrix()
-        ]);
-
-        setPilots(pilotsData);
-        setNextGrandPrix(nextGpData);
-
-        // Se há um próximo GP e usuário logado, carregar palpites existentes
-        if (nextGpData && user && user.id) {
-          try {
-            const [qualifyingGuess, raceGuess] = await Promise.all([
-              guessService.getUserGuessForGrandPrix(user.id, nextGpData.id, 'QUALIFYING').catch(err => {
-                console.error('Erro ao carregar palpite de qualifying:', err);
-                return null;
-              }),
-              guessService.getUserGuessForGrandPrix(user.id, nextGpData.id, 'RACE').catch(err => {
-                console.error('Erro ao carregar palpite de race:', err);
-                return null;
-              })
-            ]);
-
-            setExistingQualifyingGuess(qualifyingGuess);
-            setExistingRaceGuess(raceGuess);
-
-            // Preencher formulário com palpites existentes
-            if (qualifyingGuess && qualifyingGuess.pilots && Array.isArray(qualifyingGuess.pilots)) {
-              const qualifyingDrivers = qualifyingGuess.pilots.map(pilot => convertPilotToDriver(pilot));
-              setSelectedQualifyingDrivers([...qualifyingDrivers, ...new Array(Math.max(0, 10 - qualifyingDrivers.length)).fill(null)]);
-            }
-
-            if (raceGuess && raceGuess.pilots && Array.isArray(raceGuess.pilots)) {
-              const raceDrivers = raceGuess.pilots.map(pilot => convertPilotToDriver(pilot));
-              setSelectedRaceDrivers([...raceDrivers, ...new Array(Math.max(0, 10 - raceDrivers.length)).fill(null)]);
-            }
-          } catch (guessError) {
-            console.error('Erro ao carregar palpites existentes:', guessError);
-            // Continuar sem palpites existentes
-          }
-        }
-      } catch (error) {
-        console.error('Erro ao carregar dados:', error);
-        setError('Erro ao carregar dados. Tente novamente.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    // Só carregar dados quando a autenticação não estiver carregando
-    if (!authLoading) {
-      loadData();
-    }
-  }, [user, authLoading]);
 
   const drivers: Driver[] = pilots.map(convertPilotToDriver);
 
@@ -493,7 +496,7 @@ export function BetForm() {
                   }
                 >
                   <span className="flex items-center justify-center gap-2">
-                    ��️ <span className="hidden sm:inline">Classificação</span>
+                    🏎️ <span className="hidden sm:inline">Classificação</span>
                     <span className="sm:hidden">Quali</span>
                   </span>
                   {!qualifyingDeadlineOpen && (
@@ -806,7 +809,13 @@ export function BetForm() {
               <button
                 type="submit"
                 className="w-full sm:w-auto px-6 py-3 bg-f1-red text-gray-700 border border-gray-300 rounded-lg hover:bg-f1-red/90 transition-colors font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                disabled={isSaving || (!qualifyingDeadlineOpen && !raceDeadlineOpen) || authLoading || isLoading || !user}
+                disabled={
+                  isSaving || 
+                  (!qualifyingDeadlineOpen && !raceDeadlineOpen) || 
+                  authLoading || 
+                  isLoading || 
+                  !user?.id
+                }
               >
                 {isSaving ? (
                   <>
@@ -814,7 +823,12 @@ export function BetForm() {
                     <span>Salvando...</span>
                   </>
                 ) : authLoading || isLoading ? (
-                  <span>Carregando...</span>
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-300"></div>
+                    <span>Carregando...</span>
+                  </>
+                ) : !user?.id ? (
+                  <span>Faça login para salvar</span>
                 ) : (
                   <span>Salvar Palpites</span>
                 )}

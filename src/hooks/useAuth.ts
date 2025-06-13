@@ -20,21 +20,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const currentUser = authService.getCurrentUser();
-    
-    // Verificar se o token ainda está válido
-    if (currentUser && authService.isTokenValid()) {
-      setUser(currentUser);
-      
-      // Iniciar verificação periódica do token
-      authService.startTokenValidation();
-    } else if (currentUser) {
-      // Token inválido ou expirado, fazer logout
-      authService.logout();
-      setUser(null);
-    }
-    
-    setIsLoading(false);
+    const loadUser = async () => {
+      setIsLoading(true);
+      try {
+        const currentUser = authService.getCurrentUser();
+        
+        // Verificar se o token ainda está válido
+        if (currentUser && authService.isTokenValid()) {
+          setUser(currentUser);
+          
+          // Iniciar verificação periódica do token
+          authService.startTokenValidation();
+        } else if (currentUser) {
+          // Token inválido ou expirado, fazer logout
+          authService.logout();
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar usuário:', error);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadUser();
 
     // Cleanup: parar verificação quando o componente for desmontado
     return () => {
@@ -56,6 +66,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Iniciar verificação periódica do token após login
       authService.startTokenValidation();
+
+      // Forçar atualização do estado
+      await new Promise(resolve => setTimeout(resolve, 100));
     } catch (error) {
       throw error;
     } finally {
@@ -77,6 +90,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Iniciar verificação periódica do token após registro
       authService.startTokenValidation();
+
+      // Forçar atualização do estado
+      await new Promise(resolve => setTimeout(resolve, 100));
     } catch (error) {
       throw error;
     } finally {
