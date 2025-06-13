@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { QualifyingScoreCalculator, RaceScoreCalculator } from '../../utils/scoreCalculators';
 
 interface DriverStanding {
   position: number;
@@ -21,7 +22,7 @@ interface LiveRanking {
   userEmail: string;
   currentScore: number;
   totalPossibleScore: number;
-  correctGuesses: number;
+  correctGuesses: any[];
   raceGuesses: any[];
   positionDifferences: { [position: number]: number };
 }
@@ -70,6 +71,27 @@ interface LiveTimingData {
     team: string;
     isLeader: boolean;
   }>;
+}
+
+function calculateLiveScore(raceGuesses: any[], currentStandings: DriverStanding[]): { score: number; correctGuesses: number } {
+  // Converter os palpites e resultados atuais para arrays de IDs
+  const guessIds = raceGuesses.map(guess => guess.pilotId);
+  const currentIds = currentStandings.map(driver => {
+    // Encontrar o piloto correspondente pelo código
+    const guessDriver = raceGuesses.find(g => g.code === driver.driverAcronym);
+    return guessDriver ? guessDriver.pilotId : 0;
+  });
+
+  // Usar o calculador apropriado
+  const calculator = new RaceScoreCalculator(currentIds, guessIds);
+  const score = calculator.calculate();
+  
+  // Contar acertos exatos
+  const correctGuesses = guessIds.reduce((count, pilotId, index) => {
+    return count + (currentIds[index] === pilotId ? 1 : 0);
+  }, 0);
+
+  return { score, correctGuesses };
 }
 
 export default function LiveTimingPage() {
@@ -258,39 +280,80 @@ export default function LiveTimingPage() {
                     <h2 className="text-lg font-bold text-white">🏆 Ranking ao Vivo</h2>
                   </div>
                   <div className="p-4">
-                    {data?.liveRanking.map((ranking, index) => (
-                      <div 
-                        key={ranking.userId}
-                        className="mb-4 last:mb-0 p-4 bg-slate-700/50 rounded-lg"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xl font-bold">#{index + 1}</span>
-                            <span className="font-medium">{ranking.userName}</span>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-sm text-slate-300">Pontos: {ranking.currentScore}</div>
-                            <div className="text-xs text-slate-400">
-                              Acertos: {ranking.correctGuesses}
+                    {data?.liveRanking
+                      .map(ranking => {
+                        const { score, correctGuesses } = calculateLiveScore(ranking.raceGuesses, data.standings);
+                        return {
+                          ...ranking,
+                          calculatedScore: score,
+                          calculatedCorrectGuesses: correctGuesses
+                        };
+                      })
+                      .sort((a, b) => b.calculatedScore - a.calculatedScore)
+                      .map((ranking, index) => (
+                        <div 
+                          key={ranking.userId}
+                          className="mb-4 last:mb-0 p-4 bg-slate-700/50 rounded-lg"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className={`text-xl font-bold ${
+                                index === 0 ? 'text-yellow-400' :
+                                index === 1 ? 'text-slate-300' :
+                                index === 2 ? 'text-orange-400' :
+                                'text-slate-400'
+                              }`}>
+                                #{index + 1}
+                              </span>
+                              <span className="font-medium">{ranking.userName}</span>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm text-slate-300">
+                                Pontos: <span className="font-bold text-white">{ranking.calculatedScore.toFixed(3)}</span>
+                              </div>
+                              <div className="text-xs text-slate-400">
+                                Acertos: <span className="font-medium">{ranking.calculatedCorrectGuesses}</span>
+                              </div>
                             </div>
                           </div>
+                          
+                          {/* Palpites */}
+                          <div className="mt-3 grid grid-cols-5 gap-1">
+                            {ranking.raceGuesses.map((guess, pos) => {
+                              const currentPosition = data.standings.findIndex(
+                                driver => driver.driverAcronym === guess.code
+                              ) + 1;
+                              const positionDiff = currentPosition > 0 ? currentPosition - (pos + 1) : null;
+                              
+                              return (
+                                <div 
+                                  key={pos}
+                                  className={`text-center p-1 rounded ${
+                                    currentPosition === pos + 1 ? 'bg-green-800' :
+                                    Math.abs(positionDiff || 0) <= 3 ? 'bg-blue-800' :
+                                    'bg-slate-800'
+                                  }`}
+                                  title={`${pos + 1}º Lugar: ${guess.familyName}${
+                                    positionDiff !== null ? ` (atual: ${currentPosition}º, ${positionDiff > 0 ? '+' : ''}${positionDiff})` : ''
+                                  }`}
+                                >
+                                  <div className="text-xs font-medium">{pos + 1}º</div>
+                                  <div className="text-sm">{guess.code}</div>
+                                  {positionDiff !== null && (
+                                    <div className={`text-xs ${
+                                      positionDiff === 0 ? 'text-green-400' :
+                                      positionDiff > 0 ? 'text-red-400' :
+                                      'text-blue-400'
+                                    }`}>
+                                      {positionDiff === 0 ? '=' : positionDiff > 0 ? `+${positionDiff}` : positionDiff}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
-                        
-                        {/* Palpites */}
-                        <div className="mt-3 grid grid-cols-5 gap-1">
-                          {ranking.raceGuesses.map((guess, pos) => (
-                            <div 
-                              key={pos}
-                              className="text-center p-1 bg-slate-800 rounded"
-                              title={`${pos + 1}º Lugar: ${guess.familyName}`}
-                            >
-                              <div className="text-xs font-medium">{pos + 1}º</div>
-                              <div className="text-sm">{guess.code}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 </div>
               </div>
