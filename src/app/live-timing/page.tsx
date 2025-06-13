@@ -204,14 +204,125 @@ export default function LiveTimingPage() {
         </div>
       </div>
 
-      {/* Conteúdo */}
-      <div className="container mx-auto px-4 py-4">
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-6">
         {activeTab === 'timing' ? (
-          <TimingSection participants={data?.participants || []} />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Standings */}
+            <div className="lg:col-span-2">
+              <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden">
+                <div className="p-4 border-b border-slate-700">
+                  <h2 className="text-lg font-bold text-white">🏎️ Classificação</h2>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-700">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-sm font-medium text-slate-300">Pos</th>
+                        <th className="px-4 py-2 text-left text-sm font-medium text-slate-300">Piloto</th>
+                        <th className="px-4 py-2 text-left text-sm font-medium text-slate-300">Equipe</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data?.standings.map((driver) => (
+                        <tr key={driver.driverNumber} className="border-b border-slate-700 hover:bg-slate-700/50">
+                          <td className="px-4 py-3 text-sm">{driver.position}</td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{driver.driverName}</span>
+                              <span className="text-slate-400 text-sm">{driver.driverAcronym}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="w-3 h-3 rounded-full" 
+                                style={{ backgroundColor: `#${driver.teamColor}` }}
+                              />
+                              <span className="text-slate-300">{driver.teamName}</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            {/* Live Ranking */}
+            {data?.hasGuesses && (
+              <div className="lg:col-span-1">
+                <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden">
+                  <div className="p-4 border-b border-slate-700">
+                    <h2 className="text-lg font-bold text-white">🏆 Ranking ao Vivo</h2>
+                  </div>
+                  <div className="p-4">
+                    {data?.liveRanking.map((ranking, index) => (
+                      <div 
+                        key={ranking.userId}
+                        className="mb-4 last:mb-0 p-4 bg-slate-700/50 rounded-lg"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl font-bold">#{index + 1}</span>
+                            <span className="font-medium">{ranking.userName}</span>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm text-slate-300">Pontos: {ranking.currentScore}</div>
+                            <div className="text-xs text-slate-400">
+                              Acertos: {ranking.correctGuesses}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Palpites */}
+                        <div className="mt-3 grid grid-cols-5 gap-1">
+                          {ranking.raceGuesses.map((guess, pos) => (
+                            <div 
+                              key={pos}
+                              className="text-center p-1 bg-slate-800 rounded"
+                              title={`${pos + 1}º Lugar: ${guess.familyName}`}
+                            >
+                              <div className="text-xs font-medium">{pos + 1}º</div>
+                              <div className="text-sm">{guess.code}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         ) : (
           <RaceControl messages={data?.raceControl || []} />
         )}
       </div>
+
+      {/* Session Info */}
+      {data?.session && (
+        <div className="fixed bottom-0 left-0 right-0 bg-slate-800 border-t border-slate-700 py-2">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-wrap items-center justify-between gap-4 text-sm">
+              <div className="flex items-center gap-4">
+                <div>
+                  <span className="text-slate-400">Sessão:</span>{' '}
+                  <span className="font-medium">{data.session.session_name}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400">Local:</span>{' '}
+                  <span className="font-medium">{data.session.location}, {data.session.country_name}</span>
+                </div>
+              </div>
+              <div className="text-slate-400">
+                Última atualização: {new Date(data.timestamp).toLocaleTimeString('pt-BR')}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
