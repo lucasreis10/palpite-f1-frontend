@@ -171,10 +171,6 @@ class GuessService {
 
   // Método auxiliar para verificar se o prazo de palpites ainda está aberto
   isGuessDeadlineOpen(grandPrix: NextGrandPrix, guessType: 'QUALIFYING' | 'RACE'): boolean {
-    // TEMPORARIAMENTE DESABILITADO - sempre permitir palpites
-    return true;
-    
-    /* CÓDIGO ORIGINAL - COMENTADO TEMPORARIAMENTE
     const now = new Date();
     
     if (grandPrix.bettingDeadline) {
@@ -192,15 +188,10 @@ class GuessService {
     }
     
     return false;
-    */
   }
 
   // Método auxiliar para formatar data/hora do prazo
   getGuessDeadline(grandPrix: NextGrandPrix, guessType: 'QUALIFYING' | 'RACE'): string {
-    // TEMPORARIAMENTE DESABILITADO - mostrar mensagem informativa
-    return 'Verificação de prazo desabilitada (modo desenvolvimento)';
-    
-    /* CÓDIGO ORIGINAL - COMENTADO TEMPORARIAMENTE
     if (grandPrix.bettingDeadline) {
       return new Date(grandPrix.bettingDeadline).toLocaleString('pt-BR');
     }
@@ -213,7 +204,6 @@ class GuessService {
     }
     
     return 'Data não disponível';
-    */
   }
 
   // Buscar histórico de palpites do usuário

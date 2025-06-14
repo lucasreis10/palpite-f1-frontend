@@ -6,18 +6,27 @@ export class RaceScoreCalculator {
   private guessRace: number[];
   private diffGrids: Map<number, number>;
 
-  constructor(realGrid: number[], guessGrid: number[]) {
-    this.realRaceResult = realGrid;
-    this.guessRace = guessGrid;
-    this.diffGrids = this.checkDifferencesWithRealGridAndGuessGrid();
+  constructor(realRaceResult: number[], guessRace: number[]) {
+    this.realRaceResult = realRaceResult;
+    this.guessRace = guessRace;
+    this.diffGrids = this.differencesBetwenGrids();
   }
 
-  private checkDifferencesWithRealGridAndGuessGrid(): Map<number, number> {
+  private differencesBetwenGrids(): Map<number, number> {
+    const guessDrivers = this.normalizeDriverList();
+    return this.generateGridDifferences(guessDrivers);
+  }
+
+  private normalizeDriverList(): number[] {
+    return [...this.guessRace];
+  }
+
+  private generateGridDifferences(guessDrivers: number[]): Map<number, number> {
     const diff = new Map<number, number>();
     
     for (let index = 0; index < this.realRaceResult.length; index++) {
       const pilotId = this.realRaceResult[index];
-      const guessPosition = this.guessRace.indexOf(pilotId);
+      const guessPosition = guessDrivers.indexOf(pilotId);
       diff.set(index, guessPosition);
     }
     
@@ -37,7 +46,11 @@ export class RaceScoreCalculator {
     totalScore += this.calculateEighth();
     totalScore += this.calculateNinth();
     totalScore += this.calculateTenth();
-    
+    totalScore += this.calculateEleventh();
+    totalScore += this.calculateTwelfth();
+    totalScore += this.calculateThirteenth();
+    totalScore += this.calculateFourteenth();
+
     return Math.round(totalScore * 1000) / 1000; // 3 decimal places
   }
 
@@ -140,6 +153,46 @@ export class RaceScoreCalculator {
     }
     return 0;
   }
+
+  private calculateEleventh(): number {
+    const scores = [0, 0, 0, 0, 0, 0, 7.83, 9.212, 10.837, 12.75];
+
+    const position = this.diffGrids.get(10);
+    if (position !== undefined && position >= 0 && position < scores.length) {
+      return scores[position];
+    }
+    return 0;
+  }
+
+  private calculateTwelfth(): number {
+    const scores = [0, 0, 0, 0, 0, 0, 0, 7.83, 9.212, 10.837];
+
+    const position = this.diffGrids.get(11);
+    if (position !== undefined && position >= 0 && position < scores.length) {
+      return scores[position];
+    }
+    return 0;
+  }
+
+  private calculateThirteenth(): number {
+    const scores = [0, 0, 0, 0, 0, 0, 0, 0, 7.83, 9.212];
+
+    const position = this.diffGrids.get(12);
+    if (position !== undefined && position >= 0 && position < scores.length) {
+      return scores[position];
+    }
+    return 0;
+  }
+
+  private calculateFourteenth(): number {
+    const scores = [0, 0, 0, 0, 0, 0, 0, 0, 0, 7.83];
+
+    const position = this.diffGrids.get(13);
+    if (position !== undefined && position >= 0 && position < scores.length) {
+      return scores[position];
+    }
+    return 0;
+  }
 }
 
 export class QualifyingScoreCalculator {
@@ -178,7 +231,9 @@ export class QualifyingScoreCalculator {
     totalScore += this.calculateEighth();
     totalScore += this.calculateNinth();
     totalScore += this.calculateTenth();
-    
+    totalScore += this.calculateEleventh();
+    totalScore += this.calculateTwelfth();
+
     return Math.round(totalScore * 1000) / 1000; // 3 decimal places
   }
 
@@ -281,4 +336,24 @@ export class QualifyingScoreCalculator {
     }
     return 0;
   }
-} 
+
+  private calculateEleventh(): number {
+    const scores = [0, 0, 0, 0, 0, 0, 0, 0, 2.167, 2.55];
+
+    const position = this.diffGrids.get(10);
+    if (position !== undefined && position >= 0 && position < scores.length) {
+      return scores[position];
+    }
+    return 0;
+  }
+
+  private calculateTwelfth(): number {
+    const scores = [0, 0, 0, 0, 0, 0, 0, 0, 0, 2.167];
+
+    const position = this.diffGrids.get(11);
+    if (position !== undefined && position >= 0 && position < scores.length) {
+      return scores[position];
+    }
+    return 0;
+  }
+}
