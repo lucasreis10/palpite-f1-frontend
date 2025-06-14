@@ -499,9 +499,11 @@ export function BetForm() {
                     🏎️ <span className="hidden sm:inline">Classificação</span>
                     <span className="sm:hidden">Quali</span>
                   </span>
+                  {/* TEMPORARIAMENTE REMOVIDO - verificação de prazo desabilitada
                   {!qualifyingDeadlineOpen && (
                     <span className="block text-xs text-red-600 mt-1">Prazo encerrado</span>
                   )}
+                  */}
                 </Tab>
                 <Tab
                   className={({ selected }) =>
@@ -516,17 +518,19 @@ export function BetForm() {
                     🏁 <span className="hidden sm:inline">Corrida</span>
                     <span className="sm:hidden">Race</span>
                   </span>
+                  {/* TEMPORARIAMENTE REMOVIDO - verificação de prazo desabilitada
                   {!raceDeadlineOpen && (
                     <span className="block text-xs text-red-600 mt-1">Prazo encerrado</span>
                   )}
+                  */}
                 </Tab>
               </Tab.List>
               <Tab.Panels className="mt-4 sm:mt-6">
                 <Tab.Panel>
                   {/* Info do prazo */}
-                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-blue-800 text-sm">
-                      <strong>⏰ Prazo:</strong> {guessService.getGuessDeadline(nextGrandPrix, 'QUALIFYING')}
+                  <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                    <p className="text-orange-800 text-sm">
+                      <strong>⚠️ Modo Desenvolvimento:</strong> {guessService.getGuessDeadline(nextGrandPrix, 'QUALIFYING')}
                       {existingQualifyingGuess && (
                         <span className="block sm:inline sm:ml-2 text-green-700 font-medium">
                           ✓ Palpite enviado - você pode editar
@@ -626,9 +630,9 @@ export function BetForm() {
                 </Tab.Panel>
                 <Tab.Panel>
                   {/* Info do prazo */}
-                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-blue-800 text-sm">
-                      <strong>⏰ Prazo:</strong> {guessService.getGuessDeadline(nextGrandPrix, 'RACE')}
+                  <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                    <p className="text-orange-800 text-sm">
+                      <strong>⚠️ Modo Desenvolvimento:</strong> {guessService.getGuessDeadline(nextGrandPrix, 'RACE')}
                       {existingRaceGuess && (
                         <span className="block sm:inline sm:ml-2 text-green-700 font-medium">
                           ✓ Palpite enviado - você pode editar
