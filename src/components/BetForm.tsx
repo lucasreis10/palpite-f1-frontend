@@ -18,7 +18,7 @@ interface Driver {
 }
 
 export function BetForm() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, isAuthenticated } = useAuth();
   const { copyToClipboard, isCopying, copySuccess, formatGuessToText } = useCopyToClipboard();
   const [selectedQualifyingDrivers, setSelectedQualifyingDrivers] = useState<(Driver | null)[]>(new Array(10).fill(null));
   const [selectedRaceDrivers, setSelectedRaceDrivers] = useState<(Driver | null)[]>(new Array(10).fill(null));
@@ -42,18 +42,38 @@ export function BetForm() {
   const [showPreview, setShowPreview] = useState(false);
   const [showTextPreview, setShowTextPreview] = useState(false);
 
-  // Adicionar um useEffect para debug
+  // Debug mais detalhado
   useEffect(() => {
-    console.log('Estado de autenticação:', {
-      user,
+    console.log('🔍 BetForm - Estado de autenticação atualizado:', {
+      user: user ? { id: user.id, name: user.name, email: user.email } : null,
       authLoading,
+      isAuthenticated,
       isLoading,
-      nextGrandPrix: !!nextGrandPrix
+      nextGrandPrix: nextGrandPrix ? { id: nextGrandPrix.id, name: nextGrandPrix.name } : null,
+      timestamp: new Date().toLocaleTimeString()
     });
-  }, [user, authLoading, isLoading, nextGrandPrix]);
+  }, [user, authLoading, isAuthenticated, isLoading, nextGrandPrix]);
+
+  // Listener para mudanças de autenticação
+  useEffect(() => {
+    const handleAuthChange = (event: CustomEvent) => {
+      console.log('🔔 BetForm - Evento de mudança de autenticação recebido:', event.detail);
+      // Forçar re-render após mudança de autenticação
+      setTimeout(() => {
+        console.log('🔄 BetForm - Forçando atualização após mudança de auth');
+      }, 100);
+    };
+
+    window.addEventListener('authStateChanged', handleAuthChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('authStateChanged', handleAuthChange as EventListener);
+    };
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
+      console.log('🚀 BetForm - Iniciando carregamento de dados...');
       try {
         setIsLoading(true);
         setError(null);
@@ -64,16 +84,27 @@ export function BetForm() {
           guessService.getNextGrandPrix()
         ]);
 
+        console.log('📊 BetForm - Dados carregados:', {
+          pilotos: pilotsData.length,
+          nextGP: nextGpData ? nextGpData.name : 'Nenhum'
+        });
+
         setPilots(pilotsData);
         setNextGrandPrix(nextGpData);
 
         // Se há um próximo GP e usuário logado, carregar palpites existentes
         if (nextGpData && user?.id) {
+          console.log('🎯 BetForm - Carregando palpites existentes para usuário:', user.id);
           try {
             const [qualifyingGuess, raceGuess] = await Promise.all([
               guessService.getUserGuessForGrandPrix(user.id, nextGpData.id, 'QUALIFYING'),
               guessService.getUserGuessForGrandPrix(user.id, nextGpData.id, 'RACE')
             ]);
+
+            console.log('📝 BetForm - Palpites encontrados:', {
+              qualifying: !!qualifyingGuess,
+              race: !!raceGuess
+            });
 
             setExistingQualifyingGuess(qualifyingGuess);
             setExistingRaceGuess(raceGuess);
@@ -89,22 +120,36 @@ export function BetForm() {
               setSelectedRaceDrivers([...raceDrivers, ...new Array(Math.max(0, 10 - raceDrivers.length)).fill(null)]);
             }
           } catch (guessError) {
-            console.error('Erro ao carregar palpites existentes:', guessError);
+            console.error('❌ BetForm - Erro ao carregar palpites existentes:', guessError);
           }
+        } else {
+          console.log('⚠️ BetForm - Não carregando palpites:', {
+            temGP: !!nextGpData,
+            temUsuario: !!user?.id,
+            userId: user?.id
+          });
         }
       } catch (error) {
-        console.error('Erro ao carregar dados:', error);
+        console.error('❌ BetForm - Erro ao carregar dados:', error);
         setError('Erro ao carregar dados. Tente novamente.');
       } finally {
         setIsLoading(false);
+        console.log('✅ BetForm - Carregamento finalizado');
       }
     };
 
     // Carregar dados quando o usuário estiver disponível e não estiver carregando
     if (!authLoading) {
+      console.log('🔄 BetForm - Condições para carregar dados:', {
+        authLoading,
+        userId: user?.id,
+        shouldLoad: true
+      });
       loadData();
+    } else {
+      console.log('⏳ BetForm - Aguardando autenticação...', { authLoading });
     }
-  }, [user?.id, authLoading]); // Adicionar user?.id como dependência
+  }, [user?.id, authLoading, isAuthenticated]); // Adicionar isAuthenticated como dependência
 
   // Converter Pilot para Driver (compatibilidade com componente existente)
   const convertPilotToDriver = (pilot: Pilot): Driver => ({

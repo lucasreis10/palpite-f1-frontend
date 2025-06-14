@@ -312,39 +312,45 @@ class LiveTimingService {
 
   // Calcular pontuação de um palpite baseado nas posições atuais
   calculateCurrentScore(raceGuesses: PilotPosition[], currentPositions: any[]): number {
-    let score = 0;
+    // Importar os calculadores
+    const { RaceScoreCalculator } = require('../utils/scoreCalculators');
     
-    raceGuesses.forEach(guess => {
-      // Procurar pelo code do piloto ou nome
-      const guessCode = this.mapPilotCodeToDriverAcronym(guess.code || guess.familyName || '');
-      const actualPosition = currentPositions.find(p => 
-        p.driverAcronym === guessCode || 
-        p.driverName.includes(guess.familyName || '') ||
-        p.driverAcronym === guess.pilotName
+    // Converter palpites para array de IDs
+    const guessIds = raceGuesses.map(guess => guess.pilotId);
+    
+    // Criar array de IDs baseado na classificação atual
+    const currentIds: number[] = [];
+    
+    for (let i = 0; i < currentPositions.length && i < guessIds.length; i++) {
+      const position = currentPositions[i];
+      // Encontrar o piloto correspondente nos palpites
+      const matchingGuess = raceGuesses.find(g => 
+        g.code === position.driverAcronym || 
+        g.familyName === position.driverName ||
+        position.driverName?.includes(g.familyName || '') ||
+        position.driverAcronym === g.pilotName
       );
       
-      if (actualPosition) {
-        const positionDiff = Math.abs(guess.position - actualPosition.position);
-        
-        // Sistema de pontuação: 10 pontos para acerto exato, decrescendo
-        if (positionDiff === 0) {
-          score += 10; // Acerto exato
-        } else if (positionDiff === 1) {
-          score += 8; // 1 posição de diferença
-        } else if (positionDiff === 2) {
-          score += 6; // 2 posições de diferença
-        } else if (positionDiff === 3) {
-          score += 4; // 3 posições de diferença
-        } else if (positionDiff === 4) {
-          score += 2; // 4 posições de diferença
-        } else if (positionDiff === 5) {
-          score += 1; // 5 posições de diferença
-        }
-        // Mais de 5 posições = 0 pontos
+      if (matchingGuess) {
+        currentIds.push(matchingGuess.pilotId);
+      } else {
+        // Se não encontrar correspondência, usar um ID único para não afetar o cálculo
+        currentIds.push(999999 + i);
       }
-    });
+    }
     
-    return score;
+    // Garantir que ambos os arrays tenham o mesmo tamanho
+    const maxLength = Math.max(guessIds.length, currentIds.length);
+    while (guessIds.length < maxLength) {
+      guessIds.push(999999 + guessIds.length);
+    }
+    while (currentIds.length < maxLength) {
+      currentIds.push(999999 + currentIds.length);
+    }
+
+    // Usar o calculador de corrida oficial
+    const calculator = new RaceScoreCalculator(currentIds, guessIds);
+    return calculator.calculate();
   }
 
   // Buscar ranking ao vivo dos palpiteiros
@@ -394,13 +400,17 @@ class LiveTimingService {
       // Calcular pontuação atual para cada usuário baseado em palpites reais
       const liveRanking: LiveRanking[] = userGuesses.map(userGuess => {
         const currentScore = this.calculateCurrentScore(userGuess.raceGuesses, currentPositions);
-        const totalPossibleScore = userGuess.raceGuesses.length * 10; // 10 pontos máximo por posição
         
-        // Calcular quantos palpites estão corretos
+        // Calcular pontuação máxima possível baseada no sistema oficial de corrida
+        // As primeiras posições têm pontuações máximas diferentes
+        const maxScores = [25, 25, 25, 20, 20, 20, 15, 15, 15, 15, 12.75, 10.837, 9.212, 7.83];
+        const totalPossibleScore = maxScores.slice(0, userGuess.raceGuesses.length).reduce((sum, score) => sum + score, 0);
+        
+        // Calcular quantos palpites estão corretos (posição exata)
         const correctGuesses = userGuess.raceGuesses.filter(guess => {
           const actualPosition = currentPositions.find(p => 
             p.driverAcronym === guess.code || 
-            p.driverName.includes(guess.familyName || '') ||
+            p.driverName?.includes(guess.familyName || '') ||
             p.driverAcronym === guess.pilotName
           );
           return actualPosition && actualPosition.position === guess.position;
@@ -411,7 +421,7 @@ class LiveTimingService {
         userGuess.raceGuesses.forEach(guess => {
           const actualPosition = currentPositions.find(p => 
             p.driverAcronym === guess.code || 
-            p.driverName.includes(guess.familyName || '') ||
+            p.driverName?.includes(guess.familyName || '') ||
             p.driverAcronym === guess.pilotName
           );
           if (actualPosition) {

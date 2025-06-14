@@ -76,17 +76,42 @@ interface LiveTimingData {
 function calculateLiveScore(raceGuesses: any[], currentStandings: DriverStanding[]): { score: number; correctGuesses: number } {
   // Converter os palpites e resultados atuais para arrays de IDs
   const guessIds = raceGuesses.map(guess => guess.pilotId);
-  const currentIds = currentStandings.map(driver => {
-    // Encontrar o piloto correspondente pelo código
-    const guessDriver = raceGuesses.find(g => g.code === driver.driverAcronym);
-    return guessDriver ? guessDriver.pilotId : 0;
-  });
+  
+  // Criar array de IDs baseado na classificação atual
+  // Mapear os standings atuais para IDs de pilotos baseado nos palpites
+  const currentIds: number[] = [];
+  
+  for (let i = 0; i < currentStandings.length && i < guessIds.length; i++) {
+    const standing = currentStandings[i];
+    // Encontrar o piloto correspondente nos palpites pelo código/acrônimo
+    const matchingGuess = raceGuesses.find(g => 
+      g.code === standing.driverAcronym || 
+      g.familyName === standing.driverName ||
+      standing.driverName.includes(g.familyName || '')
+    );
+    
+    if (matchingGuess) {
+      currentIds.push(matchingGuess.pilotId);
+    } else {
+      // Se não encontrar correspondência, usar um ID único para não afetar o cálculo
+      currentIds.push(999999 + i);
+    }
+  }
+  
+  // Garantir que ambos os arrays tenham o mesmo tamanho
+  const maxLength = Math.max(guessIds.length, currentIds.length);
+  while (guessIds.length < maxLength) {
+    guessIds.push(999999 + guessIds.length);
+  }
+  while (currentIds.length < maxLength) {
+    currentIds.push(999999 + currentIds.length);
+  }
 
-  // Usar o calculador apropriado
+  // Usar o calculador de corrida (RaceScoreCalculator)
   const calculator = new RaceScoreCalculator(currentIds, guessIds);
   const score = calculator.calculate();
   
-  // Contar acertos exatos
+  // Contar acertos exatos (posição correta)
   const correctGuesses = guessIds.reduce((count, pilotId, index) => {
     return count + (currentIds[index] === pilotId ? 1 : 0);
   }, 0);

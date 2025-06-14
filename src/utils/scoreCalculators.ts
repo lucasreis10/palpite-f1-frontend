@@ -1,5 +1,5 @@
 // Classes de cálculo de pontuação baseadas no backend
-// Traduzidas de Java para TypeScript
+// Traduzidas de Java para TypeScript - VERSÃO CORRIGIDA
 
 export class RaceScoreCalculator {
   private realRaceResult: number[];

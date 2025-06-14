@@ -18,6 +18,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [updateTrigger, setUpdateTrigger] = useState(0); // Trigger para forçar re-render
 
   useEffect(() => {
     const loadUser = async () => {
@@ -46,11 +47,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     loadUser();
 
+    // Listener para mudanças no localStorage (login/logout em outras abas)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'auth_token' || e.key === 'user_data') {
+        console.log('🔄 AuthProvider - Detectada mudança no localStorage:', e.key);
+        loadUser();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
     // Cleanup: parar verificação quando o componente for desmontado
     return () => {
       authService.stopTokenValidation();
+      window.removeEventListener('storage', handleStorageChange);
     };
-  }, []);
+  }, [updateTrigger]); // Adicionar updateTrigger como dependência
 
   const login = async (credentials: LoginRequest) => {
     setIsLoading(true);
@@ -62,13 +74,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: response.email,
         role: response.role,
       };
+      
+      // Atualizar estado imediatamente
       setUser(userData);
       
       // Iniciar verificação periódica do token após login
       authService.startTokenValidation();
 
-      // Forçar atualização do estado
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Forçar re-render de todos os componentes dependentes
+      setUpdateTrigger(prev => prev + 1);
+      
+      // Disparar evento customizado para notificar outros componentes
+      window.dispatchEvent(new CustomEvent('authStateChanged', { 
+        detail: { type: 'login', user: userData } 
+      }));
+      
+      // Aguardar um pouco para garantir que o estado seja propagado
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      console.log('✅ AuthProvider - Login realizado com sucesso:', userData.email);
     } catch (error) {
       throw error;
     } finally {
@@ -86,13 +110,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: response.email,
         role: response.role,
       };
+      
+      // Atualizar estado imediatamente
       setUser(newUser);
       
       // Iniciar verificação periódica do token após registro
       authService.startTokenValidation();
 
-      // Forçar atualização do estado
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Forçar re-render de todos os componentes dependentes
+      setUpdateTrigger(prev => prev + 1);
+      
+      // Disparar evento customizado para notificar outros componentes
+      window.dispatchEvent(new CustomEvent('authStateChanged', { 
+        detail: { type: 'register', user: newUser } 
+      }));
+      
+      // Aguardar um pouco para garantir que o estado seja propagado
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      console.log('✅ AuthProvider - Registro realizado com sucesso:', newUser.email);
     } catch (error) {
       throw error;
     } finally {
@@ -105,6 +141,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     authService.stopTokenValidation();
     authService.logout();
     setUser(null);
+    setUpdateTrigger(prev => prev + 1);
+    
+    // Disparar evento customizado para notificar outros componentes
+    window.dispatchEvent(new CustomEvent('authStateChanged', { 
+      detail: { type: 'logout', user: null } 
+    }));
+    
+    console.log('✅ AuthProvider - Logout realizado');
   };
 
   const contextValue: AuthContextType = {
