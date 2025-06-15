@@ -273,64 +273,25 @@ export default function CalculadoraPontosPage() {
     // Criar detalhes da pontuação para exibição
     const details: ScoreDetail[] = [];
     
+    // Para calcular pontos individuais, vamos usar mini-calculadoras para cada posição
     for (let i = 0; i < numPositions; i++) {
       const guessDriver = userGuessDrivers[i];
       const actualDriver = actualResultDrivers[i];
 
       if (guessDriver && actualDriver) {
-        // Encontrar onde o piloto real terminou no meu palpite
-        const guessedPosition = userGuessDrivers.findIndex(d => d && d.id === actualDriver.id);
+        // Criar arrays temporários para calcular apenas esta posição
+        const tempActualArray = [actualDriver.id];
+        const tempGuessArray = [guessDriver.id];
         
-        // Calcular pontos individuais baseado na posição real (i) e posição do palpite (guessedPosition)
         let individualPoints = 0;
         
-        if (guessedPosition >= 0) {
-          // Calcular pontos usando a mesma lógica do backend
-          // A pontuação é baseada na posição real (i) e onde o piloto foi colocado no palpite (guessedPosition)
-          
-          if (guessType === 'QUALIFYING') {
-            // Para qualifying, usar as tabelas de pontuação específicas de cada posição
-            const scoreTables = [
-              [5.0, 4.25, 3.612], // 1º lugar real
-              [4.25, 5.0, 4.25, 2.89], // 2º lugar real
-              [3.612, 4.25, 5.0, 3.4, 2.89], // 3º lugar real
-              [0, 3.612, 4.25, 4.0, 3.4, 2.89], // 4º lugar real
-              [0, 0, 3.612, 3.4, 4.0, 3.4, 2.167], // 5º lugar real
-              [0, 0, 0, 2.89, 3.4, 4.0, 2.55, 2.167], // 6º lugar real
-              [0, 0, 0, 0, 2.89, 3.4, 3.0, 2.55, 2.167], // 7º lugar real
-              [0, 0, 0, 0, 0, 2.89, 2.55, 3.0, 2.55], // 8º lugar real
-              [0, 0, 0, 0, 0, 0, 2.167, 2.55, 3.0, 2.55], // 9º lugar real
-              [0, 0, 0, 0, 0, 0, 0, 2.167, 2.55, 3.0], // 10º lugar real
-              [0, 0, 0, 0, 0, 0, 0, 0, 2.167, 2.55], // 11º lugar real
-              [0, 0, 0, 0, 0, 0, 0, 0, 0, 2.167] // 12º lugar real
-            ];
-            
-            if (i < scoreTables.length && guessedPosition < scoreTables[i].length) {
-              individualPoints = scoreTables[i][guessedPosition];
-            }
-          } else {
-            // Para corrida, usar as tabelas de pontuação específicas de cada posição
-            const scoreTables = [
-              [25, 21.25, 18.062, 12.282, 10.44], // 1º lugar real
-              [21.25, 25, 21.25, 14.45, 12.282, 10.44], // 2º lugar real
-              [18.062, 21.25, 25, 17, 14.45, 12.282, 7.83], // 3º lugar real
-              [15.353, 18.062, 21.25, 20, 17, 14.45, 9.212, 7.83], // 4º lugar real
-              [13.05, 15.353, 18.062, 17, 20, 17, 10.837, 9.212, 7.83], // 5º lugar real
-              [0, 13.05, 15.353, 14.45, 17, 20, 12.75, 10.837, 9.212, 7.83], // 6º lugar real
-              [0, 0, 13.05, 12.282, 14.45, 17, 15, 12.75, 10.837, 9.212], // 7º lugar real
-              [0, 0, 0, 10.44, 12.282, 14.45, 12.75, 15, 12.75, 10.837], // 8º lugar real
-              [0, 0, 0, 0, 10.44, 12.282, 10.837, 12.75, 15, 12.75], // 9º lugar real
-              [0, 0, 0, 0, 0, 10.44, 9.212, 10.837, 12.75, 15], // 10º lugar real
-              [0, 0, 0, 0, 0, 0, 7.83, 9.212, 10.837, 12.75], // 11º lugar real
-              [0, 0, 0, 0, 0, 0, 0, 7.83, 9.212, 10.837], // 12º lugar real
-              [0, 0, 0, 0, 0, 0, 0, 0, 7.83, 9.212], // 13º lugar real
-              [0, 0, 0, 0, 0, 0, 0, 0, 0, 7.83] // 14º lugar real
-            ];
-            
-            if (i < scoreTables.length && guessedPosition < scoreTables[i].length) {
-              individualPoints = scoreTables[i][guessedPosition];
-            }
-          }
+        // Usar a calculadora apropriada para esta posição específica
+        if (guessType === 'QUALIFYING') {
+          const tempCalculator = new QualifyingScoreCalculator(tempActualArray, tempGuessArray);
+          individualPoints = tempCalculator.calculate();
+        } else {
+          const tempCalculator = new RaceScoreCalculator(tempActualArray, tempGuessArray);
+          individualPoints = tempCalculator.calculate();
         }
 
         const detail: ScoreDetail = {
