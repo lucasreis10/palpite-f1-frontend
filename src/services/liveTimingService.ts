@@ -335,9 +335,11 @@ class LiveTimingService {
       
       if (matchingGuess) {
         currentIds.push(matchingGuess.pilotId);
+        console.log(`✅ Match encontrado: ${position.driverAcronym} (pos ${position.position}) -> ${matchingGuess.familyName} (ID ${matchingGuess.pilotId})`);
       } else {
         // Se não encontrar correspondência, usar um ID único para não afetar o cálculo
         currentIds.push(999999 + i);
+        console.log(`❌ Sem match: ${position.driverAcronym} (pos ${position.position})`);
       }
     }
     
@@ -348,6 +350,9 @@ class LiveTimingService {
     while (limitedCurrentIds.length < guessIds.length) {
       limitedCurrentIds.push(999999 + limitedCurrentIds.length);
     }
+
+    console.log(`📊 Palpite: [${guessIds.join(', ')}]`);
+    console.log(`📊 Atual:   [${limitedCurrentIds.join(', ')}]`);
 
     // Usar o calculador apropriado baseado no tipo de sessão
     let calculator;
@@ -360,7 +365,9 @@ class LiveTimingService {
     
     const currentScore = calculator.calculate();
     
-    console.log(`🎯 Usuário ${raceGuesses[0].pilotName}: ${currentScore.toFixed(3)} pontos (${sessionType})`);
+    // Usar o primeiro palpite para identificar o usuário (melhor que pilotName que pode ser undefined)
+    const userIdentifier = raceGuesses.length > 0 ? raceGuesses[0].familyName || 'Usuário' : 'Usuário';
+    console.log(`🎯 ${userIdentifier}: ${currentScore.toFixed(3)} pontos (${sessionType})`);
     
     return currentScore;
   }
@@ -390,12 +397,14 @@ class LiveTimingService {
 
       console.log('Usando palpites reais:', userGuesses.length, 'participantes');
 
-      // Se não há posições da F1, usar dados mock apenas para as posições
+      // Verificar se os dados da F1 são válidos (têm informações dos pilotos)
       let currentPositions;
+      let usingMockData = false;
+      
       if (!positions.length) {
         console.log('⚠️ Sem posições F1 disponíveis, usando posições mock para demonstração');
         currentPositions = this.generateMockPositions();
-        console.log('📊 Dados mock sendo usados:', currentPositions.slice(0, 5).map(p => `${p.position}º ${p.driverAcronym}`));
+        usingMockData = true;
       } else {
         console.log('✅ Usando posições reais da F1');
         // Mapear posições atuais para um formato mais fácil de trabalhar
@@ -410,8 +419,18 @@ class LiveTimingService {
             driverName: driver?.full_name || 'Unknown'
           };
         });
-        console.log('📊 Dados reais sendo usados:', currentPositions.slice(0, 5).map(p => `${p.position}º ${p.driverAcronym}`));
+        
+        // Verificar se os dados da F1 são válidos (têm informações dos pilotos)
+        const hasValidDriverData = currentPositions.some(p => p.driverAcronym !== '???' && p.driverName !== 'Unknown');
+        
+        if (!hasValidDriverData) {
+          console.log('⚠️ Dados F1 sem informações dos pilotos, usando posições mock para demonstração');
+          currentPositions = this.generateMockPositions();
+          usingMockData = true;
+        }
       }
+      
+      console.log('📊 Dados sendo usados:', currentPositions.slice(0, 5).map(p => `${p.position}º ${p.driverAcronym}`));
 
       // Determinar o tipo de sessão
       const sessionType = session?.session_type || 'RACE';
@@ -419,10 +438,23 @@ class LiveTimingService {
 
       // Calcular pontuação atual para cada usuário baseado em palpites reais
       const liveRanking: LiveRanking[] = userGuesses.map(userGuess => {
-        // Usar o tipo de palpite apropriado baseado na sessão
-        const guessesToUse = sessionType.includes('QUALIFYING') || sessionType.includes('qualifying') 
-          ? userGuess.qualifyingGuesses 
-          : userGuess.raceGuesses;
+        // SEMPRE usar raceGuesses - os usuários só fazem palpites de corrida
+        // Mesmo para qualifying, usamos os palpites de corrida como base
+        const guessesToUse = userGuess.raceGuesses;
+        
+        if (!guessesToUse || guessesToUse.length === 0) {
+          console.log(`⚠️ Usuário ${userGuess.userName} não tem palpites de corrida`);
+          return {
+            userId: userGuess.userId,
+            userName: userGuess.userName,
+            userEmail: userGuess.userEmail,
+            currentScore: 0,
+            totalPossibleScore: 0,
+            correctGuesses: 0,
+            raceGuesses: [],
+            positionDifferences: {}
+          };
+        }
           
         const currentScore = this.calculateCurrentScore(guessesToUse, currentPositions, sessionType);
         
@@ -468,7 +500,7 @@ class LiveTimingService {
           currentScore,
           totalPossibleScore,
           correctGuesses,
-          raceGuesses: guessesToUse, // Usar os palpites apropriados
+          raceGuesses: guessesToUse,
           positionDifferences
         };
       });
