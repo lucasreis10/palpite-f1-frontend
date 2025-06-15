@@ -311,24 +311,26 @@ class LiveTimingService {
   }
 
   // Calcular pontuação de um palpite baseado nas posições atuais
-  calculateCurrentScore(raceGuesses: PilotPosition[], currentPositions: any[]): number {
+  calculateCurrentScore(raceGuesses: PilotPosition[], currentPositions: any[], sessionType: string = 'RACE'): number {
     // Importar os calculadores
-    const { RaceScoreCalculator } = require('../utils/scoreCalculators');
+    const { RaceScoreCalculator, QualifyingScoreCalculator } = require('../utils/scoreCalculators');
     
-    // Converter palpites para array de IDs
+    // Converter palpites para array de IDs (ordem do palpite)
     const guessIds = raceGuesses.map(guess => guess.pilotId);
     
-    // Criar array de IDs baseado na classificação atual
+    // Criar array de IDs baseado na classificação atual (ordem real)
     const currentIds: number[] = [];
     
-    for (let i = 0; i < currentPositions.length && i < guessIds.length; i++) {
+    // Para cada posição na classificação atual, encontrar o ID do piloto
+    for (let i = 0; i < currentPositions.length; i++) {
       const position = currentPositions[i];
       // Encontrar o piloto correspondente nos palpites
       const matchingGuess = raceGuesses.find(g => 
         g.code === position.driverAcronym || 
         g.familyName === position.driverName ||
         position.driverName?.includes(g.familyName || '') ||
-        position.driverAcronym === g.pilotName
+        position.driverAcronym === g.pilotName ||
+        g.pilotName === position.driverName
       );
       
       if (matchingGuess) {
@@ -339,17 +341,23 @@ class LiveTimingService {
       }
     }
     
+    // Limitar aos primeiros N pilotos baseado no tamanho do palpite
+    const limitedCurrentIds = currentIds.slice(0, guessIds.length);
+    
     // Garantir que ambos os arrays tenham o mesmo tamanho
-    const maxLength = Math.max(guessIds.length, currentIds.length);
-    while (guessIds.length < maxLength) {
-      guessIds.push(999999 + guessIds.length);
-    }
-    while (currentIds.length < maxLength) {
-      currentIds.push(999999 + currentIds.length);
+    while (limitedCurrentIds.length < guessIds.length) {
+      limitedCurrentIds.push(999999 + limitedCurrentIds.length);
     }
 
-    // Usar o calculador de corrida oficial
-    const calculator = new RaceScoreCalculator(currentIds, guessIds);
+    // Usar o calculador apropriado baseado no tipo de sessão
+    let calculator;
+    
+    if (sessionType === 'QUALIFYING' || sessionType === 'qualifying') {
+      calculator = new QualifyingScoreCalculator(limitedCurrentIds, guessIds);
+    } else {
+      calculator = new RaceScoreCalculator(limitedCurrentIds, guessIds);
+    }
+    
     return calculator.calculate();
   }
 
@@ -357,9 +365,10 @@ class LiveTimingService {
   async getLiveRanking(sessionKey: number): Promise<LiveRanking[]> {
     try {
       // Buscar dados da corrida atual
-      const [positions, nextGrandPrix] = await Promise.all([
+      const [positions, nextGrandPrix, session] = await Promise.all([
         this.getPositions(sessionKey),
-        this.getNextGrandPrix()
+        this.getNextGrandPrix(),
+        this.getLatestSession()
       ]);
 
       if (!nextGrandPrix) {
@@ -397,17 +406,33 @@ class LiveTimingService {
         });
       }
 
+      // Determinar o tipo de sessão
+      const sessionType = session?.session_type || 'RACE';
+      console.log('Tipo de sessão detectado:', sessionType);
+
       // Calcular pontuação atual para cada usuário baseado em palpites reais
       const liveRanking: LiveRanking[] = userGuesses.map(userGuess => {
-        const currentScore = this.calculateCurrentScore(userGuess.raceGuesses, currentPositions);
+        // Usar o tipo de palpite apropriado baseado na sessão
+        const guessesToUse = sessionType.includes('QUALIFYING') || sessionType.includes('qualifying') 
+          ? userGuess.qualifyingGuesses 
+          : userGuess.raceGuesses;
+          
+        const currentScore = this.calculateCurrentScore(guessesToUse, currentPositions, sessionType);
         
-        // Calcular pontuação máxima possível baseada no sistema oficial de corrida
-        // As primeiras posições têm pontuações máximas diferentes
-        const maxScores = [25, 25, 25, 20, 20, 20, 15, 15, 15, 15, 12.75, 10.837, 9.212, 7.83];
-        const totalPossibleScore = maxScores.slice(0, userGuess.raceGuesses.length).reduce((sum, score) => sum + score, 0);
+        // Calcular pontuação máxima possível baseada no sistema oficial
+        let maxScores: number[];
+        if (sessionType.includes('QUALIFYING') || sessionType.includes('qualifying')) {
+          // Para qualifying: pontuações máximas diferentes
+          maxScores = [5.0, 5.0, 5.0, 4.0, 4.0, 4.0, 3.0, 3.0, 3.0, 3.0, 2.55, 2.167];
+        } else {
+          // Para corrida: pontuações máximas diferentes
+          maxScores = [25, 25, 25, 20, 20, 20, 15, 15, 15, 15, 12.75, 10.837, 9.212, 7.83];
+        }
+        
+        const totalPossibleScore = maxScores.slice(0, guessesToUse.length).reduce((sum, score) => sum + score, 0);
         
         // Calcular quantos palpites estão corretos (posição exata)
-        const correctGuesses = userGuess.raceGuesses.filter(guess => {
+        const correctGuesses = guessesToUse.filter(guess => {
           const actualPosition = currentPositions.find(p => 
             p.driverAcronym === guess.code || 
             p.driverName?.includes(guess.familyName || '') ||
@@ -418,7 +443,7 @@ class LiveTimingService {
 
         // Calcular diferenças de posição para cada palpite
         const positionDifferences: { [position: number]: number } = {};
-        userGuess.raceGuesses.forEach(guess => {
+        guessesToUse.forEach(guess => {
           const actualPosition = currentPositions.find(p => 
             p.driverAcronym === guess.code || 
             p.driverName?.includes(guess.familyName || '') ||
@@ -436,7 +461,7 @@ class LiveTimingService {
           currentScore,
           totalPossibleScore,
           correctGuesses,
-          raceGuesses: userGuess.raceGuesses,
+          raceGuesses: guessesToUse, // Usar os palpites apropriados
           positionDifferences
         };
       });

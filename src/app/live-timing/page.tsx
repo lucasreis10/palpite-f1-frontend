@@ -73,21 +73,22 @@ interface LiveTimingData {
   }>;
 }
 
-function calculateLiveScore(raceGuesses: any[], currentStandings: DriverStanding[]): { score: number; correctGuesses: number } {
-  // Converter os palpites e resultados atuais para arrays de IDs
+function calculateLiveScore(raceGuesses: any[], currentStandings: DriverStanding[], sessionType: string = 'RACE'): { score: number; correctGuesses: number } {
+  // Converter os palpites para array de IDs (ordem do palpite)
   const guessIds = raceGuesses.map(guess => guess.pilotId);
   
-  // Criar array de IDs baseado na classificação atual
-  // Mapear os standings atuais para IDs de pilotos baseado nos palpites
+  // Criar array de IDs baseado na classificação atual (ordem real)
   const currentIds: number[] = [];
   
-  for (let i = 0; i < currentStandings.length && i < guessIds.length; i++) {
+  // Para cada posição na classificação atual, encontrar o ID do piloto
+  for (let i = 0; i < currentStandings.length; i++) {
     const standing = currentStandings[i];
     // Encontrar o piloto correspondente nos palpites pelo código/acrônimo
     const matchingGuess = raceGuesses.find(g => 
       g.code === standing.driverAcronym || 
       g.familyName === standing.driverName ||
-      standing.driverName.includes(g.familyName || '')
+      standing.driverName.includes(g.familyName || '') ||
+      g.pilotName === standing.driverName
     );
     
     if (matchingGuess) {
@@ -98,22 +99,29 @@ function calculateLiveScore(raceGuesses: any[], currentStandings: DriverStanding
     }
   }
   
+  // Limitar aos primeiros N pilotos baseado no tamanho do palpite
+  const limitedCurrentIds = currentIds.slice(0, guessIds.length);
+  
   // Garantir que ambos os arrays tenham o mesmo tamanho
-  const maxLength = Math.max(guessIds.length, currentIds.length);
-  while (guessIds.length < maxLength) {
-    guessIds.push(999999 + guessIds.length);
-  }
-  while (currentIds.length < maxLength) {
-    currentIds.push(999999 + currentIds.length);
+  while (limitedCurrentIds.length < guessIds.length) {
+    limitedCurrentIds.push(999999 + limitedCurrentIds.length);
   }
 
-  // Usar o calculador de corrida (RaceScoreCalculator)
-  const calculator = new RaceScoreCalculator(currentIds, guessIds);
-  const score = calculator.calculate();
+  // Usar o calculador apropriado baseado no tipo de sessão
+  let calculator;
+  let score = 0;
+  
+  if (sessionType === 'QUALIFYING' || sessionType === 'qualifying') {
+    calculator = new QualifyingScoreCalculator(limitedCurrentIds, guessIds);
+    score = calculator.calculate();
+  } else {
+    calculator = new RaceScoreCalculator(limitedCurrentIds, guessIds);
+    score = calculator.calculate();
+  }
   
   // Contar acertos exatos (posição correta)
   const correctGuesses = guessIds.reduce((count, pilotId, index) => {
-    return count + (currentIds[index] === pilotId ? 1 : 0);
+    return count + (limitedCurrentIds[index] === pilotId ? 1 : 0);
   }, 0);
 
   return { score, correctGuesses };
@@ -307,7 +315,7 @@ export default function LiveTimingPage() {
                   <div className="p-4">
                     {data?.liveRanking
                       .map(ranking => {
-                        const { score, correctGuesses } = calculateLiveScore(ranking.raceGuesses, data.standings);
+                        const { score, correctGuesses } = calculateLiveScore(ranking.raceGuesses, data.standings, data.session?.session_type || 'RACE');
                         return {
                           ...ranking,
                           calculatedScore: score,
