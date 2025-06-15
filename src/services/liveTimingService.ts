@@ -237,55 +237,6 @@ class LiveTimingService {
     }
   }
 
-  // Buscar palpites dos usuários para um Grand Prix via serviço existente
-  async getUserGuessesForGrandPrix(grandPrixId: number): Promise<UserGuess[]> {
-    try {
-      // Importar dinamicamente para evitar problemas no servidor
-      const { default: axiosInstance } = await import('../config/axios');
-      const { API_URLS } = await import('../config/api');
-      
-      console.log('Buscando palpites reais para GP:', grandPrixId);
-      
-      // Buscar palpites de corrida do Grand Prix
-      const response = await axiosInstance.get(
-        `${API_URLS.GUESSES}/grand-prix/${grandPrixId}?guessType=RACE`
-      );
-      
-      const guessesData = response.data;
-      console.log('Palpites encontrados:', guessesData.length);
-      
-      // Converter formato da API para formato interno
-      const userGuesses: UserGuess[] = guessesData.map((guess: any) => {
-        // Converter pilotos da API para formato interno
-        const raceGuesses: PilotPosition[] = guess.pilots.map((pilot: any, index: number) => ({
-          position: index + 1,
-          pilotId: pilot.id,
-          pilotName: pilot.name,
-          familyName: pilot.familyName,
-          code: pilot.code
-        }));
-        
-        return {
-          id: guess.id,
-          userId: guess.user.id,
-          userName: guess.user.name,
-          userEmail: guess.user.email,
-          grandPrixId: guess.grandPrixId,
-          qualifyingGuesses: [],
-          raceGuesses,
-          totalScore: guess.score || 0,
-          currentScore: 0 // Será calculado em tempo real
-        };
-      });
-      
-      return userGuesses;
-    } catch (error) {
-      console.error('Erro ao buscar palpites:', error);
-      // Se der erro na API, retornar array vazio ao invés de dados mock
-      return [];
-    }
-  }
-
   // Buscar próximo Grand Prix usando o serviço existente
   async getNextGrandPrix(): Promise<any> {
     try {
@@ -310,68 +261,6 @@ class LiveTimingService {
     return mapping[pilotCode] || pilotCode;
   }
 
-  // Calcular pontuação de um palpite baseado nas posições atuais
-  calculateCurrentScore(raceGuesses: PilotPosition[], currentPositions: any[], sessionType: string = 'RACE'): number {
-    // Importar os calculadores
-    const { RaceScoreCalculator, QualifyingScoreCalculator } = require('../utils/scoreCalculators');
-    
-    // Converter palpites para array de IDs (ordem do palpite)
-    const guessIds = raceGuesses.map(guess => guess.pilotId);
-    
-    // Criar array de IDs baseado na classificação atual (ordem real)
-    const currentIds: number[] = [];
-    
-    // Para cada posição na classificação atual, encontrar o ID do piloto
-    for (let i = 0; i < currentPositions.length; i++) {
-      const position = currentPositions[i];
-      // Encontrar o piloto correspondente nos palpites
-      const matchingGuess = raceGuesses.find(g => 
-        g.code === position.driverAcronym || 
-        g.familyName === position.driverName ||
-        position.driverName?.includes(g.familyName || '') ||
-        position.driverAcronym === g.pilotName ||
-        g.pilotName === position.driverName
-      );
-      
-      if (matchingGuess) {
-        currentIds.push(matchingGuess.pilotId);
-        console.log(`✅ Match encontrado: ${position.driverAcronym} (pos ${position.position}) -> ${matchingGuess.familyName} (ID ${matchingGuess.pilotId})`);
-      } else {
-        // Se não encontrar correspondência, usar um ID único para não afetar o cálculo
-        currentIds.push(999999 + i);
-        console.log(`❌ Sem match: ${position.driverAcronym} (pos ${position.position})`);
-      }
-    }
-    
-    // Limitar aos primeiros N pilotos baseado no tamanho do palpite
-    const limitedCurrentIds = currentIds.slice(0, guessIds.length);
-    
-    // Garantir que ambos os arrays tenham o mesmo tamanho
-    while (limitedCurrentIds.length < guessIds.length) {
-      limitedCurrentIds.push(999999 + limitedCurrentIds.length);
-    }
-
-    console.log(`📊 Palpite: [${guessIds.join(', ')}]`);
-    console.log(`📊 Atual:   [${limitedCurrentIds.join(', ')}]`);
-
-    // Usar o calculador apropriado baseado no tipo de sessão
-    let calculator;
-    
-    if (sessionType === 'QUALIFYING' || sessionType === 'qualifying' || sessionType === 'Qualifying') {
-      calculator = new QualifyingScoreCalculator(limitedCurrentIds, guessIds);
-    } else {
-      calculator = new RaceScoreCalculator(limitedCurrentIds, guessIds);
-    }
-    
-    const currentScore = calculator.calculate();
-    
-    // Usar o primeiro palpite para identificar o usuário (melhor que pilotName que pode ser undefined)
-    const userIdentifier = raceGuesses.length > 0 ? raceGuesses[0].familyName || 'Usuário' : 'Usuário';
-    console.log(`🎯 ${userIdentifier}: ${currentScore.toFixed(3)} pontos (${sessionType})`);
-    
-    return currentScore;
-  }
-
   // Buscar ranking ao vivo dos palpiteiros
   async getLiveRanking(sessionKey: number): Promise<LiveRanking[]> {
     try {
@@ -386,16 +275,6 @@ class LiveTimingService {
         console.log('Nenhum Grand Prix disponível');
         return [];
       }
-
-      // Buscar palpites reais para o Grand Prix atual
-      const userGuesses = await this.getUserGuessesForGrandPrix(nextGrandPrix.id);
-      
-      if (!userGuesses.length) {
-        console.log('Nenhum palpite encontrado para o GP atual:', nextGrandPrix.id);
-        return [];
-      }
-
-      console.log('Usando palpites reais:', userGuesses.length, 'participantes');
 
       // Verificar se os dados da F1 são válidos (têm informações dos pilotos)
       let currentPositions;
@@ -436,82 +315,256 @@ class LiveTimingService {
       const sessionType = session?.session_type || 'RACE';
       console.log('Tipo de sessão detectado:', sessionType);
 
-      // Calcular pontuação atual para cada usuário baseado em palpites reais
-      const liveRanking: LiveRanking[] = userGuesses.map(userGuess => {
-        // SEMPRE usar raceGuesses - os usuários só fazem palpites de corrida
-        // Mesmo para qualifying, usamos os palpites de corrida como base
-        const guessesToUse = userGuess.raceGuesses;
+      // 🚀 USAR O NOVO ENDPOINT /live-timing DO BACKEND JAVA
+      console.log('🚀 Usando novo endpoint /live-timing do backend Java');
+      
+      try {
+        const { default: axiosInstance } = await import('../config/axios');
         
-        if (!guessesToUse || guessesToUse.length === 0) {
-          console.log(`⚠️ Usuário ${userGuess.userName} não tem palpites de corrida`);
-          return {
-            userId: userGuess.userId,
-            userName: userGuess.userName,
-            userEmail: userGuess.userEmail,
-            currentScore: 0,
-            totalPossibleScore: 0,
-            correctGuesses: 0,
-            raceGuesses: [],
-            positionDifferences: {}
-          };
-        }
-          
-        const currentScore = this.calculateCurrentScore(guessesToUse, currentPositions, sessionType);
-        
-        // Calcular pontuação máxima possível baseada no sistema oficial
-        let maxScores: number[];
-        if (sessionType.includes('QUALIFYING') || sessionType.includes('qualifying')) {
-          // Para qualifying: pontuações máximas diferentes
-          maxScores = [5.0, 5.0, 5.0, 4.0, 4.0, 4.0, 3.0, 3.0, 3.0, 3.0, 2.55, 2.167];
-        } else {
-          // Para corrida: pontuações máximas diferentes
-          maxScores = [25, 25, 25, 20, 20, 20, 15, 15, 15, 15, 12.75, 10.837, 9.212, 7.83];
-        }
-        
-        const totalPossibleScore = maxScores.slice(0, guessesToUse.length).reduce((sum, score) => sum + score, 0);
-        
-        // Calcular quantos palpites estão corretos (posição exata)
-        const correctGuesses = guessesToUse.filter(guess => {
-          const actualPosition = currentPositions.find(p => 
-            p.driverAcronym === guess.code || 
-            p.driverName?.includes(guess.familyName || '') ||
-            p.driverAcronym === guess.pilotName
-          );
-          return actualPosition && actualPosition.position === guess.position;
-        }).length;
-
-        // Calcular diferenças de posição para cada palpite
-        const positionDifferences: { [position: number]: number } = {};
-        guessesToUse.forEach(guess => {
-          const actualPosition = currentPositions.find(p => 
-            p.driverAcronym === guess.code || 
-            p.driverName?.includes(guess.familyName || '') ||
-            p.driverAcronym === guess.pilotName
-          );
-          if (actualPosition) {
-            positionDifferences[guess.position] = actualPosition.position - guess.position;
-          }
-        });
-
-        return {
-          userId: userGuess.userId,
-          userName: userGuess.userName,
-          userEmail: userGuess.userEmail,
-          currentScore,
-          totalPossibleScore,
-          correctGuesses,
-          raceGuesses: guessesToUse,
-          positionDifferences
+        // Preparar dados para enviar ao backend
+        const liveTimingRequest = {
+          grandPrixId: nextGrandPrix.id,
+          sessionType: sessionType,
+          currentPositions: currentPositions.map(pos => ({
+            position: pos.position,
+            driverNumber: pos.driverNumber,
+            driverAcronym: pos.driverAcronym,
+            driverName: pos.driverName
+          }))
         };
-      });
-
-      // Ordenar por pontuação atual (maior para menor)
-      return liveRanking.sort((a, b) => b.currentScore - a.currentScore);
+        
+        console.log('📤 Enviando dados para backend:', liveTimingRequest);
+        
+        // Chamar o novo endpoint
+        const response = await axiosInstance.post('/guesses/live-timing', liveTimingRequest);
+        
+        console.log('✅ Resposta do backend recebida:', response.data);
+        
+        // Converter resposta do backend para o formato esperado
+        const backendRanking = response.data.userRankings || [];
+        
+        const liveRanking: LiveRanking[] = backendRanking.map((ranking: any) => ({
+          userId: ranking.userId,
+          userName: ranking.userName,
+          userEmail: ranking.userEmail,
+          currentScore: ranking.currentScore,
+          totalPossibleScore: ranking.totalPossibleScore || 234, // Pontuação máxima
+          correctGuesses: ranking.correctGuesses,
+          raceGuesses: ranking.raceGuesses || [],
+          positionDifferences: ranking.positionDifferences || {}
+        }));
+        
+        console.log(`🎯 Ranking calculado pelo backend: ${liveRanking.length} usuários`);
+        
+        return liveRanking;
+        
+      } catch (backendError: any) {
+        console.error('❌ Erro ao usar endpoint /live-timing do backend:', backendError.message);
+        console.log('🔄 Fallback: calculando no frontend...');
+        
+        // FALLBACK: Se o backend falhar, usar o método antigo (frontend)
+        return this.calculateLiveRankingFallback(nextGrandPrix.id, currentPositions, sessionType);
+      }
 
     } catch (error) {
       console.error('Erro ao calcular ranking ao vivo:', error);
       return [];
     }
+  }
+
+  // Método fallback para calcular no frontend caso o backend falhe
+  private async calculateLiveRankingFallback(grandPrixId: number, currentPositions: any[], sessionType: string): Promise<LiveRanking[]> {
+    try {
+      // Buscar palpites dos usuários usando o backend Java
+      const userGuesses = await this.getUserGuessesFromJavaBackend(grandPrixId);
+      
+      if (!userGuesses.length) {
+        console.log('Nenhum palpite encontrado para este Grand Prix');
+        return [];
+      }
+
+      console.log(`📝 ${userGuesses.length} palpites encontrados (fallback)`);
+
+      // Calcular pontuação para cada usuário usando as classes que já funcionam
+      const liveRanking: LiveRanking[] = [];
+
+      for (const userGuess of userGuesses) {
+        // Sempre usar raceGuesses independente do tipo de sessão
+        const guessesToUse = userGuess.raceGuesses;
+        
+        if (!guessesToUse || guessesToUse.length === 0) {
+          console.log(`⚠️ Usuário ${userGuess.userName} não tem palpites de corrida`);
+          continue;
+        }
+
+        // Calcular pontuação atual
+        const currentScore = this.calculateCurrentScore(guessesToUse, currentPositions, sessionType);
+        
+        // Calcular diferenças de posição
+        const positionDifferences = this.calculatePositionDifferences(guessesToUse, currentPositions);
+        
+        // Contar acertos exatos
+        const correctGuesses = this.countCorrectGuesses(guessesToUse, currentPositions);
+
+        console.log(`🎯 Usuário ${userGuess.userName}: ${currentScore.toFixed(3)} pontos (${sessionType} - fallback)`);
+
+        liveRanking.push({
+          userId: userGuess.userId,
+          userName: userGuess.userName,
+          userEmail: userGuess.userEmail,
+          currentScore: currentScore,
+          totalPossibleScore: 234, // Pontuação máxima possível
+          correctGuesses: correctGuesses,
+          raceGuesses: guessesToUse,
+          positionDifferences: positionDifferences
+        });
+      }
+
+      // Ordenar por pontuação decrescente
+      return liveRanking.sort((a, b) => b.currentScore - a.currentScore);
+      
+    } catch (error) {
+      console.error('Erro no fallback de ranking ao vivo:', error);
+      return [];
+    }
+  }
+
+  // Buscar palpites dos usuários usando o backend Java
+  async getUserGuessesFromJavaBackend(grandPrixId: number): Promise<UserGuess[]> {
+    try {
+      // Importar dinamicamente para evitar problemas no servidor
+      const { default: axiosInstance } = await import('../config/axios');
+      
+      console.log('🔍 Buscando palpites do backend Java para GP:', grandPrixId);
+      
+      // Buscar palpites de corrida do Grand Prix
+      const response = await axiosInstance.get(`/guesses/grand-prix/${grandPrixId}?guessType=RACE`);
+      
+      const guessesData = response.data;
+      console.log('✅ Palpites encontrados no backend Java:', guessesData.length);
+      console.log('📊 Primeiro palpite:', JSON.stringify(guessesData[0], null, 2));
+      
+      // Converter formato da API Java para o formato esperado
+      const userGuesses: UserGuess[] = guessesData.map((guess: any) => {
+        console.log(`🔄 Convertendo palpite do usuário: ${guess.user.name}`);
+        console.log(`📝 Pilotos no palpite: ${guess.pilots.length}`);
+        
+        const convertedGuess = {
+          id: guess.id,
+          userId: guess.user.id,
+          userName: guess.user.name,
+          userEmail: guess.user.email,
+          grandPrixId: guess.grandPrixId,
+          qualifyingGuesses: [], // Não usado no live timing
+          raceGuesses: guess.pilots.map((pilot: any, index: number) => ({
+            position: index + 1,
+            pilotId: pilot.id,
+            pilotName: pilot.fullName || pilot.name,
+            familyName: pilot.familyName,
+            code: pilot.code
+          }))
+        };
+        
+        console.log(`✅ Palpite convertido: ${convertedGuess.raceGuesses.length} pilotos`);
+        return convertedGuess;
+      });
+      
+      console.log(`🎯 Total de palpites convertidos: ${userGuesses.length}`);
+      return userGuesses;
+      
+    } catch (error) {
+      console.error('❌ Erro ao buscar palpites do backend Java:', error);
+      return [];
+    }
+  }
+
+  // Calcular pontuação de um palpite baseado nas posições atuais
+  calculateCurrentScore(raceGuesses: PilotPosition[], currentPositions: any[], sessionType: string = 'RACE'): number {
+    // Importar os calculadores
+    const { RaceScoreCalculator, QualifyingScoreCalculator } = require('../utils/scoreCalculators');
+    
+    // Converter palpites para array de IDs (ordem do palpite)
+    const guessIds = raceGuesses.map(guess => guess.pilotId);
+    
+    // Criar array de IDs baseado na classificação atual (ordem real)
+    const currentIds: number[] = [];
+    
+    // Para cada posição na classificação atual, encontrar o ID do piloto
+    for (let i = 0; i < currentPositions.length; i++) {
+      const position = currentPositions[i];
+      // Encontrar o piloto correspondente nos palpites
+      const matchingGuess = raceGuesses.find(g => 
+        g.code === position.driverAcronym || 
+        g.familyName === position.driverName ||
+        position.driverName?.includes(g.familyName || '') ||
+        position.driverAcronym === g.code ||
+        g.pilotName === position.driverName
+      );
+      
+      if (matchingGuess) {
+        currentIds.push(matchingGuess.pilotId);
+      } else {
+        // Se não encontrar correspondência, usar um ID fictício
+        currentIds.push(999999 + i);
+      }
+    }
+    
+    // Usar o calculador apropriado baseado no tipo de sessão
+    if (sessionType === 'QUALIFYING') {
+      const calculator = new QualifyingScoreCalculator(currentIds, guessIds);
+      return calculator.calculate();
+    } else {
+      const calculator = new RaceScoreCalculator(currentIds, guessIds);
+      return calculator.calculate();
+    }
+  }
+
+  // Calcular diferenças de posição entre palpite e realidade
+  calculatePositionDifferences(raceGuesses: PilotPosition[], currentPositions: any[]): { [position: number]: number } {
+    const differences: { [position: number]: number } = {};
+    
+    for (let i = 0; i < raceGuesses.length; i++) {
+      const guess = raceGuesses[i];
+      const guessedPosition = i + 1;
+      
+      // Encontrar a posição real do piloto
+      const realPositionIndex = currentPositions.findIndex(pos => 
+        pos.driverAcronym === guess.code || 
+        pos.driverName?.includes(guess.familyName || '') ||
+        guess.pilotName === pos.driverName
+      );
+      
+      if (realPositionIndex !== -1) {
+        const realPosition = realPositionIndex + 1;
+        differences[guessedPosition] = realPosition - guessedPosition;
+      }
+    }
+    
+    return differences;
+  }
+
+  // Contar acertos exatos de posição
+  countCorrectGuesses(raceGuesses: PilotPosition[], currentPositions: any[]): number {
+    let correctCount = 0;
+    
+    for (let i = 0; i < raceGuesses.length; i++) {
+      const guess = raceGuesses[i];
+      const guessedPosition = i + 1;
+      
+      // Verificar se há um piloto na posição correspondente
+      if (currentPositions[i]) {
+        const currentPilot = currentPositions[i];
+        
+        // Verificar se é o mesmo piloto
+        if (currentPilot.driverAcronym === guess.code || 
+            currentPilot.driverName?.includes(guess.familyName || '') ||
+            guess.pilotName === currentPilot.driverName) {
+          correctCount++;
+        }
+      }
+    }
+    
+    return correctCount;
   }
 
   // Gerar posições mock apenas quando não há dados F1 disponíveis
@@ -542,6 +595,7 @@ class LiveTimingService {
 
   // Buscar dados completos incluindo ranking ao vivo
   async getSessionData(sessionKey: number) {
+    debugger;
     const cacheKey = `session-data-${sessionKey}`;
     const cached = this.getCachedData<any>(cacheKey);
     if (cached) return cached;

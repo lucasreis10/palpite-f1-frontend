@@ -201,6 +201,7 @@ export class QualifyingScoreCalculator {
   private diffGrids: Map<number, number>;
 
   constructor(realGrid: number[], guessGrid: number[]) {
+    debugger;
     this.realQualifyResult = realGrid;
     this.guessQualify = guessGrid;
     this.diffGrids = this.checkDifferencesWithRealGridAndGuessGrid();
@@ -357,3 +358,4 @@ export class QualifyingScoreCalculator {
     return 0;
   }
 }
+
