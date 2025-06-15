@@ -111,7 +111,7 @@ function calculateLiveScore(raceGuesses: any[], currentStandings: DriverStanding
   let calculator;
   let score = 0;
   
-  if (sessionType === 'QUALIFYING' || sessionType === 'qualifying') {
+  if (sessionType === 'QUALIFYING' || sessionType === 'qualifying' || sessionType === 'Qualifying') {
     calculator = new QualifyingScoreCalculator(limitedCurrentIds, guessIds);
     score = calculator.calculate();
   } else {
