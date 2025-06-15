@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { QualifyingScoreCalculator, RaceScoreCalculator } from '../../utils/scoreCalculators';
 
 interface DriverStanding {
   position: number;
@@ -71,60 +70,6 @@ interface LiveTimingData {
     team: string;
     isLeader: boolean;
   }>;
-}
-
-function calculateLiveScore(raceGuesses: any[], currentStandings: DriverStanding[], sessionType: string = 'RACE'): { score: number; correctGuesses: number } {
-  // Converter os palpites para array de IDs (ordem do palpite)
-  const guessIds = raceGuesses.map(guess => guess.pilotId);
-  
-  // Criar array de IDs baseado na classificação atual (ordem real)
-  const currentIds: number[] = [];
-  
-  // Para cada posição na classificação atual, encontrar o ID do piloto
-  for (let i = 0; i < currentStandings.length; i++) {
-    const standing = currentStandings[i];
-    // Encontrar o piloto correspondente nos palpites pelo código/acrônimo
-    const matchingGuess = raceGuesses.find(g => 
-      g.code === standing.driverAcronym || 
-      g.familyName === standing.driverName ||
-      standing.driverName.includes(g.familyName || '') ||
-      g.pilotName === standing.driverName
-    );
-    
-    if (matchingGuess) {
-      currentIds.push(matchingGuess.pilotId);
-    } else {
-      // Se não encontrar correspondência, usar um ID único para não afetar o cálculo
-      currentIds.push(999999 + i);
-    }
-  }
-  
-  // Limitar aos primeiros N pilotos baseado no tamanho do palpite
-  const limitedCurrentIds = currentIds.slice(0, guessIds.length);
-  
-  // Garantir que ambos os arrays tenham o mesmo tamanho
-  while (limitedCurrentIds.length < guessIds.length) {
-    limitedCurrentIds.push(999999 + limitedCurrentIds.length);
-  }
-
-  // Usar o calculador apropriado baseado no tipo de sessão
-  let calculator;
-  let score = 0;
-  
-  if (sessionType === 'QUALIFYING' || sessionType === 'qualifying' || sessionType === 'Qualifying') {
-    calculator = new QualifyingScoreCalculator(limitedCurrentIds, guessIds);
-    score = calculator.calculate();
-  } else {
-    calculator = new RaceScoreCalculator(limitedCurrentIds, guessIds);
-    score = calculator.calculate();
-  }
-  
-  // Contar acertos exatos (posição correta)
-  const correctGuesses = guessIds.reduce((count, pilotId, index) => {
-    return count + (limitedCurrentIds[index] === pilotId ? 1 : 0);
-  }, 0);
-
-  return { score, correctGuesses };
 }
 
 export default function LiveTimingPage() {
@@ -314,15 +259,7 @@ export default function LiveTimingPage() {
                   </div>
                   <div className="p-4">
                     {data?.liveRanking
-                      .map(ranking => {
-                        const { score, correctGuesses } = calculateLiveScore(ranking.raceGuesses, data.standings, data.session?.session_type || 'RACE');
-                        return {
-                          ...ranking,
-                          calculatedScore: score,
-                          calculatedCorrectGuesses: correctGuesses
-                        };
-                      })
-                      .sort((a, b) => b.calculatedScore - a.calculatedScore)
+                      .sort((a, b) => b.currentScore - a.currentScore)
                       .map((ranking, index) => (
                         <div 
                           key={ranking.userId}
@@ -342,10 +279,10 @@ export default function LiveTimingPage() {
                             </div>
                             <div className="text-right">
                               <div className="text-sm text-slate-300">
-                                Pontos: <span className="font-bold text-white">{ranking.calculatedScore.toFixed(3)}</span>
+                                Pontos: <span className="font-bold text-white">{ranking.currentScore.toFixed(3)}</span>
                               </div>
                               <div className="text-xs text-slate-400">
-                                Acertos: <span className="font-medium">{ranking.calculatedCorrectGuesses}</span>
+                                Acertos: <span className="font-medium">{ranking.correctGuesses}</span>
                               </div>
                             </div>
                           </div>

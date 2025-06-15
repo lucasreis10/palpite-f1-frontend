@@ -358,7 +358,11 @@ class LiveTimingService {
       calculator = new RaceScoreCalculator(limitedCurrentIds, guessIds);
     }
     
-    return calculator.calculate();
+    const currentScore = calculator.calculate();
+    
+    console.log(`🎯 Usuário ${raceGuesses[0].pilotName}: ${currentScore.toFixed(3)} pontos (${sessionType})`);
+    
+    return currentScore;
   }
 
   // Buscar ranking ao vivo dos palpiteiros
@@ -389,9 +393,11 @@ class LiveTimingService {
       // Se não há posições da F1, usar dados mock apenas para as posições
       let currentPositions;
       if (!positions.length) {
-        console.log('Sem posições F1 disponíveis, usando posições mock para demonstração');
+        console.log('⚠️ Sem posições F1 disponíveis, usando posições mock para demonstração');
         currentPositions = this.generateMockPositions();
+        console.log('📊 Dados mock sendo usados:', currentPositions.slice(0, 5).map(p => `${p.position}º ${p.driverAcronym}`));
       } else {
+        console.log('✅ Usando posições reais da F1');
         // Mapear posições atuais para um formato mais fácil de trabalhar
         const drivers = this.getCachedData<any[]>('drivers') || [];
         currentPositions = positions.map(pos => {
@@ -404,6 +410,7 @@ class LiveTimingService {
             driverName: driver?.full_name || 'Unknown'
           };
         });
+        console.log('📊 Dados reais sendo usados:', currentPositions.slice(0, 5).map(p => `${p.position}º ${p.driverAcronym}`));
       }
 
       // Determinar o tipo de sessão
