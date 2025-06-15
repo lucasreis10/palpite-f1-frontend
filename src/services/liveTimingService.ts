@@ -352,7 +352,7 @@ class LiveTimingService {
     // Usar o calculador apropriado baseado no tipo de sessão
     let calculator;
     
-    if (sessionType === 'QUALIFYING' || sessionType === 'qualifying') {
+    if (sessionType === 'QUALIFYING' || sessionType === 'qualifying' || sessionType === 'Qualifying') {
       calculator = new QualifyingScoreCalculator(limitedCurrentIds, guessIds);
     } else {
       calculator = new RaceScoreCalculator(limitedCurrentIds, guessIds);
