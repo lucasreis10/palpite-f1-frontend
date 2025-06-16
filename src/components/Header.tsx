@@ -151,6 +151,7 @@ export function Header() {
   ];
 
   const outrosItems = [
+    { href: '/proxima-corrida', label: 'Próxima Corrida', description: 'Informações da próxima corrida' },
     { href: '/equipes', label: 'Equipes', description: 'Informações sobre as equipes' },
   ];
 
@@ -163,6 +164,7 @@ export function Header() {
     { href: '/ultimo-evento', label: 'Último Evento' },
     { href: '/calculadora-pontos', label: 'Calculadora' },
     { href: '/live-timing', label: 'Live Timing', isExperimental: true },
+    { href: '/proxima-corrida', label: 'Próxima Corrida' },
     { href: '/equipes', label: 'Equipes' },
     ...(isAuthenticated && isAdmin ? [{ href: '/admin', label: 'Administração' }] : []),
   ];

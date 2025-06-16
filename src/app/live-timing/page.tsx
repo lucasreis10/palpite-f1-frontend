@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { NextRaceWidget } from '../../components/NextRaceWidget';
 
 interface DriverStanding {
   position: number;
@@ -472,15 +473,9 @@ export default function LiveTimingPage() {
               <p className="text-slate-400 text-sm">
                 (Sexta-feira, Sábado e Domingo da semana de corrida)
               </p>
-              {nextRace && (
-                <div className="mt-6 p-4 bg-slate-800 rounded-lg inline-block">
-                  <p className="text-slate-300 text-sm mb-1">Próxima corrida:</p>
-                  <p className="font-semibold text-white">{nextRace.name}</p>
-                  <p className="text-slate-400 text-sm">
-                    {new Date(nextRace.raceDateTime).toLocaleDateString('pt-BR')}
-                  </p>
-                </div>
-              )}
+              <div className="mt-8 max-w-md mx-auto">
+                <NextRaceWidget compact={true} showSessions={false} />
+              </div>
             </div>
           )
         ) : (

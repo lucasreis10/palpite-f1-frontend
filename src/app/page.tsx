@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Header } from './../components/Header';
 import Link from 'next/link';
+import { NextRaceWidget } from './../components/NextRaceWidget';
 import { dashboardService, NextRace, LastResult, TopUser, DashboardStats } from './../services/dashboard';
 
 export default function Home() {
@@ -116,12 +117,18 @@ export default function Home() {
             </div>
           </div>
         </div>
+        <div className="grid-cols-1 pb-8 grid gap-8">
+          <NextRaceWidget /> 
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8  pb-8">
-          {/* Próximas Corridas */}
+          {/* Widget da Próxima Corrida */}
+         
+          
+          {/* Próximas Corridas (Lista) */}
           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-              🏁 Próximas Corridas
+              📅 Calendário de Corridas
             </h2>
             <div className="space-y-4">
               {nextRaces.length > 0 ? nextRaces.map((race, index) => (
