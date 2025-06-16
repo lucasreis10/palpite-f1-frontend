@@ -28,6 +28,7 @@ export function BetForm() {
   const [existingRaceGuess, setExistingRaceGuess] = useState<GuessResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isRepeatingLastBet, setIsRepeatingLastBet] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [toast, setToast] = useState<{
@@ -373,11 +374,102 @@ export function BetForm() {
     showToast('Palpites da classificação e corrida foram limpos!', 'success');
   };
 
-  const handleRepeatLastBet = () => {
-    // Implementar lógica para repetir último palpite de outro GP
-    // Por enquanto, apenas limpa mensagens
-    setError(null);
-    setSuccessMessage(null);
+  const handleRepeatLastBet = async () => {
+    if (!user?.id) {
+      showToast('Faça login para usar esta funcionalidade', 'error');
+      return;
+    }
+
+    if (!nextGrandPrix) {
+      showToast('Nenhum Grande Prêmio disponível', 'error');
+      return;
+    }
+
+    try {
+      setIsRepeatingLastBet(true);
+      showToast('Buscando último palpite...', 'info');
+
+      // Buscar histórico de palpites do usuário
+      const userGuesses = await guessService.getUserGuesses(user.id);
+      
+      if (userGuesses.length === 0) {
+        showToast('Nenhum palpite anterior encontrado', 'error');
+        return;
+      }
+
+      // Filtrar apenas palpites de GPs diferentes do atual
+      const otherGpGuesses = userGuesses.filter(guess => 
+        guess.grandPrixId !== nextGrandPrix.id && guess.pilots && guess.pilots.length > 0
+      );
+
+      if (otherGpGuesses.length === 0) {
+        showToast('Nenhum palpite anterior de outro GP encontrado', 'error');
+        return;
+      }
+
+      // Buscar o mais recente palpite de qualifying e race
+      const lastQualifyingGuess = otherGpGuesses
+        .filter(guess => guess.guessType === 'QUALIFYING')
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+
+      const lastRaceGuess = otherGpGuesses
+        .filter(guess => guess.guessType === 'RACE')
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+
+      let hasRepeated = false;
+
+      // Repetir palpite de qualifying se existir
+      if (lastQualifyingGuess && qualifyingDeadlineOpen) {
+        const qualifyingDrivers = lastQualifyingGuess.pilots.map(pilot => convertPilotToDriver(pilot));
+        
+        // Verificar se todos os pilotos ainda estão ativos
+        const availableDrivers = qualifyingDrivers.filter(driver => 
+          drivers.some(d => d.id === driver.id)
+        );
+
+        if (availableDrivers.length > 0) {
+          setSelectedQualifyingDrivers([
+            ...availableDrivers, 
+            ...new Array(Math.max(0, 10 - availableDrivers.length)).fill(null)
+          ]);
+          hasRepeated = true;
+        }
+      }
+
+      // Repetir palpite de race se existir
+      if (lastRaceGuess && raceDeadlineOpen) {
+        const raceDrivers = lastRaceGuess.pilots.map(pilot => convertPilotToDriver(pilot));
+        
+        // Verificar se todos os pilotos ainda estão ativos
+        const availableDrivers = raceDrivers.filter(driver => 
+          drivers.some(d => d.id === driver.id)
+        );
+
+        if (availableDrivers.length > 0) {
+          setSelectedRaceDrivers([
+            ...availableDrivers, 
+            ...new Array(Math.max(0, 10 - availableDrivers.length)).fill(null)
+          ]);
+          hasRepeated = true;
+        }
+      }
+
+      if (hasRepeated) {
+        const lastGpName = lastQualifyingGuess?.grandPrixName || lastRaceGuess?.grandPrixName || 'último GP';
+        showToast(`Palpites do ${lastGpName} copiados com sucesso! 🔄`, 'success');
+      } else {
+        showToast('Não foi possível repetir: prazos encerrados ou pilotos indisponíveis', 'error');
+      }
+
+      // Limpar mensagens de erro/sucesso anteriores
+      setError(null);
+      setSuccessMessage(null);
+    } catch (error) {
+      console.error('Erro ao buscar último palpite:', error);
+      showToast('Erro ao buscar último palpite. Tente novamente.', 'error');
+    } finally {
+      setIsRepeatingLastBet(false);
+    }
   };
 
   const handleCopyQualifyingToRace = () => {
@@ -815,12 +907,12 @@ export function BetForm() {
               <button
                 type="button"
                 onClick={handleCopyPalpitesToClipboard}
-                className="w-full sm:w-auto px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-4 py-3 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 disabled={isCopying || (!selectedQualifyingDrivers.some(d => d !== null) && !selectedRaceDrivers.some(d => d !== null))}
               >
                 {isCopying ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-700"></div>
                     <span>Copiando...</span>
                   </>
                 ) : copySuccess ? (
@@ -836,18 +928,27 @@ export function BetForm() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
                     <span className="hidden sm:inline">Copiar Palpites</span>
-                    <span className="sm:hidden"> Copiar</span>
+                    <span className="sm:hidden">Copiar</span>
                   </>
                 )}
               </button>
               <button
                 type="button"
                 onClick={handleRepeatLastBet}
-                className="w-full sm:w-auto px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium text-sm"
-                disabled={isSaving}
+                className="w-full sm:w-auto px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                disabled={isSaving || isRepeatingLastBet}
               >
-                <span className="hidden sm:inline">Repetir Último Palpite</span>
-                <span className="sm:hidden">Repetir Último</span>
+                {isRepeatingLastBet ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-700"></div>
+                    <span>Buscando...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="hidden sm:inline">Repetir Último Palpite</span>
+                    <span className="sm:hidden">Repetir Último</span>
+                  </>
+                )}
               </button>
               <button
                 type="button"
@@ -860,7 +961,7 @@ export function BetForm() {
               </button>
               <button
                 type="submit"
-                className="w-full sm:w-auto px-6 py-3 bg-f1-red text-gray-700 border border-gray-300 rounded-lg hover:bg-f1-red/90 transition-colors font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 disabled={
                   isSaving || 
                   (!qualifyingDeadlineOpen && !raceDeadlineOpen) || 
@@ -871,12 +972,12 @@ export function BetForm() {
               >
                 {isSaving ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-300"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                     <span>Salvando...</span>
                   </>
                 ) : authLoading || isLoading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-300"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                     <span>Carregando...</span>
                   </>
                 ) : !user?.id ? (
@@ -927,12 +1028,12 @@ export function BetForm() {
                   await handleCopyPalpitesToClipboard();
                   setShowTextPreview(false);
                 }}
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
                 disabled={isCopying}
               >
                 {isCopying ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-700"></div>
                     Copiando...
                   </>
                 ) : (
