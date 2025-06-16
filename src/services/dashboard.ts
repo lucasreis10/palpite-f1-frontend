@@ -4,12 +4,28 @@ import { API_URLS } from '../config/api';
 export interface NextRace {
   id: number;
   name: string;
-  circuit: string;
-  date: string;
-  time: string;
-  location: string;
+  circuitName: string;
+  city: string;
   country: string;
   season: number;
+  round: number;
+  raceDateTime: string;
+  qualifyingDateTime?: string;
+  practice1DateTime?: string;
+  practice2DateTime?: string;
+  practice3DateTime?: string;
+  sprintDateTime?: string;
+  timezone?: string;
+  laps?: number;
+  circuitLength?: number;
+  isSprintWeekend?: boolean;
+  active: boolean;
+  completed: boolean;
+  // Campos legados para compatibilidade
+  circuit?: string;
+  date?: string;
+  time?: string;
+  location?: string;
 }
 
 export interface LastResult {

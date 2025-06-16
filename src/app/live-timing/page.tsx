@@ -78,6 +78,69 @@ export default function LiveTimingPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'timing' | 'control'>('timing');
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [nextRace, setNextRace] = useState<any>(null);
+  const [shouldPoll, setShouldPoll] = useState(false);
+
+  // Função para verificar se é dia de corrida (sexta, sábado ou domingo)
+  const isRaceWeekend = () => {
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0 = domingo, 1 = segunda, ..., 6 = sábado
+    return dayOfWeek === 0 || dayOfWeek === 5 || dayOfWeek === 6; // domingo, sexta, sábado
+  };
+
+  // Função para verificar se há corrida na semana atual
+  const isRaceWeek = (raceDate: string) => {
+    const race = new Date(raceDate);
+    const today = new Date();
+    
+    // Calcular o início da semana (segunda-feira)
+    const startOfWeek = new Date(today);
+    const dayOfWeek = today.getDay();
+    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Se domingo, volta 6 dias; senão volta (dia - 1)
+    startOfWeek.setDate(today.getDate() - daysToMonday);
+    startOfWeek.setHours(0, 0, 0, 0);
+    
+    // Calcular o fim da semana (domingo)
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+    
+    return race >= startOfWeek && race <= endOfWeek;
+  };
+
+  // Buscar informações da próxima corrida
+  useEffect(() => {
+    const fetchNextRace = async () => {
+      try {
+        const response = await fetch('/api/dashboard/next-races?limit=1');
+        if (response.ok) {
+          const races = await response.json();
+          if (races.length > 0) {
+            setNextRace(races[0]);
+            
+            // Verificar se deve fazer polling
+            const isWeekend = isRaceWeekend();
+            const isThisWeek = isRaceWeek(races[0].raceDateTime);
+            const shouldEnablePolling = isWeekend && isThisWeek;
+            
+            setShouldPoll(shouldEnablePolling);
+            
+            console.log('🏁 Verificação de polling:', {
+              isWeekend,
+              isThisWeek,
+              shouldEnablePolling,
+              raceDate: races[0].raceDateTime,
+              today: new Date().toISOString()
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao buscar próxima corrida:', err);
+      }
+    };
+
+    fetchNextRace();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -94,12 +157,15 @@ export default function LiveTimingPage() {
       }
     };
 
+    // Sempre buscar dados na primeira carga
     fetchData();
-    const interval = autoRefresh ? setInterval(fetchData, 5000) : null;
+    
+    // Só fazer polling se estiver habilitado e autoRefresh ativo
+    const interval = (autoRefresh && shouldPoll) ? setInterval(fetchData, 5000) : null;
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [autoRefresh]);
+  }, [autoRefresh, shouldPoll]);
 
   if (loading) {
     return (
@@ -153,10 +219,15 @@ export default function LiveTimingPage() {
             <button
               onClick={() => setAutoRefresh(!autoRefresh)}
               className={`px-3 py-1 rounded-full text-sm font-medium ${
-                autoRefresh ? 'bg-green-600 text-white' : 'bg-slate-600 text-slate-300'
+                autoRefresh && shouldPoll ? 'bg-green-600 text-white' : 
+                autoRefresh && !shouldPoll ? 'bg-yellow-600 text-white' :
+                'bg-slate-600 text-slate-300'
               }`}
+              title={!shouldPoll ? 'Polling disponível apenas nos fins de semana de corrida' : ''}
             >
-              {autoRefresh ? '🟢 AO VIVO' : '⏸️ PAUSADO'}
+              {autoRefresh && shouldPoll ? '🟢 AO VIVO' : 
+               autoRefresh && !shouldPoll ? '🟡 AGUARDANDO' :
+               '⏸️ PAUSADO'}
             </button>
           </div>
         </div>
@@ -190,63 +261,124 @@ export default function LiveTimingPage() {
         </div>
       </div>
 
-      {/* Banner Beta */}
-      <div className="bg-orange-600 border-b border-orange-500">
+      {/* Banner de Status */}
+      <div className={`border-b ${shouldPoll ? 'bg-green-600 border-green-500' : 'bg-orange-600 border-orange-500'}`}>
         <div className="container mx-auto px-4 py-2">
           <div className="flex items-center justify-center gap-2 text-sm">
-            <span className="bg-orange-800 text-orange-100 px-2 py-1 rounded text-xs font-bold">
-              BETA
+            <span className={`px-2 py-1 rounded text-xs font-bold ${
+              shouldPoll ? 'bg-green-800 text-green-100' : 'bg-orange-800 text-orange-100'
+            }`}>
+              {shouldPoll ? 'AO VIVO' : 'AGUARDANDO'}
             </span>
-            <p className="text-orange-100 text-center">
-              ⚠️ Funcionalidade experimental - Dados ao vivo disponíveis apenas durante corridas oficiais da F1
+            <p className={`text-center ${shouldPoll ? 'text-green-100' : 'text-orange-100'}`}>
+              {shouldPoll 
+                ? '🔴 Dados ao vivo ativos - Fim de semana de corrida!'
+                : '⏰ Polling pausado - Dados ao vivo apenas nos fins de semana de corrida (Sex-Dom)'
+              }
             </p>
           </div>
         </div>
       </div>
 
+      {/* Informações da Próxima Corrida (quando não há polling) */}
+      {!shouldPoll && nextRace && (
+        <div className="bg-slate-800 border-b border-slate-700">
+          <div className="container mx-auto px-4 py-4">
+            <div className="text-center">
+              <h3 className="text-lg font-bold text-white mb-2">📅 Próxima Corrida</h3>
+              <div className="grid md:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <p className="text-slate-400">Grande Prêmio</p>
+                  <p className="font-semibold text-white">{nextRace.name}</p>
+                </div>
+                <div>
+                  <p className="text-slate-400">Data</p>
+                  <p className="font-semibold text-white">
+                    {new Date(nextRace.raceDateTime).toLocaleDateString('pt-BR', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-slate-400">Horário</p>
+                  <p className="font-semibold text-white">
+                    {new Date(nextRace.raceDateTime).toLocaleTimeString('pt-BR', {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-3 text-xs text-slate-400">
+                💡 O live timing será ativado automaticamente na sexta-feira da semana de corrida
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6">
         {activeTab === 'timing' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Standings */}
-            <div className="lg:col-span-2">
-              <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden">
-                <div className="p-4 border-b border-slate-700">
-                  <h2 className="text-lg font-bold text-white">🏎️ Classificação</h2>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-slate-700">
-                      <tr>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-slate-300">Pos</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-slate-300">Piloto</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-slate-300">Equipe</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data?.standings.map((driver) => (
-                        <tr key={driver.driverNumber} className="border-b border-slate-700 hover:bg-slate-700/50">
-                          <td className="px-4 py-3 text-sm">{driver.position}</td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">{driver.driverName}</span>
-                              <span className="text-slate-400 text-sm">{driver.driverAcronym}</span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
-                              <div 
-                                className="w-3 h-3 rounded-full" 
-                                style={{ backgroundColor: `#${driver.teamColor}` }}
-                              />
-                              <span className="text-slate-300">{driver.teamName}</span>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+          shouldPoll ? (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Standings */}
+              <div className="lg:col-span-2">
+                <div className="bg-slate-800 rounded-lg shadow-lg overflow-hidden">
+                  <div className="p-4 border-b border-slate-700">
+                    <h2 className="text-lg font-bold text-white">🏎️ Classificação</h2>
+                  </div>
+                  {data?.standings && data.standings.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-slate-700">
+                          <tr>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-slate-300">Pos</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-slate-300">Piloto</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-slate-300">Equipe</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {data.standings.map((driver) => (
+                            <tr key={driver.driverNumber} className="border-b border-slate-700 hover:bg-slate-700/50">
+                              <td className="px-4 py-3 text-sm">{driver.position}</td>
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium">{driver.driverName}</span>
+                                <span className="text-slate-400 text-sm">{driver.driverAcronym}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <div 
+                                  className="w-3 h-3 rounded-full" 
+                                  style={{ backgroundColor: `#${driver.teamColor}` }}
+                                />
+                                <span className="text-slate-300">{driver.teamName}</span>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="p-8 text-center">
+                    <div className="text-slate-400 text-4xl mb-4">📊</div>
+                    <h3 className="text-lg font-semibold text-white mb-2">
+                      {shouldPoll ? 'Aguardando dados ao vivo...' : 'Dados indisponíveis'}
+                    </h3>
+                    <p className="text-slate-400 text-sm">
+                      {shouldPoll 
+                        ? 'Os dados de timing aparecerão quando a sessão estiver ativa'
+                        : 'Live timing disponível apenas durante fins de semana de corrida'
+                      }
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -328,7 +460,29 @@ export default function LiveTimingPage() {
                 </div>
               </div>
             )}
-          </div>
+            </div>
+          ) : (
+            // Mensagem quando não é dia de corrida
+            <div className="text-center py-12">
+              <div className="text-slate-400 text-6xl mb-6">⏰</div>
+              <h2 className="text-2xl font-bold text-white mb-4">Live Timing Pausado</h2>
+              <p className="text-slate-300 mb-2">
+                Os dados ao vivo estão disponíveis apenas durante os fins de semana de corrida
+              </p>
+              <p className="text-slate-400 text-sm">
+                (Sexta-feira, Sábado e Domingo da semana de corrida)
+              </p>
+              {nextRace && (
+                <div className="mt-6 p-4 bg-slate-800 rounded-lg inline-block">
+                  <p className="text-slate-300 text-sm mb-1">Próxima corrida:</p>
+                  <p className="font-semibold text-white">{nextRace.name}</p>
+                  <p className="text-slate-400 text-sm">
+                    {new Date(nextRace.raceDateTime).toLocaleDateString('pt-BR')}
+                  </p>
+                </div>
+              )}
+            </div>
+          )
         ) : (
           <RaceControl messages={data?.raceControl || []} />
         )}

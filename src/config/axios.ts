@@ -110,7 +110,7 @@ if (isBrowser()) {
 // Criar instância do axios com configuração base
 const axiosInstance = axios.create({
   baseURL: API_URLS.BASE_URL,
-  timeout: 10000,
+  timeout: 30000, // 30 segundos para dar mais tempo para operações do backend
   headers: {
     'Content-Type': 'application/json',
   },

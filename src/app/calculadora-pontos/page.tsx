@@ -6,8 +6,8 @@ import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea
 import { Bars3Icon } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
 import { DriverAutocomplete } from '../../components/DriverAutocomplete';
-import { RaceScoreCalculator, QualifyingScoreCalculator } from '../../utils/scoreCalculators';
 import { guessService, Pilot } from '../../services/guesses';
+import { F1Service } from '../../services/f1';
 
 interface Driver {
   id: number;
@@ -25,6 +25,9 @@ interface ScoreDetail {
 export default function CalculadoraPontosPage() {
   const [pilots, setPilots] = useState<Pilot[]>([]);
   const [loading, setLoading] = useState(true);
+  const [calculating, setCalculating] = useState(false);
+  const [importingQualifying, setImportingQualifying] = useState(false); // Loading para import de classificação
+  const [importingRace, setImportingRace] = useState(false); // Loading para import de corrida
   const [guessType, setGuessType] = useState<'QUALIFYING' | 'RACE'>('RACE');
   const [numPositions, setNumPositions] = useState(10);
   
@@ -242,7 +245,7 @@ export default function CalculadoraPontosPage() {
     });
   };
 
-  const calculateScore = () => {
+  const calculateScore = async () => {
     // Verificar se todos os campos estão preenchidos
     const allGuessesSet = userGuessDrivers.every(d => d !== null);
     // Verificar apenas as primeiras posições do resultado real baseado no palpite
@@ -253,69 +256,212 @@ export default function CalculadoraPontosPage() {
       return;
     }
 
-    // Converter para arrays de IDs dos pilotos para usar nas calculadoras
-    const guessArray = userGuessDrivers.map(d => d!.id);
-    // Usar apenas as primeiras posições do resultado real baseado no número de posições do palpite
-    const actualArray = actualResultDrivers.slice(0, numPositions).map(d => d!.id);
+    setCalculating(true); // Iniciar loading
 
-    // Usar a calculadora apropriada baseada no tipo
-    let calculator;
-    let totalScore = 0;
+    try {
+      // Converter para arrays de IDs dos pilotos
+      const userGuess = userGuessDrivers.map(d => d!.id);
+      // Usar apenas as primeiras posições do resultado real baseado no número de posições do palpite
+      const actualResult = actualResultDrivers.slice(0, numPositions).map(d => d!.id);
 
-    if (guessType === 'QUALIFYING') {
-      calculator = new QualifyingScoreCalculator(actualArray, guessArray);
-      totalScore = calculator.calculate();
-    } else {
-      calculator = new RaceScoreCalculator(actualArray, guessArray);
-      totalScore = calculator.calculate();
-    }
+      console.log('🧮 Calculadora - Dados recebidos:', {
+        guessType,
+        userGuessLength: userGuess.length,
+        actualResultLength: actualResult.length
+      });
 
-    // Criar detalhes da pontuação para exibição
-    const details: ScoreDetail[] = [];
-    
-    // Para calcular pontos individuais, vamos usar mini-calculadoras para cada posição
-    for (let i = 0; i < numPositions; i++) {
-      const guessDriver = userGuessDrivers[i];
-      const actualDriver = actualResultDrivers[i];
+      console.log('📤 Enviando para backend Java:', {
+        guessType,
+        userGuess,
+        actualResult
+      });
 
-      if (guessDriver && actualDriver) {
-        // Criar arrays temporários para calcular apenas esta posição
-        const tempActualArray = [actualDriver.id];
-        const tempGuessArray = [guessDriver.id];
-        
-        let individualPoints = 0;
-        
-        // Usar a calculadora apropriada para esta posição específica
-        if (guessType === 'QUALIFYING') {
-          const tempCalculator = new QualifyingScoreCalculator(tempActualArray, tempGuessArray);
-          individualPoints = tempCalculator.calculate();
-        } else {
-          const tempCalculator = new RaceScoreCalculator(tempActualArray, tempGuessArray);
-          individualPoints = tempCalculator.calculate();
-        }
+      // Chamar o endpoint da calculadora com timeout otimizado
+      const response = await fetch('/api/calculator', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          guessType,
+          userGuess,
+          actualResult
+        }),
+      });
 
-        const detail: ScoreDetail = {
-          position: i + 1,
-          guessPilot: guessDriver.name,
-          actualPilot: actualDriver.name,
-          points: Math.round(individualPoints * 1000) / 1000
-        };
-
-        details.push(detail);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro ao calcular pontuação');
       }
-    }
 
-    setScoreDetails(details);
-    setTotalScore(Math.round(totalScore * 1000) / 1000);
+      const data = await response.json();
+      console.log('✅ Resposta do backend Java:', data);
 
-    // Fazer scroll automático para a seção de resultados
-    if (resultSectionRef.current) {
-      resultSectionRef.current.scrollIntoView({ behavior: 'smooth' });
+      if (!data.success) {
+        throw new Error(data.error || 'Erro no cálculo');
+      }
+
+      // Criar detalhes da pontuação para exibição usando os dados do backend
+      const details: ScoreDetail[] = data.details.map((detail: any) => ({
+        position: detail.position,
+        guessPilot: detail.guessPilotName,
+        actualPilot: detail.actualPilotName,
+        points: Math.round(detail.points * 1000) / 1000
+      }));
+
+      setScoreDetails(details);
+      setTotalScore(Math.round(data.totalScore * 1000) / 1000);
+
+      toast.success('Pontuação calculada com sucesso!');
+
+      // Fazer scroll automático para a seção de resultados
+      if (resultSectionRef.current) {
+        resultSectionRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+
+    } catch (error: any) {
+      console.error('❌ Erro ao calcular pontuação:', error);
+      toast.error(error.message || 'Erro ao calcular pontuação');
+    } finally {
+      setCalculating(false); // Finalizar loading
     }
   };
 
   const resetCalculator = () => {
     initializePositions();
+  };
+
+  // Função para encontrar piloto correspondente no sistema
+  const findMatchingDriver = (ergastDriver: any): Driver | null => {
+    const { givenName, familyName, code } = ergastDriver;
+    const fullName = `${givenName} ${familyName}`;
+    
+    // Tentar várias estratégias de correspondência
+    let matchedDriver = null;
+    
+    // 1. Correspondência exata por nome completo
+    matchedDriver = drivers.find(driver => 
+      driver.name.toLowerCase() === fullName.toLowerCase()
+    );
+    if (matchedDriver) return matchedDriver;
+    
+    // 2. Correspondência por sobrenome
+    matchedDriver = drivers.find(driver => 
+      driver.name.toLowerCase().includes(familyName.toLowerCase())
+    );
+    if (matchedDriver) return matchedDriver;
+    
+    // 3. Correspondência por nome
+    matchedDriver = drivers.find(driver => 
+      driver.name.toLowerCase().includes(givenName.toLowerCase())
+    );
+    if (matchedDriver) return matchedDriver;
+    
+    // 4. Correspondência por código (se disponível)
+    if (code) {
+      matchedDriver = drivers.find(driver => 
+        driver.name.toLowerCase().includes(code.toLowerCase())
+      );
+      if (matchedDriver) return matchedDriver;
+    }
+    
+    // 5. Correspondência parcial (qualquer parte do nome)
+    matchedDriver = drivers.find(driver => {
+      const driverNameLower = driver.name.toLowerCase();
+      const givenNameLower = givenName.toLowerCase();
+      const familyNameLower = familyName.toLowerCase();
+      
+      return driverNameLower.includes(givenNameLower) || 
+             driverNameLower.includes(familyNameLower) ||
+             givenNameLower.includes(driverNameLower.split(' ')[0]) ||
+             familyNameLower.includes(driverNameLower.split(' ').pop() || '');
+    }) || null;
+    
+    return matchedDriver;
+  };
+
+  // Função para importar resultado da última classificação
+  const importLastQualifying = async () => {
+    setImportingQualifying(true);
+    try {
+      const qualifyingResults = await F1Service.getLatestQualifyingResults();
+
+      if (!qualifyingResults || qualifyingResults.length === 0) {
+        throw new Error('Nenhum resultado de classificação encontrado');
+      }
+
+      // Mapear os resultados para os pilotos do sistema
+      const mappedDrivers: (Driver | null)[] = new Array(NUM_POSITIONS_RESULT).fill(null);
+      let matchedCount = 0;
+      
+      for (let i = 0; i < Math.min(qualifyingResults.length, NUM_POSITIONS_RESULT); i++) {
+        const result = qualifyingResults[i];
+        // Criar um objeto compatível com findMatchingDriver
+        const ergastDriver = {
+          givenName: result.driver.split(' ')[0],
+          familyName: result.driver.split(' ').slice(1).join(' '),
+          code: ''
+        };
+        const matchedDriver = findMatchingDriver(ergastDriver);
+
+        if (matchedDriver) {
+          mappedDrivers[i] = matchedDriver;
+          matchedCount++;
+        }
+      }
+
+      setActualResultDrivers(mappedDrivers);
+      
+      toast.success(`Classificação importada! ${matchedCount}/${qualifyingResults.length} pilotos encontrados.`);
+
+    } catch (error: any) {
+      console.error('❌ Erro ao importar classificação:', error);
+      toast.error(error.message || 'Erro ao importar resultado da classificação');
+    } finally {
+      setImportingQualifying(false);
+    }
+  };
+
+  // Função para importar resultado da última corrida
+  const importLastRace = async () => {
+    setImportingRace(true);
+    try {
+      const raceResults = await F1Service.getLatestRaceResults();
+
+      if (!raceResults || raceResults.length === 0) {
+        throw new Error('Nenhum resultado de corrida encontrado');
+      }
+
+      // Mapear os resultados para os pilotos do sistema
+      const mappedDrivers: (Driver | null)[] = new Array(NUM_POSITIONS_RESULT).fill(null);
+      let matchedCount = 0;
+      
+      for (let i = 0; i < Math.min(raceResults.length, NUM_POSITIONS_RESULT); i++) {
+        const result = raceResults[i];
+        // Criar um objeto compatível com findMatchingDriver
+        const ergastDriver = {
+          givenName: result.driver.split(' ')[0],
+          familyName: result.driver.split(' ').slice(1).join(' '),
+          code: ''
+        };
+        const matchedDriver = findMatchingDriver(ergastDriver);
+
+        if (matchedDriver) {
+          mappedDrivers[i] = matchedDriver;
+          matchedCount++;
+        }
+      }
+
+      setActualResultDrivers(mappedDrivers);
+      
+      toast.success(`Corrida importada! ${matchedCount}/${raceResults.length} pilotos encontrados.`);
+
+    } catch (error: any) {
+      console.error('❌ Erro ao importar corrida:', error);
+      toast.error(error.message || 'Erro ao importar resultado da corrida');
+    } finally {
+      setImportingRace(false);
+    }
   };
 
   const getPointsColor = (points: number) => {
@@ -417,57 +563,114 @@ export default function CalculadoraPontosPage() {
 
         {/* Controles */}
         <div className="bg-white rounded-lg p-6 mb-6 shadow-sm border border-gray-200">
-          <div className="flex flex-wrap gap-4 items-center">
-            <div>
-              <label className="block text-sm font-medium text-black mb-1">
-                Tipo de Palpite
-              </label>
-              <select
-                value={guessType}
-                onChange={(e) => handleGuessTypeChange(e.target.value as 'QUALIFYING' | 'RACE')}
-                className="border border-gray-300 rounded-md px-3 py-2 bg-white text-black"
-              >
-                <option value="QUALIFYING">Qualifying</option>
-                <option value="RACE">Corrida</option>
-              </select>
+          <div className="space-y-4">
+            {/* Primeira linha: Configurações */}
+            <div className="flex flex-wrap gap-4 items-center">
+              <div>
+                <label className="block text-sm font-medium text-black mb-1">
+                  Tipo de Palpite
+                </label>
+                <select
+                  value={guessType}
+                  onChange={(e) => handleGuessTypeChange(e.target.value as 'QUALIFYING' | 'RACE')}
+                  className="border border-gray-300 rounded-md px-3 py-2 bg-white text-black"
+                >
+                  <option value="QUALIFYING">Qualifying</option>
+                  <option value="RACE">Corrida</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-1">
+                  Número de Posições
+                </label>
+                <select
+                  value={numPositions}
+                  onChange={(e) => setNumPositions(Number(e.target.value))}
+                  className="border border-gray-300 rounded-md px-3 py-2 bg-white text-black"
+                >
+                  {guessType === 'QUALIFYING' ? (
+                    <>
+                      <option value={10}>Top 10</option>
+                      <option value={12}>Top 12 (Completo)</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value={10}>Top 10</option>
+                      <option value={14}>Top 14 (Completo)</option>
+                    </>
+                  )}
+                </select>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-black mb-1">
-                Número de Posições
-              </label>
-              <select
-                value={numPositions}
-                onChange={(e) => setNumPositions(Number(e.target.value))}
-                className="border border-gray-300 rounded-md px-3 py-2 bg-white text-black"
-              >
-                {guessType === 'QUALIFYING' ? (
-                  <>
-                    <option value={10}>Top 10</option>
-                    <option value={12}>Top 12 (Completo)</option>
-                  </>
-                ) : (
-                  <>
-                    <option value={10}>Top 10</option>
-                    <option value={14}>Top 14 (Completo)</option>
-                  </>
-                )}
-              </select>
-            </div>
-
-            <div className="flex gap-2">
+            {/* Segunda linha: Botões de ação */}
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={calculateScore}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                disabled={calculating}
+                className={`px-4 py-2 rounded-md transition-colors flex items-center gap-2 ${
+                  calculating 
+                    ? 'bg-gray-400 text-white cursor-not-allowed' 
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
               >
-                Calcular Pontos
+                {calculating && (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                )}
+                {calculating ? 'Calculando...' : 'Calcular Pontos'}
               </button>
               <button
                 onClick={resetCalculator}
-                className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors"
+                disabled={calculating}
+                className={`px-4 py-2 rounded-md transition-colors ${
+                  calculating
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-gray-600 text-white hover:bg-gray-700'
+                }`}
               >
                 Limpar
               </button>
+            </div>
+            
+            {/* Terceira linha: Botões de importação */}
+            <div className="border-t pt-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-sm font-medium text-black">🌐 Importar Resultados Reais da F1:</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={importLastQualifying}
+                  disabled={importingQualifying || importingRace || calculating}
+                  className={`px-4 py-2 rounded-md transition-colors flex items-center gap-2 ${
+                    importingQualifying || importingRace || calculating
+                      ? 'bg-gray-400 text-white cursor-not-allowed' 
+                      : 'bg-green-600 text-white hover:bg-green-700'
+                  }`}
+                >
+                  {importingQualifying && (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  )}
+                  {importingQualifying ? 'Importando...' : '📥 Última Classificação'}
+                </button>
+                <button
+                  onClick={importLastRace}
+                  disabled={importingRace || importingQualifying || calculating}
+                  className={`px-4 py-2 rounded-md transition-colors flex items-center gap-2 ${
+                    importingRace || importingQualifying || calculating
+                      ? 'bg-gray-400 text-white cursor-not-allowed' 
+                      : 'bg-orange-600 text-white hover:bg-orange-700'
+                  }`}
+                >
+                  {importingRace && (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  )}
+                  {importingRace ? 'Importando...' : '🏁 Última Corrida'}
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Os resultados são importados automaticamente da API oficial da Fórmula 1 (Ergast)
+              </p>
             </div>
           </div>
         </div>

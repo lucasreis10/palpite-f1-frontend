@@ -225,8 +225,52 @@ class GuessService {
     } | null;
   }[]> {
     try {
-      const response = await axiosInstance.get(`${this.baseUrl}/users/${userId}/history`);
-      return response.data;
+      // Usar o endpoint que já funciona
+      const response = await axiosInstance.get(`${this.baseUrl}/user/${userId}`);
+      const guesses: GuessResponse[] = response.data;
+      
+      // Processar os dados para agrupar por Grande Prêmio
+      const historyMap = new Map();
+      
+      guesses.forEach(guess => {
+        const key = `${guess.grandPrixId}-${guess.season}-${guess.round}`;
+        
+        if (!historyMap.has(key)) {
+          historyMap.set(key, {
+            grandPrix: {
+              id: guess.grandPrixId,
+              name: guess.grandPrixName,
+              round: guess.round,
+              season: guess.season,
+              completed: guess.calculated
+            },
+            qualifying: null,
+            race: null
+          });
+        }
+        
+        const historyItem = historyMap.get(key);
+        
+        if (guess.guessType === 'QUALIFYING') {
+          historyItem.qualifying = {
+            pilots: guess.pilots,
+            score: guess.score
+          };
+        } else if (guess.guessType === 'RACE') {
+          historyItem.race = {
+            pilots: guess.pilots,
+            score: guess.score
+          };
+        }
+      });
+      
+      return Array.from(historyMap.values()).sort((a, b) => {
+        // Ordenar por temporada e round (mais recente primeiro)
+        if (a.grandPrix.season !== b.grandPrix.season) {
+          return b.grandPrix.season - a.grandPrix.season;
+        }
+        return b.grandPrix.round - a.grandPrix.round;
+      });
     } catch (error) {
       console.error('Erro ao buscar histórico de palpites:', error);
       throw new Error('Não foi possível carregar o histórico de palpites');
