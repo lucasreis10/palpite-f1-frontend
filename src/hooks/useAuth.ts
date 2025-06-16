@@ -55,14 +55,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
+    // Listener para eventos customizados de mudança de autenticação
+    const handleAuthStateChange = (event: CustomEvent) => {
+      console.log('🔔 AuthProvider - Evento de mudança de autenticação:', event.detail);
+      // Forçar re-render para garantir que todos os componentes sejam atualizados
+      setUpdateTrigger(prev => prev + 1);
+    };
+
     window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('authStateChanged', handleAuthStateChange as EventListener);
 
     // Cleanup: parar verificação quando o componente for desmontado
     return () => {
       authService.stopTokenValidation();
       window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('authStateChanged', handleAuthStateChange as EventListener);
     };
-  }, [updateTrigger]); // Adicionar updateTrigger como dependência
+  }, []); // Remover updateTrigger das dependências para evitar loops
 
   const login = async (credentials: LoginRequest) => {
     setIsLoading(true);
@@ -80,17 +89,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Iniciar verificação periódica do token após login
       authService.startTokenValidation();
-
-      // Forçar re-render de todos os componentes dependentes
-      setUpdateTrigger(prev => prev + 1);
       
       // Disparar evento customizado para notificar outros componentes
       window.dispatchEvent(new CustomEvent('authStateChanged', { 
         detail: { type: 'login', user: userData } 
       }));
-      
-      // Aguardar um pouco para garantir que o estado seja propagado
-      await new Promise(resolve => setTimeout(resolve, 50));
       
       console.log('✅ AuthProvider - Login realizado com sucesso:', userData.email);
     } catch (error) {
@@ -116,17 +119,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Iniciar verificação periódica do token após registro
       authService.startTokenValidation();
-
-      // Forçar re-render de todos os componentes dependentes
-      setUpdateTrigger(prev => prev + 1);
       
       // Disparar evento customizado para notificar outros componentes
       window.dispatchEvent(new CustomEvent('authStateChanged', { 
         detail: { type: 'register', user: newUser } 
       }));
-      
-      // Aguardar um pouco para garantir que o estado seja propagado
-      await new Promise(resolve => setTimeout(resolve, 50));
       
       console.log('✅ AuthProvider - Registro realizado com sucesso:', newUser.email);
     } catch (error) {
@@ -141,7 +138,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     authService.stopTokenValidation();
     authService.logout();
     setUser(null);
-    setUpdateTrigger(prev => prev + 1);
     
     // Disparar evento customizado para notificar outros componentes
     window.dispatchEvent(new CustomEvent('authStateChanged', { 

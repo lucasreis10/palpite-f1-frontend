@@ -58,10 +58,17 @@ export function BetForm() {
   useEffect(() => {
     const handleAuthChange = (event: CustomEvent) => {
       console.log('🔔 BetForm - Evento de mudança de autenticação recebido:', event.detail);
-      // Forçar re-render após mudança de autenticação
-      setTimeout(() => {
-        console.log('🔄 BetForm - Forçando atualização após mudança de auth');
-      }, 100);
+      
+      // Se o usuário acabou de fazer login, recarregar os dados
+      if (event.detail.type === 'login' && event.detail.user) {
+        console.log('👤 BetForm - Usuário logou, recarregando dados...');
+        // Forçar re-render do componente para atualizar o estado do botão
+        setTimeout(() => {
+          console.log('🔄 BetForm - Estado atualizado após login');
+          // Opcional: você pode forçar um reload dos dados aqui se necessário
+          // loadData();
+        }, 100);
+      }
     };
 
     window.addEventListener('authStateChanged', handleAuthChange as EventListener);
@@ -829,7 +836,7 @@ export function BetForm() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
                     <span className="hidden sm:inline">Copiar Palpites</span>
-                    <span className="sm:hidden">📋 Copiar</span>
+                    <span className="sm:hidden"> Copiar</span>
                   </>
                 )}
               </button>
@@ -840,7 +847,7 @@ export function BetForm() {
                 disabled={isSaving}
               >
                 <span className="hidden sm:inline">Repetir Último Palpite</span>
-                <span className="sm:hidden">🔄 Repetir Último</span>
+                <span className="sm:hidden">Repetir Último</span>
               </button>
               <button
                 type="button"
@@ -849,7 +856,7 @@ export function BetForm() {
                 disabled={isSaving}
               >
                 <span className="hidden sm:inline">Limpar</span>
-                <span className="sm:hidden">🗑️ Limpar</span>
+                <span className="sm:hidden"> Limpar</span>
               </button>
               <button
                 type="submit"

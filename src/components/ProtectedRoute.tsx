@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { authService } from './../services/auth';
+import { useAuth } from './../hooks/useAuth';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -15,39 +15,37 @@ export default function ProtectedRoute({
   requireAdmin = false, 
   fallback 
 }: ProtectedRouteProps) {
-  const [isLoading, setIsLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const router = useRouter();
+  const { isAuthenticated, isAdmin, isLoading } = useAuth();
 
   useEffect(() => {
-    const checkAuth = () => {
-      console.log('[ProtectedRoute] Verificando autenticação...');
-      
-      // Aguardar um pouco para garantir que o localStorage foi carregado
-      setTimeout(() => {
-        const isAuthenticated = authService.isAuthenticated();
-        console.log('[ProtectedRoute] isAuthenticated:', isAuthenticated);
-        
-        if (!isAuthenticated) {
-          console.log('[ProtectedRoute] Não autenticado, redirecionando para /login');
-          router.push('/login');
-          return;
-        }
+    // Aguardar o carregamento da autenticação
+    if (isLoading) {
+      return;
+    }
 
-        if (requireAdmin && !authService.isAdmin()) {
-          console.log('[ProtectedRoute] Não é admin, redirecionando para /');
-          router.push('/'); // Redirecionar para home se não for admin
-          return;
-        }
+    console.log('[ProtectedRoute] Verificando autenticação...', {
+      isAuthenticated,
+      isAdmin,
+      requireAdmin
+    });
+    
+    if (!isAuthenticated) {
+      console.log('[ProtectedRoute] Não autenticado, redirecionando para /login');
+      router.push('/login');
+      return;
+    }
 
-        console.log('[ProtectedRoute] Autorizado!');
-        setIsAuthorized(true);
-        setIsLoading(false);
-      }, 100);
-    };
+    if (requireAdmin && !isAdmin) {
+      console.log('[ProtectedRoute] Não é admin, redirecionando para /');
+      router.push('/'); // Redirecionar para home se não for admin
+      return;
+    }
 
-    checkAuth();
-  }, [router, requireAdmin]);
+    console.log('[ProtectedRoute] Autorizado!');
+    setIsAuthorized(true);
+  }, [router, requireAdmin, isAuthenticated, isAdmin, isLoading]);
 
   if (isLoading) {
     return (

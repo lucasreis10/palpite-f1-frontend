@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { authService } from './../../services/auth';
+import { useAuth } from './../../hooks/useAuth';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [authMessage, setAuthMessage] = useState('');
   const router = useRouter();
+  const { login } = useAuth();
 
   // Verificar se há mensagem de token expirado
   useEffect(() => {
@@ -39,7 +40,7 @@ export default function LoginPage() {
     setAuthMessage(''); // Limpar mensagem de token expirado ao tentar login
 
     try {
-      await authService.login(formData);
+      await login(formData);
       router.push('/'); // Redirecionar para a página inicial após login
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao fazer login');

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { authService } from './../../services/auth';
+import { useAuth } from './../../hooks/useAuth';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -15,6 +15,7 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const { register } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -44,7 +45,7 @@ export default function RegisterPage() {
     }
 
     try {
-      await authService.register({
+      await register({
         name: formData.name,
         email: formData.email,
         password: formData.password,

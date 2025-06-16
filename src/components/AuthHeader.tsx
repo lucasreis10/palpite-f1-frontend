@@ -3,19 +3,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { authService, User } from './../services/auth';
+import { useAuth } from './../hooks/useAuth';
 
 export default function AuthHeader() {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [showDropdown, setShowDropdown] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    const currentUser = authService.getCurrentUser();
-    setUser(currentUser);
-    setIsLoading(false);
-  }, []);
+  const { user, isLoading, logout } = useAuth();
 
   // Fechar dropdown quando clicar fora
   useEffect(() => {
@@ -36,8 +29,7 @@ export default function AuthHeader() {
   }, [showDropdown]);
 
   const handleLogout = () => {
-    authService.logout();
-    setUser(null);
+    logout();
     setShowDropdown(false);
     router.push('/login');
   };
