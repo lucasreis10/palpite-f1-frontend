@@ -35,8 +35,8 @@ export const F1Service = {
       return qualifyingResults.slice(0, 14).map((result: any) => ({
         position: parseInt(result.position),
         driver: `${result.Driver.givenName} ${result.Driver.familyName}`,
-        team: result.Constructor.name
-      }));
+      team: result.Constructor.name
+    }));
     } catch (error) {
       console.error('Erro ao buscar resultados da classificação:', error);
       throw new Error('Não foi possível obter os resultados da última classificação');

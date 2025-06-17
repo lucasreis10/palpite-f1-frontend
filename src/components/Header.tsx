@@ -141,6 +141,7 @@ export function Header() {
   ];
 
   const analiseItems = [
+    { href: '/meu-dashboard', label: 'Meu Dashboard', description: 'Estatísticas pessoais avançadas' },
     { href: '/historico', label: 'Ranking', description: 'Classificação geral dos participantes' },
     { href: '/ultimo-evento', label: 'Último Evento', description: 'Resultados do GP mais recente' },
     { href: '/calculadora-pontos', label: 'Calculadora', description: 'Simule pontuações de palpites' },
@@ -160,6 +161,7 @@ export function Header() {
     { href: '/', label: 'Tela Inicial' },
     { href: '/palpites', label: 'Fazer Palpite' },
     { href: '/palpites/historico', label: 'Meus Palpites' },
+    { href: '/meu-dashboard', label: 'Meu Dashboard' },
     { href: '/historico', label: 'Ranking' },
     { href: '/ultimo-evento', label: 'Último Evento' },
     { href: '/calculadora-pontos', label: 'Calculadora' },
