@@ -11,7 +11,6 @@ import {
   ClockIcon,
   ChartBarIcon,
   TrophyIcon,
-  CalendarIcon,
   CalculatorIcon,
   PlayIcon,
   UserGroupIcon,
@@ -175,7 +174,6 @@ export function Header() {
   ];
 
   const outrosItems = [
-    { href: '/proxima-corrida', label: 'Próxima Corrida', description: 'Informações da próxima corrida' },
     { href: '/equipes', label: 'Equipes', description: 'Informações sobre as equipes' },
   ];
 
@@ -212,7 +210,6 @@ export function Header() {
     {
       title: 'Outros',
       items: [
-        { href: '/proxima-corrida', label: 'Próxima Corrida', icon: CalendarIcon },
         { href: '/equipes', label: 'Equipes', icon: UserGroupIcon },
       ]
     },
