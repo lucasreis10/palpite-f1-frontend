@@ -2,7 +2,22 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Bars3Icon, XMarkIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { 
+  Bars3Icon, 
+  XMarkIcon, 
+  ChevronDownIcon,
+  HomeIcon,
+  DocumentTextIcon,
+  ClockIcon,
+  ChartBarIcon,
+  TrophyIcon,
+  CalendarIcon,
+  CalculatorIcon,
+  PlayIcon,
+  UserGroupIcon,
+  CogIcon,
+  StarIcon
+} from '@heroicons/react/24/outline';
 import AuthHeader from './AuthHeader';
 import { useAuth } from './../hooks/useAuth';
 import { usePathname } from 'next/navigation';
@@ -18,6 +33,14 @@ interface DropdownProps {
   label: string;
   items: DropdownItemProps[];
   isActive: boolean;
+}
+
+interface MobileMenuItemProps {
+  href: string;
+  label: string;
+  icon: React.ElementType;
+  isExperimental?: boolean;
+  category?: string;
 }
 
 function Dropdown({ label, items, isActive }: DropdownProps) {
@@ -156,19 +179,49 @@ export function Header() {
     { href: '/equipes', label: 'Equipes', description: 'Informações sobre as equipes' },
   ];
 
-  // Menu items para mobile (lista simples)
-  const mobileMenuItems = [
-    { href: '/', label: 'Tela Inicial' },
-    { href: '/palpites', label: 'Fazer Palpite' },
-    { href: '/palpites/historico', label: 'Meus Palpites' },
-    { href: '/meu-dashboard', label: 'Meu Dashboard' },
-    { href: '/historico', label: 'Ranking' },
-    { href: '/ultimo-evento', label: 'Último Evento' },
-    { href: '/calculadora-pontos', label: 'Calculadora' },
-    { href: '/live-timing', label: 'Live Timing', isExperimental: true },
-    { href: '/proxima-corrida', label: 'Próxima Corrida' },
-    { href: '/equipes', label: 'Equipes' },
-    ...(isAuthenticated && isAdmin ? [{ href: '/admin', label: 'Administração' }] : []),
+  // Menu items organizados para mobile com ícones e categorias
+  const mobileMenuCategories = [
+    {
+      title: 'Principal',
+      items: [
+        { href: '/', label: 'Tela Inicial', icon: HomeIcon },
+      ]
+    },
+    {
+      title: 'Palpites',
+      items: [
+        { href: '/palpites', label: 'Fazer Palpite', icon: DocumentTextIcon },
+        { href: '/palpites/historico', label: 'Meus Palpites', icon: ClockIcon },
+      ]
+    },
+    {
+      title: 'Análise',
+      items: [
+        { href: '/meu-dashboard', label: 'Meu Dashboard', icon: ChartBarIcon },
+        { href: '/historico', label: 'Ranking', icon: TrophyIcon },
+        { href: '/ultimo-evento', label: 'Último Evento', icon: StarIcon },
+        { href: '/calculadora-pontos', label: 'Calculadora', icon: CalculatorIcon },
+      ]
+    },
+    {
+      title: 'Tempo Real',
+      items: [
+        { href: '/live-timing', label: 'Live Timing', icon: PlayIcon, isExperimental: true },
+      ]
+    },
+    {
+      title: 'Outros',
+      items: [
+        { href: '/proxima-corrida', label: 'Próxima Corrida', icon: CalendarIcon },
+        { href: '/equipes', label: 'Equipes', icon: UserGroupIcon },
+      ]
+    },
+    ...(isAuthenticated && isAdmin ? [{
+      title: 'Administração',
+      items: [
+        { href: '/admin', label: 'Administração', icon: CogIcon },
+      ]
+    }] : []),
   ];
 
   // Verificar se algum item de uma categoria está ativo
@@ -187,55 +240,115 @@ export function Header() {
         {/* Menu Hambúrguer para Mobile */}
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="lg:hidden z-40 relative text-black hover:text-red-700 transition-colors"
+          className="lg:hidden z-50 relative text-black hover:text-red-700 transition-colors p-2 rounded-lg hover:bg-black/10"
           aria-label="Toggle menu"
         >
-          {isMenuOpen ? (
-            <XMarkIcon className="h-8 w-8" />
-          ) : (
-            <Bars3Icon className="h-8 w-8" />
-          )}
+          <div className="relative w-6 h-6">
+            <span className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isMenuOpen ? 'rotate-45 opacity-0' : 'rotate-0 opacity-100'}`}>
+              <Bars3Icon className="h-6 w-6" />
+            </span>
+            <span className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isMenuOpen ? 'rotate-0 opacity-100' : 'rotate-45 opacity-0'}`}>
+              <XMarkIcon className="h-6 w-6" />
+            </span>
+          </div>
         </button>
 
-        {/* Menu Mobile */}
+        {/* Overlay do Menu Mobile */}
         <div
-          className={`fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity lg:hidden z-20 ${
-            isMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          className={`fixed inset-0 bg-black/60 backdrop-blur-sm transition-all duration-300 lg:hidden z-30 ${
+            isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
           }`}
           onClick={() => setIsMenuOpen(false)}
         />
         
+        {/* Menu Mobile Sidebar */}
         <div
-          className={`fixed inset-y-0 right-0 w-72 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:hidden z-30 ${
+          className={`fixed inset-y-0 right-0 w-80 max-w-[85vw] bg-white shadow-2xl transform transition-all duration-300 ease-out lg:hidden z-40 ${
             isMenuOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
         >
           <div className="flex flex-col h-full">
-            <div className="p-4 border-b border-gray-200">
+            {/* Header do Menu Mobile */}
+            <div className="bg-gradient-to-r from-f1-red to-f1-red-dark p-6 text-white">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">Menu</h2>
+                <button
+                  onClick={() => setIsMenuOpen(false)}
+                  className="p-2 rounded-lg hover:bg-white/20 transition-colors"
+                  aria-label="Fechar menu"
+                >
+                  <XMarkIcon className="h-5 w-5" />
+                </button>
+              </div>
               <AuthHeader />
             </div>
-            <div className="flex-1 overflow-y-auto py-4">
-              {mobileMenuItems.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`flex items-center justify-between px-6 py-3 text-sm font-medium transition-all ${
-                      isActive 
-                        ? 'bg-red-50 text-f1-red border-r-4 border-f1-red' 
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-f1-red hover:pl-8'
-                    }`}
-                  >
-                    <span>{item.label}</span>
-                    {item.isExperimental && (
-                      <span className="ml-2 text-xs bg-yellow-500 text-black px-2 py-1 rounded-full font-bold">
-                        BETA
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
+
+            {/* Conteúdo do Menu Mobile */}
+            <div className="flex-1 overflow-y-auto bg-gray-50">
+              <div className="py-2">
+                {mobileMenuCategories.map((category, categoryIndex) => (
+                  <div key={category.title} className="mb-1">
+                    {/* Título da Categoria */}
+                    <div className="px-6 py-3 bg-white border-b border-gray-100">
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        {category.title}
+                      </h3>
+                    </div>
+                    
+                    {/* Items da Categoria */}
+                    <div className="bg-white">
+                      {category.items.map((item, itemIndex) => {
+                        const isActive = pathname === item.href;
+                        const Icon = item.icon;
+                        
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            className={`flex items-center gap-4 px-6 py-4 text-sm font-medium transition-all duration-200 border-l-4 ${
+                              isActive 
+                                ? 'bg-f1-red/5 text-f1-red border-f1-red shadow-sm' 
+                                : 'text-gray-700 hover:bg-f1-red/5 hover:text-f1-red border-transparent hover:border-f1-red/30 hover:shadow-sm'
+                            }`}
+                          >
+                            <div className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all ${
+                              isActive 
+                                ? 'bg-f1-red text-white' 
+                                : 'bg-gray-100 text-gray-600 group-hover:bg-f1-red/10 group-hover:text-f1-red'
+                            }`}>
+                              <Icon className="w-4 h-4" />
+                            </div>
+                            
+                            <span className="flex-1">{item.label}</span>
+                            
+                            {item.isExperimental && (
+                              <span className="text-xs bg-yellow-500 text-black px-2 py-1 rounded-full font-bold shadow-sm">
+                                BETA
+                              </span>
+                            )}
+                            
+                            {isActive && (
+                              <div className="w-2 h-2 bg-f1-red rounded-full"></div>
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Footer do Menu Mobile */}
+              <div className="p-6 bg-white border-t border-gray-200 mt-4">
+                <div className="text-center">
+                  <p className="text-xs text-gray-500">
+                    F1 Bolão © 2024
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Versão Mobile
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
