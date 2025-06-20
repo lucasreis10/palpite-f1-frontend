@@ -52,8 +52,41 @@ class AuthService {
 
       return data;
     } catch (error: any) {
-      const errorMessage = error.response?.data || error.message || 'Erro ao fazer login';
-      throw new Error(errorMessage);
+      console.error('Erro no login:', error);
+      
+      // Tratar diferentes tipos de erro
+      if (error.response) {
+        const status = error.response.status;
+        const data = error.response.data;
+        
+        switch (status) {
+          case 401:
+            throw new Error('❌ E-mail ou senha incorretos. Verifique suas credenciais e tente novamente.');
+          case 403:
+            throw new Error('🚫 Acesso negado. Sua conta pode estar desativada.');
+          case 404:
+            throw new Error('❌ Usuário não encontrado. Verifique o e-mail informado.');
+          case 429:
+            throw new Error('⏳ Muitas tentativas de login. Tente novamente em alguns minutos.');
+          case 500:
+            throw new Error('🔧 Erro interno do servidor. Tente novamente mais tarde.');
+          default:
+            // Se a API retornar uma mensagem específica, usar ela
+            if (typeof data === 'string') {
+              throw new Error(data);
+            } else if (data && data.message) {
+              throw new Error(data.message);
+            } else {
+              throw new Error(`❌ Erro no servidor (${status}). Tente novamente.`);
+            }
+        }
+      } else if (error.request) {
+        // Erro de rede
+        throw new Error('🌐 Erro de conexão. Verifique sua internet e tente novamente.');
+      } else {
+        // Erro desconhecido
+        throw new Error(error.message || '❌ Erro inesperado. Tente novamente.');
+      }
     }
   }
 
@@ -78,8 +111,45 @@ class AuthService {
 
       return data;
     } catch (error: any) {
-      const errorMessage = error.response?.data || error.message || 'Erro ao criar conta';
-      throw new Error(errorMessage);
+      console.error('Erro no registro:', error);
+      
+      // Tratar diferentes tipos de erro
+      if (error.response) {
+        const status = error.response.status;
+        const data = error.response.data;
+        
+        switch (status) {
+          case 400:
+            if (data && data.includes('email')) {
+              throw new Error('📧 Este e-mail já está em uso. Tente fazer login ou use outro e-mail.');
+            } else if (data && data.includes('password')) {
+              throw new Error('🔒 Senha muito fraca. Use pelo menos 6 caracteres com letras e números.');
+            } else {
+              throw new Error('❌ Dados inválidos. Verifique as informações e tente novamente.');
+            }
+          case 409:
+            throw new Error('📧 Este e-mail já está cadastrado. Tente fazer login.');
+          case 429:
+            throw new Error('⏳ Muitas tentativas de registro. Tente novamente em alguns minutos.');
+          case 500:
+            throw new Error('🔧 Erro interno do servidor. Tente novamente mais tarde.');
+          default:
+            // Se a API retornar uma mensagem específica, usar ela
+            if (typeof data === 'string') {
+              throw new Error(data);
+            } else if (data && data.message) {
+              throw new Error(data.message);
+            } else {
+              throw new Error(`❌ Erro no servidor (${status}). Tente novamente.`);
+            }
+        }
+      } else if (error.request) {
+        // Erro de rede
+        throw new Error('🌐 Erro de conexão. Verifique sua internet e tente novamente.');
+      } else {
+        // Erro desconhecido
+        throw new Error(error.message || '❌ Erro inesperado. Tente novamente.');
+      }
     }
   }
 

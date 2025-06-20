@@ -8,6 +8,7 @@ import { toast } from 'react-hot-toast';
 import { DriverAutocomplete } from '../../components/DriverAutocomplete';
 import { guessService, Pilot } from '../../services/guesses';
 import { F1Service } from '../../services/f1';
+import { Header } from '../../components/Header';
 
 interface Driver {
   id: number;
@@ -488,355 +489,357 @@ export default function CalculadoraPontosPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-      </div>
+      <>
+        <Header />
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto max-w-7xl p-6">
-        {/* Header */}
-        <div className="mb-6">
-          <Link href="/" className="text-blue-600 hover:text-blue-800 mb-4 inline-block">
-            ← Voltar ao início
-          </Link>
-          
-          <h1 className="text-3xl font-bold text-black mb-2">Calculadora de Pontos</h1>
-          <p className="text-black">
-            Simule palpites e veja como seriam pontuados. Perfeito para treinar suas estratégias!
-          </p>
-        </div>
-
-        {/* Seção Explicativa do Sistema de Pontuação */}
-        <div className="bg-gradient-to-r from-blue-100 to-blue-100 rounded-lg p-6 mb-6 border border-blue-200">
-          <h2 className="text-xl font-bold text-black mb-4 flex items-center gap-2">
-            📊 Como Funciona a Pontuação
-          </h2>
-          
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="font-semibold text-black mb-3">🏎️ Sistema de Corrida</h3>
-              <div className="bg-white rounded-lg p-4 space-y-2">
-                <p className="text-sm text-black">
-                  <strong>Máximo por posição:</strong> 25 pontos (1º lugar)
-                </p>
-                <p className="text-sm text-black">
-                  • Pontuação varia conforme a precisão do palpite
-                </p>
-                <p className="text-sm text-black">
-                  • Cada posição tem uma tabela própria de pontos
-                </p>
-                <p className="text-sm text-black">
-                  • Quanto mais próximo da realidade, mais pontos
-                </p>
-              </div>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold text-black mb-3">🏁 Sistema de Qualifying</h3>
-              <div className="bg-white rounded-lg p-4 space-y-2">
-                <p className="text-sm text-black">
-                  <strong>Máximo por posição:</strong> 5 pontos (1º lugar)
-                </p>
-                <p className="text-sm text-black">
-                  • Sistema mais simples que a corrida
-                </p>
-                <p className="text-sm text-black">
-                  • Foco nas primeiras 12 posições
-                </p>
-                <p className="text-sm text-black">
-                  • Menor variação de pontos entre posições
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-sm text-black">
-              <strong>💡 Dica:</strong> O sistema premia não apenas acertos exatos, mas também proximidade. 
-              Mesmo errando por algumas posições, você ainda ganha pontos!
+    <>
+      <Header />
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto max-w-7xl p-6">
+          {/* Header */}
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-black mb-2">Calculadora de Pontos</h1>
+            <p className="text-black">
+              Simule palpites e veja como seriam pontuados. Perfeito para treinar suas estratégias!
             </p>
           </div>
-        </div>
 
-        {/* Controles */}
-        <div className="bg-white rounded-lg p-6 mb-6 shadow-sm border border-gray-200">
-          <div className="space-y-4">
-            {/* Primeira linha: Configurações */}
-            <div className="flex flex-wrap gap-4 items-center">
+          {/* Seção Explicativa do Sistema de Pontuação */}
+          <div className="bg-gradient-to-r from-blue-100 to-blue-100 rounded-lg p-6 mb-6 border border-blue-200">
+            <h2 className="text-xl font-bold text-black mb-4 flex items-center gap-2">
+              📊 Como Funciona a Pontuação
+            </h2>
+            
+            <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-black mb-1">
-                  Tipo de Palpite
-                </label>
-                <select
-                  value={guessType}
-                  onChange={(e) => handleGuessTypeChange(e.target.value as 'QUALIFYING' | 'RACE')}
-                  className="border border-gray-300 rounded-md px-3 py-2 bg-white text-black"
-                >
-                  <option value="QUALIFYING">Qualifying</option>
-                  <option value="RACE">Corrida</option>
-                </select>
+                <h3 className="font-semibold text-black mb-3">🏎️ Sistema de Corrida</h3>
+                <div className="bg-white rounded-lg p-4 space-y-2">
+                  <p className="text-sm text-black">
+                    <strong>Máximo por posição:</strong> 25 pontos (1º lugar)
+                  </p>
+                  <p className="text-sm text-black">
+                    • Pontuação varia conforme a precisão do palpite
+                  </p>
+                  <p className="text-sm text-black">
+                    • Cada posição tem uma tabela própria de pontos
+                  </p>
+                  <p className="text-sm text-black">
+                    • Quanto mais próximo da realidade, mais pontos
+                  </p>
+                </div>
               </div>
-
+              
               <div>
-                <label className="block text-sm font-medium text-black mb-1">
-                  Número de Posições
-                </label>
-                <select
-                  value={numPositions}
-                  onChange={(e) => setNumPositions(Number(e.target.value))}
-                  className="border border-gray-300 rounded-md px-3 py-2 bg-white text-black"
-                >
-                  {guessType === 'QUALIFYING' ? (
-                    <>
-                      <option value={10}>Top 10</option>
-                      <option value={12}>Top 12 (Completo)</option>
-                    </>
-                  ) : (
-                    <>
-                      <option value={10}>Top 10</option>
-                      <option value={14}>Top 14 (Completo)</option>
-                    </>
-                  )}
-                </select>
+                <h3 className="font-semibold text-black mb-3">🏁 Sistema de Qualifying</h3>
+                <div className="bg-white rounded-lg p-4 space-y-2">
+                  <p className="text-sm text-black">
+                    <strong>Máximo por posição:</strong> 5 pontos (1º lugar)
+                  </p>
+                  <p className="text-sm text-black">
+                    • Sistema mais simples que a corrida
+                  </p>
+                  <p className="text-sm text-black">
+                    • Foco nas primeiras 12 posições
+                  </p>
+                  <p className="text-sm text-black">
+                    • Menor variação de pontos entre posições
+                  </p>
+                </div>
               </div>
-            </div>
-
-            {/* Segunda linha: Botões de ação */}
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={calculateScore}
-                disabled={calculating}
-                className={`px-4 py-2 rounded-md transition-colors flex items-center gap-2 ${
-                  calculating 
-                    ? 'bg-gray-400 text-white cursor-not-allowed' 
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
-              >
-                {calculating && (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                )}
-                {calculating ? 'Calculando...' : 'Calcular Pontos'}
-              </button>
-              <button
-                onClick={resetCalculator}
-                disabled={calculating}
-                className={`px-4 py-2 rounded-md transition-colors ${
-                  calculating
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-gray-600 text-white hover:bg-gray-700'
-                }`}
-              >
-                Limpar
-              </button>
             </div>
             
-            {/* Terceira linha: Botões de importação */}
-            <div className="border-t pt-4">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm font-medium text-black">🌐 Importar Resultados Reais da F1:</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={importLastQualifying}
-                  disabled={importingQualifying || importingRace || calculating}
-                  className={`px-4 py-2 rounded-md transition-colors flex items-center gap-2 ${
-                    importingQualifying || importingRace || calculating
-                      ? 'bg-gray-400 text-white cursor-not-allowed' 
-                      : 'bg-green-600 text-white hover:bg-green-700'
-                  }`}
-                >
-                  {importingQualifying && (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  )}
-                  {importingQualifying ? 'Importando...' : '📥 Última Classificação'}
-                </button>
-                <button
-                  onClick={importLastRace}
-                  disabled={importingRace || importingQualifying || calculating}
-                  className={`px-4 py-2 rounded-md transition-colors flex items-center gap-2 ${
-                    importingRace || importingQualifying || calculating
-                      ? 'bg-gray-400 text-white cursor-not-allowed' 
-                      : 'bg-orange-600 text-white hover:bg-orange-700'
-                  }`}
-                >
-                  {importingRace && (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  )}
-                  {importingRace ? 'Importando...' : '🏁 Última Corrida'}
-                </button>
-              </div>
-              <p className="text-xs text-gray-500 mt-2">
-                Os resultados são importados automaticamente da API oficial da Fórmula 1 (Ergast)
+            <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <p className="text-sm text-black">
+                <strong>💡 Dica:</strong> O sistema premia não apenas acertos exatos, mas também proximidade. 
+                Mesmo errando por algumas posições, você ainda ganha pontos!
               </p>
             </div>
           </div>
-        </div>
 
-        <div className="grid lg:grid-cols-2 gap-6 mb-6">
-          {/* Palpite do Usuário com Drag and Drop */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-            <h2 className="text-xl font-bold text-black mb-4 flex items-center gap-2">
-              🎯 Seu Palpite
-            </h2>
-            <DragDropContext onDragEnd={handleGuessDragEnd}>
-              <Droppable droppableId="guess-drivers">
-                {(provided) => (
-                  <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3">
-                    {Array.from({ length: numPositions }, (_, i) => i + 1).map((position, index) => (
-                      <Draggable 
-                        key={position.toString()}
-                        draggableId={`guess-${position.toString()}`}
-                        index={index}
-                      >
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            className={`flex items-center gap-2 bg-white rounded-lg border ${
-                              snapshot.isDragging 
-                                ? 'border-f1-red shadow-lg' 
-                                : 'border-gray-200'
-                            } p-2 transition-all duration-200`}
-                          >
-                            <div 
-                              {...provided.dragHandleProps}
-                              className="cursor-grab hover:bg-gray-100 p-2 rounded transition-colors active:cursor-grabbing"
-                            >
-                              <Bars3Icon className="w-5 h-5 text-gray-400" />
-                            </div>
-                            <div className="flex-1">
-                              <DriverAutocomplete
-                                drivers={getAvailableDriversForGuess(position)}
-                                selectedDriver={userGuessDrivers[position - 1]}
-                                onSelect={(driver) => handleGuessDriverSelect(driver, position)}
-                                position={position}
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </DragDropContext>
-          </div>
+          {/* Controles */}
+          <div className="bg-white rounded-lg p-6 mb-6 shadow-sm border border-gray-200">
+            <div className="space-y-4">
+              {/* Primeira linha: Configurações */}
+              <div className="flex flex-wrap gap-4 items-center">
+                <div>
+                  <label className="block text-sm font-medium text-black mb-1">
+                    Tipo de Palpite
+                  </label>
+                  <select
+                    value={guessType}
+                    onChange={(e) => handleGuessTypeChange(e.target.value as 'QUALIFYING' | 'RACE')}
+                    className="border border-gray-300 rounded-md px-3 py-2 bg-white text-black"
+                  >
+                    <option value="QUALIFYING">Qualifying</option>
+                    <option value="RACE">Corrida</option>
+                  </select>
+                </div>
 
-          {/* Resultado Real com Drag and Drop */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-            <h2 className="text-xl font-bold text-black mb-4 flex items-center gap-2">
-              🏆 Resultado Real
-            </h2>
-            <DragDropContext onDragEnd={handleActualDragEnd}>
-              <Droppable droppableId="actual-drivers">
-                {(provided) => (
-                  <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3">
-                    {Array.from({ length: NUM_POSITIONS_RESULT }, (_, i) => i + 1).map((position, index) => (
-                      <Draggable 
-                        key={position.toString()}
-                        draggableId={`actual-${position.toString()}`}
-                        index={index}
-                      >
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            className={`flex items-center gap-2 bg-white rounded-lg border ${
-                              snapshot.isDragging 
-                                ? 'border-f1-red shadow-lg' 
-                                : 'border-gray-200'
-                            } p-2 transition-all duration-200`}
-                          >
-                            <div 
-                              {...provided.dragHandleProps}
-                              className="cursor-grab hover:bg-gray-100 p-2 rounded transition-colors active:cursor-grabbing"
-                            >
-                              <Bars3Icon className="w-5 h-5 text-gray-400" />
-                            </div>
-                            <div className="flex-1">
-                              <DriverAutocomplete
-                                drivers={getAvailableDriversForActual(position)}
-                                selectedDriver={actualResultDrivers[position - 1]}
-                                onSelect={(driver) => handleActualDriverSelect(driver, position)}
-                                position={position}
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </DragDropContext>
-          </div>
-        </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-1">
+                    Número de Posições
+                  </label>
+                  <select
+                    value={numPositions}
+                    onChange={(e) => setNumPositions(Number(e.target.value))}
+                    className="border border-gray-300 rounded-md px-3 py-2 bg-white text-black"
+                  >
+                    {guessType === 'QUALIFYING' ? (
+                      <>
+                        <option value={10}>Top 10</option>
+                        <option value={12}>Top 12 (Completo)</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value={10}>Top 10</option>
+                        <option value={14}>Top 14 (Completo)</option>
+                      </>
+                    )}
+                  </select>
+                </div>
+              </div>
 
-        {/* Resultado do Cálculo */}
-        {scoreDetails.length > 0 && (
-          <div ref={resultSectionRef} className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-black">Resultado da Pontuação</h2>
-              <div className="text-right">
-                <div className="text-3xl font-bold text-blue-600">{totalScore}</div>
-                <div className="text-sm text-black">de {getMaxPossibleScore()} pontos possíveis</div>
+              {/* Segunda linha: Botões de ação */}
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={calculateScore}
+                  disabled={calculating}
+                  className={`px-4 py-2 rounded-md transition-colors flex items-center gap-2 ${
+                    calculating 
+                      ? 'bg-gray-400 text-white cursor-not-allowed' 
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
+                >
+                  {calculating && (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  )}
+                  {calculating ? 'Calculando...' : 'Calcular Pontos'}
+                </button>
+                <button
+                  onClick={resetCalculator}
+                  disabled={calculating}
+                  className={`px-4 py-2 rounded-md transition-colors ${
+                    calculating
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-gray-600 text-white hover:bg-gray-700'
+                  }`}
+                >
+                  Limpar
+                </button>
+              </div>
+              
+              {/* Terceira linha: Botões de importação */}
+              <div className="border-t pt-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm font-medium text-black">🌐 Importar Resultados Reais da F1:</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={importLastQualifying}
+                    disabled={importingQualifying || importingRace || calculating}
+                    className={`px-4 py-2 rounded-md transition-colors flex items-center gap-2 ${
+                      importingQualifying || importingRace || calculating
+                        ? 'bg-gray-400 text-white cursor-not-allowed' 
+                        : 'bg-green-600 text-white hover:bg-green-700'
+                    }`}
+                  >
+                    {importingQualifying && (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    )}
+                    {importingQualifying ? 'Importando...' : '📥 Última Classificação'}
+                  </button>
+                  <button
+                    onClick={importLastRace}
+                    disabled={importingRace || importingQualifying || calculating}
+                    className={`px-4 py-2 rounded-md transition-colors flex items-center gap-2 ${
+                      importingRace || importingQualifying || calculating
+                        ? 'bg-gray-400 text-white cursor-not-allowed' 
+                        : 'bg-orange-600 text-white hover:bg-orange-700'
+                    }`}
+                  >
+                    {importingRace && (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    )}
+                    {importingRace ? 'Importando...' : '🏁 Última Corrida'}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Os resultados são importados automaticamente da API oficial da Fórmula 1 (Ergast)
+                </p>
               </div>
             </div>
+          </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-2 text-black">Pos</th>
-                    <th className="text-left py-2 text-black">Seu Palpite</th>
-                    <th className="text-left py-2 text-black">Resultado Real</th>
-                    <th className="text-center py-2 text-black">Pontos</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {scoreDetails.map((detail, index) => (
-                    <tr key={index} className="border-b border-gray-100">
-                      <td className="py-2 font-medium text-black">{detail.position}º</td>
-                      <td className="py-2 text-black">{detail.guessPilot}</td>
-                      <td className="py-2 text-black">{detail.actualPilot}</td>
-                      <td className={`py-2 text-center font-bold ${getPointsColor(detail.points)}`}>
-                        {detail.points}
-                      </td>
+          <div className="grid lg:grid-cols-2 gap-6 mb-6">
+            {/* Palpite do Usuário com Drag and Drop */}
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+              <h2 className="text-xl font-bold text-black mb-4 flex items-center gap-2">
+                🎯 Seu Palpite
+              </h2>
+              <DragDropContext onDragEnd={handleGuessDragEnd}>
+                <Droppable droppableId="guess-drivers">
+                  {(provided) => (
+                    <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3">
+                      {Array.from({ length: numPositions }, (_, i) => i + 1).map((position, index) => (
+                        <Draggable 
+                          key={position.toString()}
+                          draggableId={`guess-${position.toString()}`}
+                          index={index}
+                        >
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              className={`flex items-center gap-2 bg-white rounded-lg border ${
+                                snapshot.isDragging 
+                                  ? 'border-f1-red shadow-lg' 
+                                  : 'border-gray-200'
+                              } p-2 transition-all duration-200`}
+                            >
+                              <div 
+                                {...provided.dragHandleProps}
+                                className="cursor-grab hover:bg-gray-100 p-2 rounded transition-colors active:cursor-grabbing"
+                              >
+                                <Bars3Icon className="w-5 h-5 text-gray-400" />
+                              </div>
+                              <div className="flex-1">
+                                <DriverAutocomplete
+                                  drivers={getAvailableDriversForGuess(position)}
+                                  selectedDriver={userGuessDrivers[position - 1]}
+                                  onSelect={(driver) => handleGuessDriverSelect(driver, position)}
+                                  position={position}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            </div>
+
+            {/* Resultado Real com Drag and Drop */}
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+              <h2 className="text-xl font-bold text-black mb-4 flex items-center gap-2">
+                🏆 Resultado Real
+              </h2>
+              <DragDropContext onDragEnd={handleActualDragEnd}>
+                <Droppable droppableId="actual-drivers">
+                  {(provided) => (
+                    <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3">
+                      {Array.from({ length: NUM_POSITIONS_RESULT }, (_, i) => i + 1).map((position, index) => (
+                        <Draggable 
+                          key={position.toString()}
+                          draggableId={`actual-${position.toString()}`}
+                          index={index}
+                        >
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              className={`flex items-center gap-2 bg-white rounded-lg border ${
+                                snapshot.isDragging 
+                                  ? 'border-f1-red shadow-lg' 
+                                  : 'border-gray-200'
+                              } p-2 transition-all duration-200`}
+                            >
+                              <div 
+                                {...provided.dragHandleProps}
+                                className="cursor-grab hover:bg-gray-100 p-2 rounded transition-colors active:cursor-grabbing"
+                              >
+                                <Bars3Icon className="w-5 h-5 text-gray-400" />
+                              </div>
+                              <div className="flex-1">
+                                <DriverAutocomplete
+                                  drivers={getAvailableDriversForActual(position)}
+                                  selectedDriver={actualResultDrivers[position - 1]}
+                                  onSelect={(driver) => handleActualDriverSelect(driver, position)}
+                                  position={position}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            </div>
+          </div>
+
+          {/* Resultado do Cálculo */}
+          {scoreDetails.length > 0 && (
+            <div ref={resultSectionRef} className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-black">Resultado da Pontuação</h2>
+                <div className="text-right">
+                  <div className="text-3xl font-bold text-blue-600">{totalScore}</div>
+                  <div className="text-sm text-black">de {getMaxPossibleScore()} pontos possíveis</div>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-2 text-black">Pos</th>
+                      <th className="text-left py-2 text-black">Seu Palpite</th>
+                      <th className="text-left py-2 text-black">Resultado Real</th>
+                      <th className="text-center py-2 text-black">Pontos</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {scoreDetails.map((detail, index) => (
+                      <tr key={index} className="border-b border-gray-100">
+                        <td className="py-2 font-medium text-black">{detail.position}º</td>
+                        <td className="py-2 text-black">{detail.guessPilot}</td>
+                        <td className="py-2 text-black">{detail.actualPilot}</td>
+                        <td className={`py-2 text-center font-bold ${getPointsColor(detail.points)}`}>
+                          {detail.points}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-            {/* Estatísticas */}
-            <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <div className="text-sm text-black">Pontos Máximos</div>
-                <div className="text-xl font-bold text-green-600">
-                  {scoreDetails.filter(d => d.points > 0).reduce((max, d) => Math.max(max, d.points), 0)}
+              {/* Estatísticas */}
+              <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <div className="text-sm text-black">Pontos Máximos</div>
+                  <div className="text-xl font-bold text-green-600">
+                    {scoreDetails.filter(d => d.points > 0).reduce((max, d) => Math.max(max, d.points), 0)}
+                  </div>
                 </div>
-              </div>
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <div className="text-sm text-black">Eficiência</div>
-                <div className="text-xl font-bold text-purple-600">
-                  {Math.round((totalScore / getMaxPossibleScore()) * 100)}%
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <div className="text-sm text-black">Eficiência</div>
+                  <div className="text-xl font-bold text-purple-600">
+                    {Math.round((totalScore / getMaxPossibleScore()) * 100)}%
+                  </div>
                 </div>
-              </div>
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <div className="text-sm text-black">Pontos/Posição</div>
-                <div className="text-xl font-bold text-orange-600">
-                  {(totalScore / numPositions).toFixed(1)}
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <div className="text-sm text-black">Pontos/Posição</div>
+                  <div className="text-xl font-bold text-orange-600">
+                    {(totalScore / numPositions).toFixed(1)}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 } 

@@ -167,6 +167,8 @@ export function Header() {
     { href: '/historico', label: 'Ranking', description: 'Classificação geral dos participantes' },
     { href: '/ultimo-evento', label: 'Último Evento', description: 'Resultados do GP mais recente' },
     { href: '/calculadora-pontos', label: 'Calculadora', description: 'Simule pontuações de palpites' },
+    { href: '/timeline', label: 'Timeline Interativa', description: 'Acompanhe sua jornada e conquistas' },
+    { href: '/comparacao', label: 'Comparação', description: 'Compare com outros usuários' },
   ];
 
   const tempoRealItems = [
@@ -199,6 +201,8 @@ export function Header() {
         { href: '/historico', label: 'Ranking', icon: TrophyIcon },
         { href: '/ultimo-evento', label: 'Último Evento', icon: StarIcon },
         { href: '/calculadora-pontos', label: 'Calculadora', icon: CalculatorIcon },
+        { href: '/timeline', label: 'Timeline Interativa', icon: ClockIcon },
+        { href: '/comparacao', label: 'Comparação', icon: UserGroupIcon },
       ]
     },
     {
@@ -318,7 +322,7 @@ export function Header() {
                             
                             <span className="flex-1">{item.label}</span>
                             
-                            {item.isExperimental && (
+                            {(item as any).isExperimental && (
                               <span className="text-xs bg-yellow-500 text-black px-2 py-1 rounded-full font-bold shadow-sm">
                                 BETA
                               </span>
