@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { useComparison } from '@/hooks/useComparison';
-import { Header } from '@/components/Header';
+import { useAuth } from '../../hooks/useAuth';
+import { useComparison } from '../../hooks/useComparison';
+import { Header } from '../../components/Header';
 import { 
   UserIcon, 
   ChartBarIcon, 
