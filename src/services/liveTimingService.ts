@@ -135,6 +135,14 @@ class LiveTimingService {
 
     try {
       const response = await fetch(`${OPENF1_API_BASE}/sessions?session_key=latest`);
+      
+      // Verificar se a resposta contém mensagem de restrição de acesso
+      const data = await response.json();
+      if (data.detail && data.detail.includes('access is restricted')) {
+        console.log('OpenF1 API: Acesso restrito - não há sessão ativa ou necessita autenticação');
+        return null;
+      }
+      
       if (!response.ok) {
         if (response.status === 404) {
           console.log('Nenhuma sessão ativa no momento');
@@ -143,7 +151,6 @@ class LiveTimingService {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
-      const data = await response.json();
       const session = data[0] || null;
       
       if (session) {
@@ -595,7 +602,6 @@ class LiveTimingService {
 
   // Buscar dados completos incluindo ranking ao vivo
   async getSessionData(sessionKey: number) {
-    debugger;
     const cacheKey = `session-data-${sessionKey}`;
     const cached = this.getCachedData<any>(cacheKey);
     if (cached) return cached;

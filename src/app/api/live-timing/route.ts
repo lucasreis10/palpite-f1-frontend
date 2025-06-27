@@ -13,10 +13,24 @@ export async function GET(request: Request) {
       const latestSession = await liveTimingService.getLatestSession();
       
       if (!latestSession) {
-        return NextResponse.json(
-          { error: 'Nenhuma sessão ativa encontrada' },
-          { status: 404 }
-        );
+        // Retornar dados mock quando não há sessão ativa
+        console.log('Nenhuma sessão F1 ativa - retornando dados mock');
+        
+        return NextResponse.json({
+          session: null,
+          standings: [],
+          raceControl: [],
+          liveRanking: [],
+          hasGuesses: false,
+          isMockData: true,
+          hasF1Data: false,
+          timestamp: new Date().toISOString(),
+          sessionName: 'Nenhuma sessão ativa',
+          grandPrixName: 'Aguardando próxima corrida',
+          sessionStatus: 'inactive',
+          isActive: false,
+          participants: []
+        });
       }
 
       const data = await liveTimingService.getSessionData(latestSession.session_key);
@@ -37,9 +51,23 @@ export async function GET(request: Request) {
 
   } catch (error) {
     console.error('Erro ao buscar dados de timing:', error);
-    return NextResponse.json(
-      { error: 'Erro ao buscar dados de timing' },
-      { status: 500 }
-    );
+    
+    // Em caso de erro, retornar dados mock em vez de erro 500
+    return NextResponse.json({
+      session: null,
+      standings: [],
+      raceControl: [],
+      liveRanking: [],
+      hasGuesses: false,
+      isMockData: true,
+      hasF1Data: false,
+      timestamp: new Date().toISOString(),
+      sessionName: 'Erro ao conectar',
+      grandPrixName: 'Serviço temporariamente indisponível',
+      sessionStatus: 'error',
+      isActive: false,
+      participants: [],
+      error: 'Serviço de timing temporariamente indisponível'
+    });
   }
 } 
