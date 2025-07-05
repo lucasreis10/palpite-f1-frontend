@@ -293,8 +293,17 @@ class LiveTimingService {
       }
 
       console.log('✅ Usando posições reais da F1');
+      
+      // Buscar dados dos drivers para a sessão atual
+      const drivers = await this.getDrivers(sessionKey);
+      console.log(`🚗 Dados de ${drivers.length} pilotos encontrados para sessão ${sessionKey}`);
+      
+      // Cache os dados dos drivers para uso posterior
+      if (drivers.length > 0) {
+        this.setCachedData('drivers', drivers);
+      }
+      
       // Mapear posições atuais para um formato mais fácil de trabalhar
-      const drivers = this.getCachedData<any[]>('drivers') || [];
       const currentPositions = positions.map(pos => {
         const driver = drivers.find(d => d.driver_number === pos.driver_number);
         
