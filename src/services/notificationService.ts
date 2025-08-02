@@ -1,5 +1,6 @@
 // Serviço de Notificações - SMS e Push
-import { Twilio } from 'twilio';
+// Importação dinâmica do Twilio para evitar erros no build
+type TwilioInstance = any;
 
 interface NotificationConfig {
   twilioAccountSid?: string;
@@ -22,7 +23,7 @@ interface NotificationResult {
 }
 
 class NotificationService {
-  private twilio?: Twilio;
+  private twilio?: TwilioInstance;
   private config: NotificationConfig;
 
   constructor() {
@@ -34,7 +35,13 @@ class NotificationService {
 
     // Inicializar Twilio se as credenciais estiverem disponíveis
     if (this.config.twilioAccountSid && this.config.twilioAuthToken) {
-      this.twilio = new Twilio(this.config.twilioAccountSid, this.config.twilioAuthToken);
+      try {
+        const Twilio = require('twilio');
+        this.twilio = new Twilio(this.config.twilioAccountSid, this.config.twilioAuthToken);
+      } catch (error) {
+        console.warn('Twilio não pôde ser inicializado:', error);
+        this.twilio = undefined;
+      }
     }
   }
 
@@ -154,7 +161,7 @@ class NotificationService {
   }
 
   // Verificar se SMS está disponível
-  isSSMSAvailable(): boolean {
+  isSMSAvailable(): boolean {
     return !!(this.twilio && this.config.twilioPhoneNumber);
   }
 
@@ -170,7 +177,7 @@ class NotificationService {
     const results: NotificationResult[] = [];
 
     // Tentar SMS primeiro
-    if (phoneNumber && this.isSSMSAvailable()) {
+    if (phoneNumber && this.isSMSAvailable()) {
       const smsResult = await this.sendBettingReminder(phoneNumber, userName, grandPrixName, deadline);
       results.push(smsResult);
       
@@ -196,4 +203,4 @@ class NotificationService {
 }
 
 export const notificationService = new NotificationService();
-export type { NotificationResult, SMSMessage }; 
+export type { NotificationResult, SMSMessage };
