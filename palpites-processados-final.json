@@ -1,0 +1,41 @@
+{
+  "metadata": {
+    "processedAt": "2025-08-01T19:15:16.768Z",
+    "stats": {
+      "totalUsers": 0,
+      "totalGuesses": 0,
+      "totalRaces": 24,
+      "qualifyingGuesses": 0,
+      "raceGuesses": 0,
+      "unmappedPilots": 0
+    },
+    "races": [
+      "AUSTRÁLIA",
+      "CHINA",
+      "JAPÃO",
+      "BAHREIN",
+      "ARÁBIA",
+      "MIAMI",
+      "EMÍLIA",
+      "MÔNACO",
+      "ESPANHA",
+      "CANADÁ",
+      "ÁUSTRIA",
+      "INGLATERRA",
+      "BÉLGICA",
+      "HUNGRIA",
+      "HOLANDA",
+      "ITÁLIA",
+      "AZERBAIJÃO",
+      "SINGAPURA",
+      "EUA",
+      "MÉXICO",
+      "BRASIL",
+      "LAS VEGAS",
+      "CATAR",
+      "EAU"
+    ]
+  },
+  "users": [],
+  "guesses": []
+}

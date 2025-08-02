@@ -16,6 +16,7 @@ import {
   ArrowPathIcon,
   BuildingOfficeIcon,
   ChartBarIcon,
+  DocumentArrowUpIcon,
 } from '@heroicons/react/24/outline';
 
 export default function AdminPage() {
@@ -87,6 +88,16 @@ export default function AdminPage() {
     if (!stats) return [];
 
     return [
+      {
+        title: 'Import de Palpites',
+        description: 'Faça upload do arquivo Excel com palpites históricos',
+        icon: DocumentArrowUpIcon,
+        href: '/admin/upload',
+        stats: {
+          label: 'Nova Funcionalidade',
+          value: '📤 Excel',
+        }
+      },
       {
         title: 'Gerenciar Eventos',
         description: 'Cadastre novos eventos, feche resultados e consolide pontuações',
@@ -284,7 +295,7 @@ export default function AdminPage() {
 
           {/* Próxima Corrida e Estatísticas Adicionais */}
           {stats && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 mt-8">
               <div className="lg:col-span-2">
                 <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
                   <h2 className="text-xl font-bold text-gray-900 mb-4">Próxima Corrida</h2>
