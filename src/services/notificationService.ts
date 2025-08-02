@@ -1,5 +1,5 @@
 // Serviço de Notificações - SMS e Push
-// import { Twilio } from 'twilio'; // Será instalado depois
+import { Twilio } from 'twilio';
 
 interface NotificationConfig {
   twilioAccountSid?: string;
@@ -196,4 +196,4 @@ class NotificationService {
 }
 
 export const notificationService = new NotificationService();
-export { NotificationResult, SMSMessage }; 
+export type { NotificationResult, SMSMessage }; 
